@@ -52,6 +52,7 @@ type
     src: TStream;
     codegroup : Integer;
     value     : string;
+    buf       : array of byte;
     datatype  : TDxfType;
     intVal    : Integer;
     intVal64  : Int64;
@@ -151,12 +152,16 @@ begin
 end;
 
 function TDxfBinaryScanner.Next: TDxfScanResult;
+var
+  sz : integer;
 begin
   value := '';
   intVal := 0;
   intVal64 := 0;
+  SetLength(buf, 0);
 
-  if isEof then begin
+
+  if isEof or (src.Position>=src.Size) then begin
     Result := scEof;
     Exit;
   end;
@@ -165,6 +170,11 @@ begin
   codegroup := src.ReadWord;
   datatype := DxfDataType(codegroup);
   case datatype of
+    dtBin1: begin
+      sz := src.ReadByte;
+      SetLength(buf, sz);
+      src.Read(buf[0], sz);
+    end;
     dtStr2049, dtStr255, dtStrHex:
     begin
       value := ReadNullChar(src);
@@ -365,7 +375,6 @@ begin
         Result := prTableAttr;
       end;
     else
-      writelN('mode=',mode);
       //MODE_ROOT:
       //  SetError('unexpected code group');
     end;

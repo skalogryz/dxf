@@ -41,7 +41,20 @@ const
   CSHADOW_IGNORE    = 3; // Ignores shadows
 
 type
-  TDxfType = (dtUnknown, dtInt16, dtInt32, dtInt64, dtDouble, dtStr2049, dtStr255, dtBoolean, dtStrHex);
+  TDxfType = (
+    dtUnknown,
+    dtInt16,   // in binary it's int16
+    dtInt32,   // in binary it's int32
+    dtInt64,   // in binary it's int64
+    dtDouble,  // in binary it's double
+    dtStr2049, // in binary it's null-char
+    dtStr255,  // in binary it's null-char
+    dtBoolean, // in binary it's int8
+    dtStrHex,  // in binary it's null-char
+    dtBin1     // in Textural representation this is a StrHex.
+               // For Binary it's 1 byte of the size followed
+               // by the chunk of bytes
+  );
 
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
@@ -69,7 +82,7 @@ begin
     280..289: Result := dtInt16;
     290..299: Result := dtBoolean;
     300..309: Result := dtStr255;
-    310..319,
+    310..319: Result := dtBin1;
     320..329,
     330..369: Result := dtStrHex;
     370..379,
