@@ -42,8 +42,8 @@ type
     function Next: TDxfScanResult;
 
     // Returns the information about the current position
-    // LineNum <= 0, if reading is binary.
-    // Offset = column from the start of the line (if LineNum>0), or offset from the start of the stream
+    // LineNum <= 0, if reading is binary Offset value indicates the offset in the stream
+    // LineNum >=1, the reading is text the line number is indicatd. Offset is zero
     procedure GetLocationInfo(out LineNum, Offset: Integer); virtual; abstract;
   end;
 
@@ -51,10 +51,8 @@ type
 
   TDxfAsciiScanner = class(TDxfScanner)
   private
-    lineStart : integer;
     fSrc      : TStream;
     fSrcOwn   : Boolean;
-    function GetLineOfs: Integer;
   protected
     function DoNext(var errmsg: string): TDxfScanResult; override;
     function PrepareValues: Boolean;
@@ -65,7 +63,6 @@ type
     procedure SetSource(ASource: TStream; OwnStream: Boolean); override;
     destructor Destroy; override;
     procedure SetBuf(const astr: string);
-    property LineOfs: Integer read GetLineOfs;
     procedure GetLocationInfo(out ALineNum, AOffset: Integer); override;
   end;
 
@@ -280,11 +277,6 @@ end;
 
 { TDxfAsciiScanner }
 
-function TDxfAsciiScanner.GetLineOfs: Integer;
-begin
-  Result:=idx - lineStart;
-end;
-
 procedure TDxfAsciiScanner.SetSource(ASource: TStream; OwnStream: Boolean);
 var
   sz : Int64;
@@ -314,9 +306,16 @@ begin
     Result:=scEof;
     Exit;
   end;
-  while (idx<=length(buf)) and not (buf[idx] in SignDigits) do inc(idx);
+  while (idx<=length(buf)) and not (buf[idx] in SignDigits) do begin
+    if buf[idx] in LBChars then begin
+      SkipLineBreak(buf, idx);
+      inc(lineNum);
+    end else
+      inc(idx);
+  end;
   i := idx;
   if (idx<=length(buf)) and (buf[idx] in Signs) then inc(idx);
+
   while (idx<=length(buf)) and (buf[idx] in Digits) do inc(idx);
   Val(Copy(buf, i, idx-i), codegroup, err);
   if err<>0 then begin
@@ -331,11 +330,11 @@ begin
     Result := scError;
     Exit;
   end;
+  inc(LineNum);
 
   i:=idx;
   while (idx<=length(buf)) and not (buf[idx] in LBChars) do inc(idx);
   ValStr := Copy(buf, i, idx-i);
-  SkipLineBreak(buf, idx);
 
   PrepareValues;
 
@@ -385,8 +384,8 @@ end;
 
 procedure TDxfAsciiScanner.GetLocationInfo(out ALineNum, AOffset: Integer);
 begin
-  ALineNum := LineNum;
-  AOffset := idx - lineStart;
+  ALineNum := lineNum;
+  AOffset := 0;
 end;
 
 function ConsumeCodeBlock(p : TDxfScanner; expCode: Integer; var value: string): Boolean;
