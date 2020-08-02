@@ -18,9 +18,33 @@ NOTE: Accommodating DXF files from future releases of AutoCAD®  will be easier
 type
   TDxfScanResult = (scError, scValue, scEof);
 
+  { TDxfScanner }
+
   TDxfScanner = class(TObject)
+  protected
+    function DoNext(var errmsg: string): TDxfScanResult; virtual; abstract;
   public
-    function Next: TDxfScanResult; virtual; abstract;
+    LastScan   : TDxfScanResult; // set by Next, result of DoNext
+    DataType   : TDxfType;       // set by DoNext. Defaulted to dtUnknown. if DoNext() returns dtUnknown
+                                 // but CodeGroup is set to a non-negative value, it tries to determine the actual type
+    ErrStr     : string;         // the error set by Next, returned via errmsg of DoNext
+    CodeGroup  : Integer;        // set by DoNext
+    ValStr     : string;         // set by DoNext
+    ValInt     : Int32;          // set by DoNext
+    ValInt64   : Int64;          // set by DoNext
+    ValBin     : array of byte;  // set by DoNext
+    ValBinLen  : Integer;        // set by DoNext
+    ValFloat   : Double;         // set by DoNext
+    // Binds a source ot the scanner. if OWnStream, the Scanner will free source, if the scanner is freed
+    procedure SetSource(ASource: TStream; OwnStream: Boolean); virtual; abstract;
+
+    // reads the next pair in the
+    function Next: TDxfScanResult;
+
+    // Returns the information about the current position
+    // LineNum <= 0, if reading is binary.
+    // Offset = column from the start of the line (if LineNum>0), or offset from the start of the stream
+    procedure GetLocationInfo(out LineNum, Offset: Integer); virtual; abstract;
   end;
 
   { TDxfAsciiScanner }
@@ -28,41 +52,52 @@ type
   TDxfAsciiScanner = class(TDxfScanner)
   private
     lineStart : integer;
+    fSrc      : TStream;
+    fSrcOwn   : Boolean;
     function GetLineOfs: Integer;
+  protected
+    function DoNext(var errmsg: string): TDxfScanResult; override;
+    function PrepareValues: Boolean;
   public
     buf    : string;
     idx    : integer;
-
     lineNum  : integer;
-
-    codegroup : Integer;
-    value     : string;
-    errStr    : string;
-    function Next: TDxfScanResult; override;
+    procedure SetSource(ASource: TStream; OwnStream: Boolean); override;
+    destructor Destroy; override;
     procedure SetBuf(const astr: string);
-    function ValueAsInt(const def: integer = 0): Integer;
-    function ValueAsDouble(const def: double = 0): double;
     property LineOfs: Integer read GetLineOfs;
+    procedure GetLocationInfo(out ALineNum, AOffset: Integer); override;
   end;
 
   { TDxfBinaryScanner }
 
+  // Parses the binary input Stream. Note thet the binary header
+  // must skipped over, prior to calling SetSource
   TDxfBinaryScanner = class(TDxfScanner)
+  protected
+    function DoNext(var errmsg: string): TDxfScanResult; override;
   public
-    src: TStream;
-    codegroup : Integer;
-    value     : string;
-    buf       : array of byte;
-    datatype  : TDxfType;
-    intVal    : Integer;
-    intVal64  : Int64;
-    flVal     : double;
+    src       : TStream;
+    srcStart  : Int64;
+    srcOwn    : Boolean;
     isEof     : Boolean;
-    function Next: TDxfScanResult; override;
+    destructor Destroy; override;
+    procedure SetSource(ASource: TStream; OwnStream: Boolean); override;
+    procedure GetLocationInfo(out ALineNum, AOffset: Integer); override;
   end;
 
-function ConsumeCodeBlock(p : TDxfAsciiScanner; expCode: Integer; var value: string): Boolean;
+// tries to detect if stream is binary or not.
+// note the Stream is read for the first 22-bytes to detect
+// if it's binary or not.
+function DxfisBinary(AStream: TStream): Boolean;
 
+// Allocates the scanner according to the stream type. (SetSource method is called)
+// for binary, the header is also skipped over
+// The Stream must allow random-access, because it's first read using isBinary.
+// after reading the position might be shifted back for ASCII reading
+function DxfAllocScanner(AStream: TStream; OwnStream: boolean): TDxfScanner;
+
+function ConsumeCodeBlock(p : TDxfAsciiScanner; expCode: Integer; var value: string): Boolean;
 
 type
   TDxfParseResult = (
@@ -96,6 +131,9 @@ type
     ErrStr : string;
     function Next: TDxfParseResult;
   end;
+
+const
+  INVALID_CODEGROUP = $10000; // the code group max is $FFFF. Int16
 
 implementation
 
@@ -151,16 +189,56 @@ begin
   Result:=buf;
 end;
 
-function TDxfBinaryScanner.Next: TDxfScanResult;
+{ TDxfScanner }
+
+function TDxfScanner.Next: TDxfScanResult;
+begin
+  ValStr := '';
+  ValInt := 0;
+  ValInt64 := 0;
+  ValBinLen := 0;
+  ValFloat := 0;
+  CodeGroup := INVALID_CODEGROUP;
+  DataType := dtUnknown;
+  ErrStr := '';
+  try
+    LastScan := DoNext(ErrStr);
+  except
+    on E: Exception do begin
+      LastScan := scError;
+      ErrStr := E.Message;
+    end
+  end;
+  Result := LastScan;
+end;
+
+destructor TDxfBinaryScanner.Destroy;
+begin
+  if srcOwn then src.Free;
+  inherited Destroy;
+end;
+
+procedure TDxfBinaryScanner.SetSource(ASource: TStream; OwnStream: Boolean);
+begin
+  if not Assigned(ASource) then Exit;
+  src := ASource;
+  srcStart := src.Position;
+  srcOwn := OwnStream;
+end;
+
+procedure TDxfBinaryScanner.GetLocationInfo(out ALineNum, AOffset: Integer);
+begin
+  ALineNum := 0;
+  if Assigned(src) then
+    AOffset := src.Position - srcStart
+  else
+    AOffset := 0;
+end;
+
+function TDxfBinaryScanner.DoNext(var errmsg: string): TDxfScanResult;
 var
   sz : integer;
 begin
-  value := '';
-  intVal := 0;
-  intVal64 := 0;
-  SetLength(buf, 0);
-
-
   if isEof or (src.Position>=src.Size) then begin
     Result := scEof;
     Exit;
@@ -172,30 +250,27 @@ begin
   case datatype of
     dtBin1: begin
       sz := src.ReadByte;
-      SetLength(buf, sz);
-      src.Read(buf[0], sz);
+      SetLength(ValBin, sz);
+      src.Read(ValBin[0], sz);
     end;
     dtStr2049, dtStr255, dtStrHex:
     begin
-      value := ReadNullChar(src);
-      if (length(value)=3) and (value[1]='E')
-        and (value[2]='O') and (value[3]='F') then
+      ValStr := ReadNullChar(src);
+      if (length(ValStr)=3) and (ValStr[1]='E')
+        and (ValStr[2]='O') and (ValStr[3]='F') then
         isEof := true;
     end;
     dtBoolean: begin
-      intVal := src.ReadByte;
-      intVal64 := intVal;
+      ValInt := src.ReadByte;
     end;
     dtInt16: begin
-      intVal := Int16(src.ReadWord);
-      intVal64 := intVal;
+      ValInt := Int16(src.ReadWord);
     end;
     dtInt32: begin
-      intVal := Int32(src.ReadDWord);
-      intVal64 := intVal;
+      ValInt := Int32(src.ReadDWord);
     end;
     dtDouble:
-      src.Read(flVal, sizeof(flVal));
+      src.Read(ValFloat, sizeof(ValFloat));
   end;
 end;
 
@@ -206,7 +281,26 @@ begin
   Result:=idx - lineStart;
 end;
 
-function TDxfAsciiScanner.Next: TDxfScanResult;
+procedure TDxfAsciiScanner.SetSource(ASource: TStream; OwnStream: Boolean);
+var
+  sz : Int64;
+  s  : string;
+begin
+  if not Assigned(ASource) then Exit;
+  fSrc := ASource;
+  fSrcOwn := OwnStream;
+  SetLength(s, fSrc.Size-fSrc.Position);
+  if length(s)>0 then fSrc.Read(s[1], length(s));
+  SetBuf(s);
+end;
+
+destructor TDxfAsciiScanner.Destroy;
+begin
+  if fSrcOwn then fSrc.Free;
+  inherited Destroy;
+end;
+
+function TDxfAsciiScanner.DoNext(var errmsg: string): TDxfScanResult;
 var
   i   : integer;
   err : integer;
@@ -222,24 +316,60 @@ begin
   while (idx<=length(buf)) and (buf[idx] in Digits) do inc(idx);
   Val(Copy(buf, i, idx-i), codegroup, err);
   if err<>0 then begin
-    errStr := 'invalid block code format'; // integer expected
+    errmsg := 'invalid block code format'; // integer expected
     Result := scError;
     Exit;
   end;
   while not (idx<=length(buf)) and (buf[idx] in LBChars) do inc(idx);
 
   if not SkipLineBreak(buf, idx) then begin
-    errStr := 'expecting end of line'; // integer expected
+    errmsg := 'expecting end of line'; // integer expected
     Result := scError;
     Exit;
   end;
 
   i:=idx;
   while (idx<=length(buf)) and not (buf[idx] in LBChars) do inc(idx);
-  value := Copy(buf, i, idx-i);
+  ValStr := Copy(buf, i, idx-i);
   SkipLineBreak(buf, idx);
 
+  PrepareValues;
+
   Result := scValue;
+end;
+
+function TDxfAsciiScanner.PrepareValues: Boolean;
+var
+  err : integer;
+begin
+  Result := true;
+  DataType := DxfDataType(CodeGroup);
+  case DataType of
+    dtInt16, dtInt32, dtBoolean:  begin
+      Val(ValStr, ValInt, err);
+      Result := err = 0;
+      ValInt64 := ValInt;
+    end;
+    dtInt64: begin
+      Val(ValStr, ValInt64, err);
+      Result := err = 0;
+    end;
+    dtDouble: begin
+      Val(ValStr, ValFloat, err);
+      Result := err = 0;
+    end;
+    dtBin1:
+    begin
+      if ValStr = '' then
+        ValBinLen := 0
+      else begin
+        ValBinLen :=length(valStr) div 2;
+        if length(valBin) < valBinLen then
+          SetLength(valBin, valBinLen);
+        HexToBin(@ValStr[1], @valBin[0], valBinLen);
+      end;
+    end;
+  end;
 end;
 
 procedure TDxfAsciiScanner.SetBuf(const astr: string);
@@ -249,20 +379,10 @@ begin
   idx := 1;
 end;
 
-function TDxfAsciiScanner.ValueAsInt(const def: integer): Integer;
-var
-  err : integer;
+procedure TDxfAsciiScanner.GetLocationInfo(out ALineNum, AOffset: Integer);
 begin
-  Val(value, Result, err);
-  if err <> 0 then Result := def;
-end;
-
-function TDxfAsciiScanner.ValueAsDouble(const def: double): double;
-var
-  err : integer;
-begin
-  Val(value, Result, err);
-  if err <> 0 then Result := def;
+  ALineNum := LineNum;
+  AOffset := idx - lineStart;
 end;
 
 function ConsumeCodeBlock(p : TDxfAsciiScanner; expCode: Integer; var value: string): Boolean;
@@ -272,13 +392,13 @@ begin
   Result := p.Next = scValue;
   if not Result then Exit;
   Result := p.codegroup = expCode;
-  if Result then Value := p.value;
+  if Result then Value := p.ValStr;
 end;
 
 function TDxfParser.ParseHeader(t: TDxfAsciiScanner): TDxfParseResult;
 begin
   if (t.codegroup = CB_VARNAME) then begin
-    varName := t.value;
+    varName := t.ValStr;
     Result := prVarName
   end else if (varName<>'') then
     Result := prVarValue;
@@ -320,11 +440,11 @@ begin
   end;
 
   if (t.codegroup = 0) then begin
-    if (t.value = 'EOFN') then begin
+    if (t.ValStr = 'EOFN') then begin
       t.Next;
       Result := prEof;
       Exit; // end of file
-    end else if (t.value ='SECTION') then begin
+    end else if (t.valStr ='SECTION') then begin
       if inSec>0 then begin
         SetError('nested section is not allowed');
         Exit;
@@ -340,7 +460,7 @@ begin
       else if secName = 'TABLES' then mode := MODE_TABLES;
       inc(inSec);
 
-    end else if (t.value ='ENDSEC') then begin
+    end else if (t.valStr='ENDSEC') then begin
       dec(inSec);
       if inSec<0 then begin
         SetError( 'unexpected end of section');
@@ -353,9 +473,9 @@ begin
       mode := 0;
 
       Result := prSecEnd;
-    end else if (t.value = 'CLASS') and (mode = MODE_CLASSES) then begin
+    end else if (t.valStr = 'CLASS') and (mode = MODE_CLASSES) then begin
       Result := prClassStart;
-    end else if (t.value = 'TABLE') and (mode = MODE_TABLES) then begin
+    end else if (t.valStr = 'TABLE') and (mode = MODE_TABLES) then begin
       Result := prTableStart;
       tableName := '';
       handle := '';
@@ -369,8 +489,8 @@ begin
       MODE_TABLES:
       begin
         case t.codegroup of
-          CB_TABLE_NAME: tableName := t.value;
-          CB_TABLE_HANDLE: Handle := t.value;
+          CB_TABLE_NAME: tableName := t.ValStr;
+          CB_TABLE_HANDLE: Handle := t.ValStr;
         end;
         Result := prTableAttr;
       end;
@@ -379,6 +499,40 @@ begin
       //  SetError('unexpected code group');
     end;
   end;
+end;
+
+function DxfisBinary(AStream: TStream): Boolean;
+var
+  buf : string;
+  sz  : integer;
+  pos : int64;
+begin
+  Result := Assigned(AStream);
+  if not Result then Exit;
+
+  SetLength(buf, length(DxfBinaryHeader));
+  Result := AStream.Read(buf[1], length(buf)) = length(buf);
+  if not Result then Exit;
+
+  Result := buf = DxfBinaryHeader;
+end;
+
+function DxfAllocScanner(AStream: TStream; OwnStream: boolean): TDxfScanner;
+var
+  pos : Int64;
+begin
+  if not Assigned(AStream) then begin
+    Result := nil;
+    Exit;
+  end;
+  pos := AStream.Position;
+  if DxfisBinary(AStream) then
+    Result := TDxfBinaryScanner.Create
+  else begin
+    AStream.Position := pos;
+    Result := TDxfAsciiScanner.Create;
+  end;
+  Result.SetSource(AStream, OwnStream);
 end;
 
 end.
