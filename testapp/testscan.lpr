@@ -3,7 +3,6 @@ program readtest;
 {$mode objfpc}{$H+}
 
 uses
-  heaptrc,
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
@@ -32,7 +31,8 @@ begin
           dtUnknown:        writeln('unknown');
           dtInt16, dtInt32: writeln('  value: ', bs.ValInt);
           dtInt64:          writeln('  value: ', bs.ValInt64);
-          dtStr2049, dtStr255, dtStrHex:
+          dtStr2049, dtStr255, dtStrHex
+          :
             writeln('  value: ', bs.ValStr);
           dtDouble:
             writeln('  value: ', bs.ValFloat);
