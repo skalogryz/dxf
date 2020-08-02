@@ -5,11 +5,14 @@ interface
 const
   DxfBinaryHeader = 'AutoCAD Binary DXF'#13#10#26#0;
 const
+  CB_CONTROL = 0; // control
   CB_SECNAME = 2; // section name
   CB_VARNAME = 9; // variable name
 
   CB_TABLE_NAME   = 2;
   CB_TABLE_HANDLE = 5;
+
+  CB_COMMENT      = 999;
 
 const
   // $ANGDIR
