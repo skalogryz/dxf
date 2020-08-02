@@ -3,6 +3,8 @@ unit dxftypes;
 interface
 
 const
+  DxfBinaryHeader = 'AutoCAD Binary DXF'#13#10#26#0;
+const
   CB_SECNAME = 2; // section name
   CB_VARNAME = 9; // variable name
 
