@@ -141,9 +141,10 @@ type
     secName   : string;
     varName   : string;
     tableName : string;
-    handle    : string;
-    Comment   : string;
-    ErrStr    : string;
+    tableHandle  : string;
+    handle       : string;
+    Comment      : string;
+    ErrStr       : string;
 
     BlockHandle  : string;
     EntityType   : string; // entity type
@@ -489,8 +490,13 @@ end;
 
 function TDxfParser.ParseTables(t: TDxfScanner; var newmode: integer): TDxfParseToken;
 begin
-  if (t.valStr = NAME_TABLE) then
-    Result := prTableStart
+  if (t.valStr = NAME_TABLE) then begin
+    Result := prTableStart;
+    tableName := '';
+    Handle := '';
+    ConsumeCodeBlock(t, CB_NAME, tableName);
+    ConsumeCodeBlock(t, CB_HANDLE, tableHandle);
+  end
   else
     Result := prTableAttr;
 end;
