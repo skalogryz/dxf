@@ -13,11 +13,23 @@ var
   f : TFileStream;
   p : TDxfParser;
   ln,ofs: integer;
+  mem : TMemoryStream;
 begin
-  f := TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
+  mem := TMemoryStream.Create;
+  try
+    f := TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
+    try
+      mem.CopyFrom(f, f.size);
+      mem.Position := 0;
+    finally
+      f.Free;
+    end;
+  except
+    Exit;
+  end;
   p := TDxfParser.Create;
   try
-    p.scanner := DxfAllocScanner(f, true);
+    p.scanner := DxfAllocScanner(mem, true);
     while p.Next <> prError do begin
       if p.token = prEof then Break;
 
