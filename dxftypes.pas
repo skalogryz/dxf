@@ -6,11 +6,13 @@ const
   DxfBinaryHeader = 'AutoCAD Binary DXF'#13#10#26#0;
 const
   CB_CONTROL = 0; // control
-  CB_SECNAME = 2; // section name
+  CB_NAME    = 2; // section name
+  CB_HANDLE  = 5; // handle value
   CB_VARNAME = 9; // variable name
 
-  CB_TABLE_NAME   = 2;
-  CB_TABLE_HANDLE = 5;
+  CB_SECtION_NAME = CB_NAME;
+  CB_TABLE_NAME   = CB_NAME;
+  CB_TABLE_HANDLE = CB_HANDLE;
 
   CB_COMMENT      = 999;
 
@@ -18,8 +20,12 @@ const
   NAME_OBJECTS  = 'OBJECTS';
   NAME_ENTITIES = 'ENTITIES';
   NAME_BLOCKS   = 'BLOCKS';
+  NAME_BLOCK    = 'BLOCK';
+  NAME_ENDBLK   = 'ENDBLK';
   NAME_TABLES   = 'TABLES';
+  NAME_TABLE    = 'TABLE';
   NAME_CLASSES  = 'CLASSES';
+  NAME_CLASS    = 'CLASS';
   NAME_HEADER   = 'HEADER';
   NAME_SECTION  = 'SECTION';
   NAME_ENDSEC   = 'ENDSEC';
