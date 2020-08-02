@@ -111,8 +111,12 @@ type
     prTableAttr,
     prVarName,
     prVarValue,
+    prBlockStart,
     prBlockAttr,
+    prEntityInBlock,
+    prBlockEnd,
     prEntityAttr,
+    prEntityStart,
     prObjAttr,
     prComment
   );
@@ -125,6 +129,10 @@ type
     inSec: integer;
     function ParseRoot(t: TDxfScanner; var newmode: Integer): TDxfParseToken;
     function ParseHeader(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+    function ParseClasses(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+    function ParseTables(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+    function ParseBlocks(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+    function ParseEntities(t: TDxfScanner; var newmode: integer): TDxfParseToken;
     function DoNext: TDxfParseToken;
     procedure SetError(const msg: string);
   public
@@ -136,6 +144,10 @@ type
     handle    : string;
     Comment   : string;
     ErrStr    : string;
+
+    BlockHandle  : string;
+    EntityType   : string; // entity type
+    EntityHandle : string;
     function Next: TDxfParseToken;
   end;
 
@@ -150,6 +162,7 @@ const
   MODE_BLOCKS   = 4;
   MODE_ENTITIES = 5;
   MODE_OBJECTS  = 6;
+  MODE_ENTITIESINBLOCK = 7;
 
 implementation
 
@@ -426,7 +439,7 @@ begin
         Result := prError;
         Exit;
       end;
-      if not ConsumeCodeBlock(t, CB_SECNAME, secName) then begin
+      if not ConsumeCodeBlock(t, CB_SECTION_NAME, secName) then begin
         SetError('expected section name');
         Result := prError;
         Exit;
@@ -448,9 +461,7 @@ begin
       mode := 0;
 
       Result := prSecEnd;
-    {end else if (t.valStr = 'CLASS') and (mode = MODE_CLASSES) then begin
-      Result := prClassStart;
-    end else if (t.valStr = 'TABLE') and (mode = MODE_TABLES) then begin
+    {end else if (t.valStr = 'TABLE') and (mode = MODE_TABLES) then begin
       Result := prTableStart;
       tableName := '';
       handle := '';}
@@ -465,6 +476,59 @@ begin
     Result := prVarName
   end else if (varName<>'') then
     Result := prVarValue;
+end;
+
+function TDxfParser.ParseClasses(t: TDxfScanner; var newmode: integer
+  ): TDxfParseToken;
+begin
+  if (t.valStr = NAME_CLASS) then
+    Result := prClassStart
+  else
+    Result := prClassAttr;
+end;
+
+function TDxfParser.ParseTables(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+begin
+  if (t.valStr = NAME_TABLE) then
+    Result := prTableStart
+  else
+    Result := prTableAttr;
+end;
+
+function TDxfParser.ParseBlocks(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+begin
+  if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_BLOCK) then begin
+    Result := prBlockStart;
+    Handle := '';
+    ConsumeCodeBlock(t, CB_HANDLE, BlockHandle);
+  end else if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_ENDBLK) then begin
+    Result := prBlockEnd;
+    Handle := '';
+    ConsumeCodeBlock(t, CB_HANDLE, BlockHandle);
+  end else if (t.CodeGroup = CB_CONTROL) then begin
+    // Entity!
+    Result := ParseEntities(t, newmode);
+    newmode := MODE_ENTITIESINBLOCK;
+  end else begin
+    if (t.CodeGroup = CB_HANDLE) and (BlockHandle = '') then BlockHandle := t.ValStr;
+    Result := prBlockAttr;
+  end;
+end;
+
+function TDxfParser.ParseEntities(t: TDxfScanner; var newmode: integer
+  ): TDxfParseToken;
+begin
+  if (newmode = MODE_ENTITIESINBLOCK) and (t.CodeGroup = 0) and (t.ValStr = NAME_ENDBLK) then begin
+    Result := ParseBlocks(t, newmode);
+  end else if (t.CodeGroup = 0) then begin
+    EntityType := t.ValStr;
+    Result := prEntityStart;
+    EntityHandle := '';
+    ConsumeCodeBlock(t, CB_HANDLE, EntityHandle);
+  end else begin
+    if (t.CodeGroup = CB_HANDLE) and (Handle = '') then EntityHandle := t.ValStr;
+    Result := prEntityAttr;
+  end;
 end;
 
 function TDxfParser.DoNext: TDxfParseToken;
@@ -506,24 +570,15 @@ begin
         Result := ParseHeader(t, mode);
       end;
       MODE_CLASSES:
-        Result := prClassAttr; // it's always class attribute
+        Result := ParseClasses(t, mode); // it's always class attribute
       MODE_BLOCKS:
-        Result := prBlockAttr;
-      MODE_ENTITIES:
-        Result := prEntityAttr;
+        Result := ParseBlocks(t, mode);
+      MODE_ENTITIES, MODE_ENTITIESINBLOCK:
+        Result := ParseEntities(t, mode);
       MODE_OBJECTS:
         Result := prObjAttr;
       MODE_TABLES:
-      begin
-        case t.codegroup of
-          CB_TABLE_NAME: tableName := t.ValStr;
-          CB_TABLE_HANDLE: Handle := t.ValStr;
-        end;
-        Result := prTableAttr;
-      end;
-    else
-      //MODE_ROOT:
-      //  SetError('unexpected code group');
+        Result := ParseTables(t, mode);
     end;
 
   case Result of
