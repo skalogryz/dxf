@@ -416,11 +416,11 @@ end;
 function TDxfParser.ParseRoot(t: TDxfScanner; var newmode: Integer): TDxfParseToken;
 begin
   if (t.codegroup = 0) then begin
-    if (t.ValStr = 'EOFN') then begin
+    if (t.ValStr = NAME_EOF) then begin
       t.Next;
       Result := prEof;
       Exit; // end of file
-    end else if (t.valStr ='SECTION') then begin
+    end else if (t.valStr = NAME_SECTION) then begin
       if inSec>0 then begin
         SetError('nested section is not allowed');
         Result := prError;
@@ -433,14 +433,14 @@ begin
       end;
       Result := prSecStart;
 
-      if secName = 'HEADER' then newmode := MODE_HEADER
-      else if secName = 'CLASSES' then newmode := MODE_CLASSES
-      else if secName = 'TABLES' then newmode := MODE_TABLES
-      else if secName = 'BLOCKS' then newmode := MODE_BLOCKS
-      else if secName = 'ENTITIES' then newMode := MODE_ENTITIES
-      else if secName = 'OBJECTS' then newMode := MODE_OBJECTS;
+      if secName = NAME_HEADER then newmode := MODE_HEADER
+      else if secName = NAME_CLASSES then newmode := MODE_CLASSES
+      else if secName = NAME_TABLES then newmode := MODE_TABLES
+      else if secName = NAME_BLOCKS then newmode := MODE_BLOCKS
+      else if secName = NAME_ENTITIES then newMode := MODE_ENTITIES
+      else if secName = NAME_OBJECTS then newMode := MODE_OBJECTS;
 
-    end else if (t.valStr='ENDSEC') then begin
+    end else if (t.valStr=NAME_ENDSEC) then begin
 
       if mode = MODE_HEADER then varName := '';
 
@@ -494,9 +494,9 @@ begin
   if (t.CodeGroup=CB_COMMENT) then begin
     comment := t.ValStr;
     Result := prComment;
-  end else if (t.CodeGroup=0) and (t.ValStr = 'ENDSEC') then begin
+  end else if (t.CodeGroup=0) and (t.ValStr = NAME_ENDSEC) then begin
     Result := prSecEnd
-  end else if (t.CodeGroup=0) and (t.ValStr = 'EOF') then begin
+  end else if (t.CodeGroup=0) and (t.ValStr = NAME_EOF) then begin
     Result := prEof
   end else
     case mode of
