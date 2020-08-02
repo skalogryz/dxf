@@ -111,6 +111,9 @@ type
     prTableAttr,
     prVarName,
     prVarValue,
+    prBlockAttr,
+    prEntityAttr,
+    prObjAttr,
     prComment
   );
 
@@ -120,8 +123,10 @@ type
   protected
     mode : integer;
     inSec: integer;
-    function ParseHeader(t: TDxfScanner): TDxfParseToken;
+    function ParseRoot(t: TDxfScanner; var newmode: Integer): TDxfParseToken;
+    function ParseHeader(t: TDxfScanner; var newmode: integer): TDxfParseToken;
     function DoNext: TDxfParseToken;
+    procedure SetError(const msg: string);
   public
     token     : TDxfParseToken;
     scanner   : TDxfScanner;
@@ -129,12 +134,22 @@ type
     varName   : string;
     tableName : string;
     handle    : string;
+    Comment   : string;
     ErrStr    : string;
     function Next: TDxfParseToken;
   end;
 
 const
   INVALID_CODEGROUP = $10000; // the code group max is $FFFF. Int16
+
+const
+  MODE_ROOT     = 0;
+  MODE_HEADER   = 1;
+  MODE_CLASSES  = 2;
+  MODE_TABLES   = 3;
+  MODE_BLOCKS   = 4;
+  MODE_ENTITIES = 5;
+  MODE_OBJECTS  = 6;
 
 implementation
 
@@ -398,7 +413,52 @@ begin
   if Result then Value := p.ValStr;
 end;
 
-function TDxfParser.ParseHeader(t: TDxfScanner): TDxfParseToken;
+function TDxfParser.ParseRoot(t: TDxfScanner; var newmode: Integer): TDxfParseToken;
+begin
+  if (t.codegroup = 0) then begin
+    if (t.ValStr = 'EOFN') then begin
+      t.Next;
+      Result := prEof;
+      Exit; // end of file
+    end else if (t.valStr ='SECTION') then begin
+      if inSec>0 then begin
+        SetError('nested section is not allowed');
+        Result := prError;
+        Exit;
+      end;
+      if not ConsumeCodeBlock(t, CB_SECNAME, secName) then begin
+        SetError('expected section name');
+        Result := prError;
+        Exit;
+      end;
+      Result := prSecStart;
+
+      if secName = 'HEADER' then newmode := MODE_HEADER
+      else if secName = 'CLASSES' then newmode := MODE_CLASSES
+      else if secName = 'TABLES' then newmode := MODE_TABLES
+      else if secName = 'BLOCKS' then newmode := MODE_BLOCKS
+      else if secName = 'ENTITIES' then newMode := MODE_ENTITIES
+      else if secName = 'OBJECTS' then newMode := MODE_OBJECTS;
+
+    end else if (t.valStr='ENDSEC') then begin
+
+      if mode = MODE_HEADER then varName := '';
+
+      secName := '';
+      mode := 0;
+
+      Result := prSecEnd;
+    {end else if (t.valStr = 'CLASS') and (mode = MODE_CLASSES) then begin
+      Result := prClassStart;
+    end else if (t.valStr = 'TABLE') and (mode = MODE_TABLES) then begin
+      Result := prTableStart;
+      tableName := '';
+      handle := '';}
+    end;
+  end;
+end;
+
+function TDxfParser.ParseHeader(t: TDxfScanner; var newmode: integer): TDxfParseToken;
 begin
   if (t.codegroup = CB_VARNAME) then begin
     varName := t.ValStr;
@@ -413,17 +473,6 @@ var
   t     : TDxfScanner;
   res   : TDxfScanResult;
 
-  procedure SetError(const msg: string);
-  begin
-    ErrStr := msg;
-    Result := prError;
-  end;
-
-const
-  MODE_ROOT    = 0;
-  MODE_HEADER  = 1;
-  MODE_CLASSES = 2;
-  MODE_TABLES  = 3;
 begin
   if not Assigned(scanner) then begin
     SetError('no scanner');
@@ -442,53 +491,28 @@ begin
     Exit;
   end;
 
-  if (t.codegroup = 0) then begin
-    if (t.ValStr = 'EOFN') then begin
-      t.Next;
-      Result := prEof;
-      Exit; // end of file
-    end else if (t.valStr ='SECTION') then begin
-      if inSec>0 then begin
-        SetError('nested section is not allowed');
-        Exit;
-      end;
-      if not ConsumeCodeBlock(t, CB_SECNAME, secName) then begin
-        SetError('expected section name');
-        Exit;
-      end;
-      Result := prSecStart;
-
-      if secName = 'HEADER' then mode := MODE_HEADER
-      else if secName = 'CLASSES' then mode := MODE_CLASSES
-      else if secName = 'TABLES' then mode := MODE_TABLES;
-      inc(inSec);
-
-    end else if (t.valStr='ENDSEC') then begin
-      dec(inSec);
-      if inSec<0 then begin
-        SetError( 'unexpected end of section');
-        Exit;
-      end;
-
-      if mode = MODE_HEADER then varName := '';
-
-      secName := '';
-      mode := 0;
-
-      Result := prSecEnd;
-    end else if (t.valStr = 'CLASS') and (mode = MODE_CLASSES) then begin
-      Result := prClassStart;
-    end else if (t.valStr = 'TABLE') and (mode = MODE_TABLES) then begin
-      Result := prTableStart;
-      tableName := '';
-      handle := '';
-    end;
-  end else begin
+  if (t.CodeGroup=CB_COMMENT) then begin
+    comment := t.ValStr;
+    Result := prComment;
+  end else if (t.CodeGroup=0) and (t.ValStr = 'ENDSEC') then begin
+    Result := prSecEnd
+  end else if (t.CodeGroup=0) and (t.ValStr = 'EOF') then begin
+    Result := prEof
+  end else
     case mode of
-      MODE_HEADER:
-        Result := ParseHeader(t);
+      MODE_ROOT:
+        Result := ParseRoot(t, mode);
+      MODE_HEADER: begin
+        Result := ParseHeader(t, mode);
+      end;
       MODE_CLASSES:
         Result := prClassAttr; // it's always class attribute
+      MODE_BLOCKS:
+        Result := prBlockAttr;
+      MODE_ENTITIES:
+        Result := prEntityAttr;
+      MODE_OBJECTS:
+        Result := prObjAttr;
       MODE_TABLES:
       begin
         case t.codegroup of
@@ -501,7 +525,21 @@ begin
       //MODE_ROOT:
       //  SetError('unexpected code group');
     end;
+
+  case Result of
+    prSecStart:
+      inc(inSec);
+    prSecEnd: begin
+      dec(inSec);
+      mode := MODE_ROOT;
+    end;
   end;
+
+end;
+
+procedure TDxfParser.SetError(const msg: string);
+begin
+  ErrStr := msg;
 end;
 
 function TDxfParser.Next: TDxfParseToken;
