@@ -97,11 +97,13 @@ function DxfisBinary(AStream: TStream): Boolean;
 // after reading the position might be shifted back for ASCII reading
 function DxfAllocScanner(AStream: TStream; OwnStream: boolean): TDxfScanner;
 
-function ConsumeCodeBlock(p : TDxfAsciiScanner; expCode: Integer; var value: string): Boolean;
+function DxfValAsStr(s: TDxfScanner): string;
+
+function ConsumeCodeBlock(p : TDxfScanner; expCode: Integer; var value: string): Boolean;
 
 type
-  TDxfParseResult = (
-    prUnknown,   //unrecognized structure
+  TDxfParseToken = (
+    prUnknown,   //unrecognized entry in the file
     prError,
     prEof,
     prSecStart,
@@ -121,15 +123,17 @@ type
   protected
     mode : integer;
     inSec: integer;
-    function ParseHeader(t: TDxfAsciiScanner): TDxfParseResult;
+    function ParseHeader(t: TDxfScanner): TDxfParseToken;
+    function DoNext: TDxfParseToken;
   public
-    scanner: TDxfAsciiScanner;
-    secName: string;
-    varName: string;
-    tableName: string;
-    handle : string;
-    ErrStr : string;
-    function Next: TDxfParseResult;
+    token     : TDxfParseToken;
+    scanner   : TDxfScanner;
+    secName   : string;
+    varName   : string;
+    tableName : string;
+    handle    : string;
+    ErrStr    : string;
+    function Next: TDxfParseToken;
   end;
 
 const
@@ -385,7 +389,7 @@ begin
   AOffset := idx - lineStart;
 end;
 
-function ConsumeCodeBlock(p : TDxfAsciiScanner; expCode: Integer; var value: string): Boolean;
+function ConsumeCodeBlock(p : TDxfScanner; expCode: Integer; var value: string): Boolean;
 begin
   Result := Assigned(p);
   if not Result then Exit;
@@ -395,7 +399,7 @@ begin
   if Result then Value := p.ValStr;
 end;
 
-function TDxfParser.ParseHeader(t: TDxfAsciiScanner): TDxfParseResult;
+function TDxfParser.ParseHeader(t: TDxfScanner): TDxfParseToken;
 begin
   if (t.codegroup = CB_VARNAME) then begin
     varName := t.ValStr;
@@ -404,10 +408,10 @@ begin
     Result := prVarValue;
 end;
 
-function TDxfParser.Next: TDxfParseResult;
+function TDxfParser.DoNext: TDxfParseToken;
 var
   //mode    : integer; // 0 - core, 1 - header
-  t     : TDxfAsciiScanner;
+  t     : TDxfScanner;
   res   : TDxfScanResult;
 
   procedure SetError(const msg: string);
@@ -501,6 +505,12 @@ begin
   end;
 end;
 
+function TDxfParser.Next: TDxfParseToken;
+begin
+  token := DoNext;
+  Result := token;
+end;
+
 function DxfisBinary(AStream: TStream): Boolean;
 var
   buf : string;
@@ -533,6 +543,33 @@ begin
     Result := TDxfAsciiScanner.Create;
   end;
   Result.SetSource(AStream, OwnStream);
+end;
+
+function DxfValAsStr(s: TDxfScanner): string;
+begin
+  if not Assigned(s) then begin
+    Result := '';
+    exit;
+  end;
+  case s.DataType of
+    dtUnknown:
+      Result := s.ValStr;
+    dtBoolean, dtInt16, dtInt32:
+      Result := IntToStr(s.ValInt);
+    dtInt64:
+      Result := IntToStr(s.ValInt64);
+    dtDouble: begin
+      Str(s.ValFloat, Result);
+    end;
+    dtStr2049, dtStr255, dtStrHex:
+      Result := s.ValStr;
+    dtBin1: begin
+      SetLength(Result, s.ValBinLen*2);
+      if length(Result)>0 then
+        BinToHex(@s.ValBin[0], @Result[1], s.ValBinLen);
+    end;
+
+  end;
 end;
 
 end.
