@@ -39,7 +39,7 @@ begin
           dtBoolean:
             writeln('  value: ', bs.ValInt);
           dtBin1:
-            writeln('   valie length: ', bs.ValBinLen);
+            writeln('   value length: ', bs.ValBinLen);
         end;
       end;
     finally
