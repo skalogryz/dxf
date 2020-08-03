@@ -63,6 +63,121 @@ const
   CSHADOW_RECVONLY  = 2; // Receives shadows
   CSHADOW_IGNORE    = 3; // Ignores shadows
 
+const
+  CLASS_PROXY_NOOP        = $0000; // No operations allowed
+  CLASS_PROXY_ERASE       = $0001; // Erase allowed
+  CLASS_PROXY_TRANSFORM   = $0002; // Transform allowed
+  CLASS_PROXY_COLOR       = $0004; // Color change allowed
+  CLASS_PROXY_LAYER       = $0008; // Layer change allowed
+  CLASS_PROXY_LINETYPE    = $0010; // Linetype change allowed
+  CLASS_PROXY_LINESCALE   = $0020; // Linetype scale change allowed
+  CLASS_PROXY_VISIBLE     = $0040; // Visibility change allowed
+  CLASS_PROXY_CLONE       = $0080; // Cloning allowed
+  CLASS_PROXY_LINEWEIGHT  = $0100; // Lineweight change allowed
+  CLASS_PROXY_PLOTSTYLE   = $0200; // Plot Style Name change allowed
+  CLASS_PROXY_ALL_NOCLONE = $037F; // All operations except cloning allowed
+  CLASS_PROXY_ALL         = $03FF; // All operations allowed
+  CLASS_PROXY_NO_WARN     = $0400; // Disables proxy warning dialog
+  CLASS_PROXY_R13         = $8000; // R13 format proxy
+
+const
+  UNITS_NO        = 0;  // Unitless
+  UNITS_INCHES    = 1;  // Inches
+  UNITS_FEET      = 2;  // Feet
+  UNITS_MILES     = 3;  // Miles
+  UNITS_MM        = 4;  // Millimeters
+  UNITS_CM        = 5;  // Centimeters
+  UNITS_METERS    = 6;  // Meters
+  UNITS_KM        = 7;  // Kilometers
+  UNITS_MINCHES   = 8;  // Microinches
+  UNITS_MILS      = 9;  // Mils
+  UNITS_YARDS     = 10; // Yards
+  UNITS_ANGSTROMS = 11; // Angstroms
+  UNITS_NM        = 12; // Nanometers
+  UNITS_MICRONS   = 13; // Microns
+  UNITS_DM        = 14; // Decimeters
+  UNITS_DECAM     = 15; // Decameters
+  UNITS_HECTOM    = 16; // Hectometer
+  UNITS_GM        = 17; // Gigameters
+  UNITS_ASTRO     = 18; // Astronomical units
+  UNITS_LIGHTYEAR = 19; // Light years
+  UNITS_PARSEC    = 20; // Parsecs
+
+  TABLE_ENTRY_FLAG_XREF     = 16; // If set, table entry is externally dependent on an xref
+  TABLE_ENTRY_FLAG_XREF_RES = 32; // If both this bit and bit 16 are set, the externally dependent xref has been successfully resolved
+  TABLE_ENTRY_FLAG_REFERRED = 64; // If set, the table entry was referenced by at least one entity in the drawing the last time
+                            // the drawing was edited. (This flag is for the benefit of AutoCAD commands. It can be ignored
+                            // by most programs that read DXF files and need not be set by programs that write DXF files)
+
+  APPID_FLAG_XREF        = TABLE_ENTRY_FLAG_XREF;
+  APPID_FLAG_XREF_RES    = TABLE_ENTRY_FLAG_XREF_RES;
+  APPID_FLAG_REFERRED    = TABLE_ENTRY_FLAG_REFERRED;
+
+  DIMSTYLE_FLAG_XREF     = TABLE_ENTRY_FLAG_XREF;
+  DIMSTYLE_FLAG_XREF_RES = TABLE_ENTRY_FLAG_XREF_RES;
+  DIMSTYLE_FLAG_REFERRED = TABLE_ENTRY_FLAG_REFERRED;
+
+  LAYER_FLAG_FROZEN      = 1; // Layer is frozen; otherwise layer is thawed
+  LAYER_FLAG_FROZEN_NEW  = 2; // Layer is frozen by default in new viewports
+  LAYER_FLAG_LOCKED      = 4; // Layer is locked
+  LAYER_FLAG_XREF        = TABLE_ENTRY_FLAG_XREF;
+  LAYER_FLAG_XREF_RES    = TABLE_ENTRY_FLAG_XREF_RES;
+  LAYER_FLAG_REFERRED    = TABLE_ENTRY_FLAG_REFERRED;
+
+  LTYPE_FLAG_XREF        = TABLE_ENTRY_FLAG_XREF;
+  LTYPE_FLAG_XREF_RES    = TABLE_ENTRY_FLAG_XREF_RES;
+  LTYPE_FLAG_REFERRED    = TABLE_ENTRY_FLAG_REFERRED;
+
+  STYLE_FLAG_FROZEN      = 1; // If set, this entry describes a shape
+  STYLE_FLAG_LOCKED      = 4; // Vertical text
+  STYLE_FLAG_XREF        = TABLE_ENTRY_FLAG_XREF;
+  STYLE_FLAG_XREF_RES    = TABLE_ENTRY_FLAG_XREF_RES;
+  STYLE_FLAG_REFERRED    = TABLE_ENTRY_FLAG_REFERRED;
+
+  STYLE_FLAGTEXT_BACKWARD = 2; // Text is backward (mirrored in X)
+  STYLE_FLAGTEXT_UPSIDE   = 4; // Text is upside down (mirrored in Y)
+
+  UCS_FLAG_XREF          = TABLE_ENTRY_FLAG_XREF;
+  UCS_FLAG_XREF_RES      = TABLE_ENTRY_FLAG_XREF_RES;
+  UCS_FLAG_REFERRED      = TABLE_ENTRY_FLAG_REFERRED;
+
+  UCS_ORTHO_TOP     = 1;
+  UCS_ORTHO_BOTTOM  = 2;
+  UCS_ORTHO_FRONT   = 3;
+  UCS_ORTHO_BACK    = 4;
+  UCS_ORTHO_LEFT    = 5;
+  UCS_ORTHO_RIGHT   = 6;
+
+  VIEW_FLAG_XREF     = TABLE_ENTRY_FLAG_XREF;
+  VIEW_FLAG_XREF_RES = TABLE_ENTRY_FLAG_XREF_RES;
+  VIEW_FLAG_REFERRED = TABLE_ENTRY_FLAG_REFERRED;
+
+  // All rendering modes other than 2D Optimized engage the new 3D graphics pipeline. These
+  // values directly correspond to the SHADEMODE command and the
+  // AcDbAbstractViewTableRecord::RenderMode enum
+  RENDERMODE_2D          = 0; // 2D Optimized (classic 2D)
+  RENDERMODE_WIRE        = 1; // Wireframe
+  RENDERMODE_HIDDENLINE  = 2; // Hidden line
+  RENDERMODE_FLAT        = 3; // Flat shaded
+  RENDERMODE_GOURAUD     = 4; // Gouraud shaded
+  RENDERMODE_FLATWIRE    = 5; // Flat shaded with wireframe
+  RENDERMODE_GOURAUDWIRE = 6; // Gouraud shaded with wireframe
+
+  LIGHT_ONEDISTANT = 1; // One distant light
+  LIGHT_TWODISTANT = 2; // Two distant lights
+
+  BLOCK_FLAG_NONE        = 0; // Indicates none of the following flags apply
+  BLOCK_FLAG_ANONYMOUS   = 1; // This is an anonymous block generated by hatching,
+                              // associative dimensioning, other internal operations, or an application
+  BLOCK_FLAG_NON_CONST   = 2; // This block has non-constant attribute definitions (this bit is not set
+                              // if the block has any attribute Definitions that are constant, or has
+                              // no attribute definitions at all)
+  BLOCK_FLAG_EXT_REF     = 4; // This block is an external reference (xref)
+  BLOCK_FLAG_OVERLAY     = 8; // This block is an xref overlay
+  BLOCK_FLAG_XREF        = TABLE_ENTRY_FLAG_XREF;
+  BLOCK_FLAG_XREF_RES    = TABLE_ENTRY_FLAG_XREF_RES;
+  BLOCK_FLAG_REFERRED    = TABLE_ENTRY_FLAG_REFERRED;
+
 type
   TDxfType = (
     dtUnknown,
