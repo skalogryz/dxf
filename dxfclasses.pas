@@ -14,6 +14,45 @@ type
     AndDir     : Int16;  // $ANGDIR // 1 = Clockwise angles 0 = Counterclockwise angles
   end;
 
+  TDxfDbSymbolTableRecord = class
+  end;
+
+  TDxfDbRegAppTableRecord = class
+  end;
+
+  TDxfDbBlockTableRecord = class
+  end;
+
+  TDxfDbDimStyleTableRecord = class
+  end;
+
+  TDxfDbLayerTableRecord = class
+  end;
+
+  TDxfDbLinetypeTableRecord = class
+  end;
+
+  TDxfDbTextStyleTableRecord = class
+  end;
+
+  TDxfDbUCSTableRecord = class
+  end;
+
+  TDxfDbViewTableRecord = class
+  end;
+
+  TDxfDbViewportTableRecord = class
+  end;
+
+  TDxfDbEntity = class(TObject)
+  end;
+
+  TDxfDbBlockBegin = class(TDxfDbEntity)
+  end;
+
+  TDxfDbBlockEnd = class(TDxfDbEntity)
+  end;
+
   { TDxfFile }
 
   TDxfFile = class(TObject)
@@ -125,7 +164,7 @@ var
   t : TDxfAsciiScanner;
   p :  TDxfParser;
   bld : TDxfFileBuilder;
-  res : TDxfParseResult;
+  res : TDxfParseToken;
   done : boolean;
 begin
   if (data = '') then Exit;
