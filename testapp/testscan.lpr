@@ -6,11 +6,10 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  SysUtils, Classes, dxfparse, dxfclasses, dxftypes
+  SysUtils, Classes, dxfparse, dxftypes
   { you can add units after this };
 
 var
-  dxf : TDxfFile;
   fs  : TFileStream;
   bs  : TDxfScanner;
 begin
