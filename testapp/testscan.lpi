@@ -30,6 +30,7 @@
       <Unit0>
         <Filename Value="testscan.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="readtest"/>
       </Unit0>
       <Unit1>
         <Filename Value="dxfparse.pas"/>
@@ -41,7 +42,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="readtest"/>
+      <Filename Value="testscan"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
