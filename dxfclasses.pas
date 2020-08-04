@@ -18,9 +18,21 @@ type
     Handle : string;
   end;
 
+  { TDxfDbSymbolTable }
+
   TDxfDbSymbolTable = class(TDxfCommonObj)
+  private
+    fItems: TList;
+    function GetObject(i: integer): TObject;
+    function GetCount: Integer;
   public
     Name : string;
+    constructor Create;
+    destructor Destroy; override;
+    function AddItem(obj: TObject): Integer;
+    procedure Clear;
+    property Item[i: integer]: TObject read GetObject;
+    property Count: Integer read GetCount;
   end;
 
   TDxfDbSymbolTableRecord = class
@@ -89,6 +101,50 @@ procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
 procedure DxfFileDump(dxf: TDxfFile);
 
 implementation
+
+{ TDxfDbSymbolTable }
+
+constructor TDxfDbSymbolTable.Create;
+begin
+  inherited;
+  fItems := TList.Create;
+end;
+
+destructor TDxfDbSymbolTable.Destroy;
+begin
+  Clear;
+  fItems.Free;
+  inherited Destroy;
+end;
+
+function TDxfDbSymbolTable.GetObject(i: integer): TObject;
+begin
+  if (i<0) or (i>=fItems.Count) then Result := nil
+  else Result := TObject(FItems[i]);
+end;
+
+function TDxfDbSymbolTable.GetCount: Integer;
+begin
+  Result := FItems.Count;
+end;
+
+function TDxfDbSymbolTable.AddItem(obj: TObject): Integer;
+begin
+  if not Assigned(obj) then begin
+    Result := -1;
+    Exit;
+  end;
+  Result := fItems.Add(obj);
+end;
+
+procedure TDxfDbSymbolTable.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to fItems.Count-1 do
+    TObject(fItems[i]).free;
+  fItems.Clear;
+end;
 
 { TDxfFile }
 
