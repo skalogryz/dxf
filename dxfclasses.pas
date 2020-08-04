@@ -38,11 +38,31 @@ type
     property Count: Integer read GetCount;
   end;
 
+  { TDxfEntity }
+
   TDxfEntity = class(TDxfCommonObj)
+    LayerName  : string; // 8
+    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
   end;
 
   TDxfPoint = record
     x,y,z: double;
+  end;
+
+  { TDxfInsert }
+
+  TDxfInsert = class(TDxfEntity)
+    BlockName  : string;
+    VarFlag    : Int16;
+    InsPt      : TDxfPoint;
+    Scale      : TDxfPoint;
+    ExtrDir    : TDxfPoint; // Extrusion direction
+    ColSpacing : double;
+    RowSpacing : double;
+    ColCount   : integer;
+    RowCount   : integer;
+    RotAngle   : double;
+    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
   end;
 
   { TDxfLine }
@@ -55,10 +75,21 @@ type
     procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
   end;
 
+  { TDxfPolyLine }
+
+  TDxfPolyLine = class(TDxfEntity)
+    Thickness  : Double;    // 39
+    Flags      : Integer;   // 70
+    StartWidth : Double;    // 40
+    EndWidth   : Double;    // 41
+    SurfType   : Int16;     // 75
+    ExtrDir    : TDxfPoint; // 210, 220, 230
+    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
+  end;
+
   { TDxfVertex }
 
   TDxfVertex = class(TDxfEntity)
-  public
     Pt         : TDxfPoint; // 10,20,30
     StartWidth : Double; // 40
     EndWidth   : Double; // 41
@@ -104,6 +135,53 @@ procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPo
 
 implementation
 
+{ TDxfInsert }
+
+procedure TDxfInsert.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
+begin
+  case codeGroup of
+    66: VarFlag := scanner.ValInt;
+    2:  BlockName := scanner.ValStr;
+    10,20,30: PtrAttr(codeGroup, scanner, InsPt);
+    41,42,43: PtrAttr(codeGroup, scanner, Scale);
+    44: ColSpacing := scanner.ValFloat;
+    45: RowSpacing := scanner.ValFloat;
+    70: ColCount := scanner.ValInt;
+    71: RowCount := scanner.ValInt;
+    50: RotAngle := scanner.ValFloat;
+    210,220,230: PtrAttr(codeGroup, scanner, ExtrDir);
+  else
+    inherited SetAttr(codeGroup, scanner);
+  end;
+end;
+
+{ TDxfPolyLine }
+
+procedure TDxfPolyLine.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
+begin
+  case codeGroup of
+    39: Thickness  := scanner.ValFloat;
+    70: Flags      := scanner.ValInt;
+    40: StartWidth := scanner.ValFloat;
+    41: EndWidth   := scanner.ValFloat;
+    75: SurfType   := scanner.ValInt;
+    210, 220, 230: PtrAttr(codeGroup, scanner, ExtrDir);
+  else
+    inherited SetAttr(codeGroup, scanner);
+  end;
+end;
+
+{ TDxfEntity }
+
+procedure TDxfEntity.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
+begin
+  case codeGroup of
+    8: LayerName := scanner.ValStr;
+  else
+    //inherited SetAttr(codeGroup, scanner);
+  end;
+end;
+
 { TDxfLine }
 
 procedure TDxfLine.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
@@ -113,6 +191,8 @@ begin
     11, 21, 31: PtrAttr(codeGroup, scanner, EndPt);
     210, 220, 230: PtrAttr(codeGroup, scanner, ExtrDir);
     39: Thickness := scanner.ValFloat;
+  else
+    inherited
   end;
 end;
 
@@ -130,6 +210,8 @@ begin
     71..74:
         PolyFace[codeGroup-71]:=scanner.ValInt;
     91: VertexIdx := scanner.ValInt;
+  else
+    inherited
   end;
 end;
 
@@ -137,7 +219,10 @@ end;
 
 procedure TDxfCommonObj.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
 begin
-
+  case codeGroup of
+    CB_HANDLE: Handle := scanner.ValStr;
+    CB_NAME: Name := scanner.ValStr;
+  end;
 end;
 
 { TDxfTable }
@@ -274,6 +359,8 @@ var
   done : boolean;
   tbl  : TDxfTable;
   ent  : TDxfEntity;
+
+  ln, ofs: integer;
 begin
   if not Assigned(st) or not Assigned(dst) then Exit;
 
@@ -302,6 +389,10 @@ begin
 
         prEntityStart:
         begin
+          if trim(p.EntityType) = '111' then begin
+            p.scanner.GetLocationInfo(ln, ofs);
+            writeln('odd entity type: ',ln,' ',ofs);
+          end;
           ent := dst.AddEntity(p.EntityType);
           ent.Handle := p.EntityHandle;
         end;
@@ -368,9 +459,15 @@ begin
   if Name='' then Exit;
 
   case Name[1] of
+    'I':
+      if Name='INSERT' then
+        Result := TDxfInsert.Create;
     'L':
       if Name='LINE' then
-        result := TDxfLine.Create;
+        Result := TDxfLine.Create;
+    'P':
+      if Name='POLYLINE' then
+        Result := TDxfPolyLine.Create;
     'V':
       if Name='VERTEX' then
         Result := TDxfVertex.Create;
@@ -383,9 +480,9 @@ end;
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
 begin
   case codeGroup of
-    10, 11, 210: pt.x := scanner.ValFloat;
-    20, 21, 220: pt.y := scanner.ValFloat;
-    30, 31, 230: pt.z := scanner.ValFloat;
+    10, 11, 41, 210: pt.x := scanner.ValFloat;
+    20, 21, 42, 220: pt.y := scanner.ValFloat;
+    30, 31, 43, 230: pt.z := scanner.ValFloat;
   end;
 end;
 
