@@ -14,8 +14,12 @@ type
     AndDir     : Int16;  // $ANGDIR // 1 = Clockwise angles 0 = Counterclockwise angles
   end;
 
+  { TDxfCommonObj }
+
   TDxfCommonObj = class(TObject)
+    Name   : string;
     Handle : string;
+    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); virtual;
   end;
 
   { TDxfTable }
@@ -26,7 +30,6 @@ type
     function GetObject(i: integer): TObject;
     function GetCount: Integer;
   public
-    Name : string;
     constructor Create;
     destructor Destroy; override;
     function AddItem(obj: TObject): Integer;
@@ -35,15 +38,49 @@ type
     property Count: Integer read GetCount;
   end;
 
+  TDxfEntity = class(TDxfCommonObj)
+  end;
+
+  TDxfPoint = record
+    x,y,z: double;
+  end;
+
+  { TDxfLine }
+
+  TDxfLine = class(TDxfEntity)
+    StPt       : TDxfPoint; // Start Point
+    EndPt      : TDxfPoint; // End Point
+    Thickness  : Double;    // Thickness
+    ExtrDir    : TDxfPoint; // Extrusion direction
+    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
+  end;
+
+  { TDxfVertex }
+
+  TDxfVertex = class(TDxfEntity)
+  public
+    Pt         : TDxfPoint; // 10,20,30
+    StartWidth : Double; // 40
+    EndWidth   : Double; // 41
+    Buldge     : Double; // 42
+    TangentDir : Double; // 50
+    Flags      : Integer; // 70
+    PolyFace   : array [0..3] of Int16; // 71..74
+    VertexIdx  : Integer; // 91
+    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
+  end;
+
   { TDxfFile }
 
   TDxfFile = class(TObject)
   public
-    header : TDxfHeader;
-    tables : TList;
+    header   : TDxfHeader;
+    tables   : TList;
+    entities : TList;
     constructor Create;
     destructor Destroy; override;
     function AddTable(const TableName: string): TDxfTable;
+    function AddEntity(const EntityName: string): TDxfEntity;
     procedure Clear;
   end;
 
@@ -61,7 +98,47 @@ procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
 
 procedure DxfFileDump(dxf: TDxfFile);
 
+function AllocEntity(const Name: string): TDxfEntity;
+
+procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
+
 implementation
+
+{ TDxfLine }
+
+procedure TDxfLine.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
+begin
+  case codeGroup of
+    10, 20, 30: PtrAttr(codeGroup, scanner, StPt);
+    11, 21, 31: PtrAttr(codeGroup, scanner, EndPt);
+    210, 220, 230: PtrAttr(codeGroup, scanner, ExtrDir);
+    39: Thickness := scanner.ValFloat;
+  end;
+end;
+
+{ TDxfVertex }
+
+procedure TDxfVertex.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
+begin
+  case codeGroup of
+    10, 20, 30: PtrAttr(codeGroup, scanner, pt);
+    40: StartWidth := scanner.ValFloat;
+    41: EndWidth := scanner.ValFloat;
+    42: Buldge := scanner.ValFloat;
+    50: TangentDir := scanner.ValFloat;
+    70: Flags := scanner.ValInt;
+    71..74:
+        PolyFace[codeGroup-71]:=scanner.ValInt;
+    91: VertexIdx := scanner.ValInt;
+  end;
+end;
+
+{ TDxfCommonObj }
+
+procedure TDxfCommonObj.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
+begin
+
+end;
 
 { TDxfTable }
 
@@ -114,10 +191,12 @@ begin
   inherited Create;
   header := TDxfHeader.Create;
   tables := TList.Create;
+  entities := TList.Create;
 end;
 
 destructor TDxfFile.Destroy;
 begin
+  entities.Free;
   tables.Free;
   header.Free;
   inherited;
@@ -130,6 +209,12 @@ begin
   tables.Add(Result);
 end;
 
+function TDxfFile.AddEntity(const EntityName: string): TDxfEntity;
+begin
+  Result := AllocEntity(EntityName);
+  entities.Add(Result);
+end;
+
 procedure TDxfFile.Clear;
 var
   i : integer;
@@ -137,6 +222,9 @@ begin
   for i:=0 to tables.Count-1 do
     TObject(tables[i]).Free;
   tables.Clear;
+  for i:=0 to entities.Count-1 do
+    TObject(entities[i]).Free;
+  entities.Clear;
 end;
 
 procedure RegisterHeaderVar(proc: THeaderReadProc);
@@ -185,6 +273,7 @@ var
   res  : TDxfParseToken;
   done : boolean;
   tbl  : TDxfTable;
+  ent  : TDxfEntity;
 begin
   if not Assigned(st) or not Assigned(dst) then Exit;
 
@@ -211,10 +300,22 @@ begin
           end;
         end;
 
-        prSecEnd: begin
-          if tbl <> nil then tbl := nil;
+        prEntityStart:
+        begin
+          ent := dst.AddEntity(p.EntityType);
+          ent.Handle := p.EntityHandle;
         end;
 
+        prEntityAttr:
+        begin
+          if Assigned(ent) then
+            ent.SetAttr(p.scanner.CodeGroup, p.scanner);
+        end;
+
+        prSecEnd: begin
+          tbl := nil;
+          ent := nil;
+        end;
 
         prError: begin
           done := true;
@@ -247,11 +348,44 @@ procedure DxfFileDump(dxf: TDxfFile);
 var
   i : integer;
   t : TDxfTable;
+  e : TDxfEntity;
 begin
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
     t := TDxfTable(dxf.tables[i]);
     writeln('  ',t.Name);
+  end;
+  writeln('Entities: ', dxf.entities.Count);
+  for i:=0 to dxf.entities.Count-1 do begin
+    e := TDxfEntity(dxf.entities[i]);
+    writeln('  ',e.Name,' ',e.ClassName);
+  end;
+end;
+
+function AllocEntity(const Name: string): TDxfEntity;
+begin
+  Result := nil;
+  if Name='' then Exit;
+
+  case Name[1] of
+    'L':
+      if Name='LINE' then
+        result := TDxfLine.Create;
+    'V':
+      if Name='VERTEX' then
+        Result := TDxfVertex.Create;
+  end;
+  if not Assigned(Result) then
+    Result := TDxfEntity.Create;
+  Result.Name := Name;
+end;
+
+procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
+begin
+  case codeGroup of
+    10, 11, 210: pt.x := scanner.ValFloat;
+    20, 21, 220: pt.y := scanner.ValFloat;
+    30, 31, 230: pt.z := scanner.ValFloat;
   end;
 end;
 
