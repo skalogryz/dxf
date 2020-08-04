@@ -18,9 +18,9 @@ type
     Handle : string;
   end;
 
-  { TDxfDbSymbolTable }
+  { TDxfTable }
 
-  TDxfDbSymbolTable = class(TDxfCommonObj)
+  TDxfTable = class(TDxfCommonObj)
   private
     fItems: TList;
     function GetObject(i: integer): TObject;
@@ -35,45 +35,6 @@ type
     property Count: Integer read GetCount;
   end;
 
-  TDxfDbSymbolTableRecord = class
-  end;
-
-  TDxfDbRegAppTableRecord = class
-  end;
-
-  TDxfDbBlockTableRecord = class
-  end;
-
-  TDxfDbDimStyleTableRecord = class
-  end;
-
-  TDxfDbLayerTableRecord = class
-  end;
-
-  TDxfDbLinetypeTableRecord = class
-  end;
-
-  TDxfDbTextStyleTableRecord = class
-  end;
-
-  TDxfDbUCSTableRecord = class
-  end;
-
-  TDxfDbViewTableRecord = class
-  end;
-
-  TDxfDbViewportTableRecord = class
-  end;
-
-  TDxfDbEntity = class(TObject)
-  end;
-
-  TDxfDbBlockBegin = class(TDxfDbEntity)
-  end;
-
-  TDxfDbBlockEnd = class(TDxfDbEntity)
-  end;
-
   { TDxfFile }
 
   TDxfFile = class(TObject)
@@ -82,7 +43,7 @@ type
     tables : TList;
     constructor Create;
     destructor Destroy; override;
-    function AddTable(const TableName: string): TDxfDbSymbolTable;
+    function AddTable(const TableName: string): TDxfTable;
     procedure Clear;
   end;
 
@@ -102,33 +63,33 @@ procedure DxfFileDump(dxf: TDxfFile);
 
 implementation
 
-{ TDxfDbSymbolTable }
+{ TDxfTable }
 
-constructor TDxfDbSymbolTable.Create;
+constructor TDxfTable.Create;
 begin
   inherited;
   fItems := TList.Create;
 end;
 
-destructor TDxfDbSymbolTable.Destroy;
+destructor TDxfTable.Destroy;
 begin
   Clear;
   fItems.Free;
   inherited Destroy;
 end;
 
-function TDxfDbSymbolTable.GetObject(i: integer): TObject;
+function TDxfTable.GetObject(i: integer): TObject;
 begin
   if (i<0) or (i>=fItems.Count) then Result := nil
   else Result := TObject(FItems[i]);
 end;
 
-function TDxfDbSymbolTable.GetCount: Integer;
+function TDxfTable.GetCount: Integer;
 begin
   Result := FItems.Count;
 end;
 
-function TDxfDbSymbolTable.AddItem(obj: TObject): Integer;
+function TDxfTable.AddItem(obj: TObject): Integer;
 begin
   if not Assigned(obj) then begin
     Result := -1;
@@ -137,7 +98,7 @@ begin
   Result := fItems.Add(obj);
 end;
 
-procedure TDxfDbSymbolTable.Clear;
+procedure TDxfTable.Clear;
 var
   i : integer;
 begin
@@ -162,9 +123,9 @@ begin
   inherited;
 end;
 
-function TDxfFile.AddTable(const TableName: string): TDxfDbSymbolTable;
+function TDxfFile.AddTable(const TableName: string): TDxfTable;
 begin
-  Result := TDxfDbSymbolTable.Create;
+  Result := TDxfTable.Create;
   Result.Name := TableName;
   tables.Add(Result);
 end;
@@ -223,7 +184,7 @@ var
   p    : TDxfParser;
   res  : TDxfParseToken;
   done : boolean;
-  tbl  : TDxfDbSymbolTable;
+  tbl  : TDxfTable;
 begin
   if not Assigned(st) or not Assigned(dst) then Exit;
 
@@ -285,11 +246,11 @@ end;
 procedure DxfFileDump(dxf: TDxfFile);
 var
   i : integer;
-  t : TDxfDbSymbolTable;
+  t : TDxfTable;
 begin
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
-    t := TDxfDbSymbolTable(dxf.tables[i]);
+    t := TDxfTable(dxf.tables[i]);
     writeln('  ',t.Name);
   end;
 end;
