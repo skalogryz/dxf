@@ -14,6 +14,15 @@ type
     AndDir     : Int16;  // $ANGDIR // 1 = Clockwise angles 0 = Counterclockwise angles
   end;
 
+  TDxfCommonObj = class(TObject)
+    Handle : string;
+  end;
+
+  TDxfDbSymbolTable = class(TDxfCommonObj)
+  public
+    Name : string;
+  end;
+
   TDxfDbSymbolTableRecord = class
   end;
 
@@ -58,8 +67,11 @@ type
   TDxfFile = class(TObject)
   public
     header : TDxfHeader;
+    tables : TList;
     constructor Create;
     destructor Destroy; override;
+    function AddTable(const TableName: string): TDxfDbSymbolTable;
+    procedure Clear;
   end;
 
 type
@@ -70,53 +82,13 @@ procedure UnregisterHeaderVar(proc: THeaderReadProc);
 procedure RunHeaderVarProc(Header: TDxfHeader; const curVar: string; codeblock: Integer; const value: string; out Handled: Boolean);
 procedure DefaultHeaderVar(Header: TDxfHeader; const curVar: string; codeblock: Integer; const value: string; var Handled: Boolean);
 
-procedure LoadASCIIFromString(const data: string; dst: TDxfFile);
-procedure LoadASCIIFromStream(const st: TStream; dst: TDxfFile);
-procedure LoadASCIIFromFile(const st: string; dst: TDxfFile);
+procedure DxfLoadFromString(const data: string; dst: TDxfFile);
+procedure DxfLoadFromStream(const st: TStream; dst: TDxfFile);
+procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
+
+procedure DxfFileDump(dxf: TDxfFile);
 
 implementation
-
-type
-
-  { TDxfFileBuilder }
-
-  TDxfFileBuilder = class(TInterfacedObject)
-  protected
-    procedure StartSection(const secName: string);
-    procedure HeaderVar(const varName: string; const codeBlock: Integer; const value: string);
-    procedure EndOfSection(const secName: string);
-  public
-    dst : TDxfFile;
-    constructor Create(adst: TDxfFile);
-  end;
-
-{ TDxfFileBuilder }
-
-procedure TDxfFileBuilder.StartSection(const secName: string);
-begin
-  writeln('START SECTION: ', secName);
-end;
-
-procedure TDxfFileBuilder.HeaderVar(const varName: string;
-  const codeBlock: Integer; const value: string);
-var
-  hnd : Boolean;
-begin
-  writeln('reading VAR: ', varName,' with [', codeBlock, '] ',value);
-  hnd := false;
-  RunHeaderVarProc(dst.header, varName, codeBlock, value, hnd);
-end;
-
-procedure TDxfFileBuilder.EndOfSection(const secName: string);
-begin
-  writeln('END SECTION: ', secName);
-end;
-
-constructor TDxfFileBuilder.Create(adst: TDxfFile);
-begin
-  inherited Create;
-  dst:=adst;
-end;
 
 { TDxfFile }
 
@@ -124,12 +96,30 @@ constructor TDxfFile.Create;
 begin
   inherited Create;
   header := TDxfHeader.Create;
+  tables := TList.Create;
 end;
 
 destructor TDxfFile.Destroy;
 begin
+  tables.Free;
   header.Free;
   inherited;
+end;
+
+function TDxfFile.AddTable(const TableName: string): TDxfDbSymbolTable;
+begin
+  Result := TDxfDbSymbolTable.Create;
+  Result.Name := TableName;
+  tables.Add(Result);
+end;
+
+procedure TDxfFile.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to tables.Count-1 do
+    TObject(tables[i]).Free;
+  tables.Clear;
 end;
 
 procedure RegisterHeaderVar(proc: THeaderReadProc);
@@ -159,66 +149,92 @@ begin
 end;
 
 
-procedure LoadASCIIFromString(const data: string; dst: TDxfFile);
+procedure DxfLoadFromString(const data: string; dst: TDxfFile);
 var
-  t : TDxfAsciiScanner;
-  p :  TDxfParser;
-  bld : TDxfFileBuilder;
-  res : TDxfParseToken;
-  done : boolean;
+  st : TStringStream;
 begin
-  if (data = '') then Exit;
+  st := TStringStream.Create(data);
+  try
+    DxfLoadFromStream(st, dst);
+  finally
+    st.free;
+  end;
+end;
 
-  t := TDxfAsciiScanner.Create;
+procedure DxfLoadFromStream(const st: TStream; dst: TDxfFile);
+var
+  sc   : TDxfScanner;
+  p    : TDxfParser;
+  res  : TDxfParseToken;
+  done : boolean;
+  tbl  : TDxfDbSymbolTable;
+begin
+  if not Assigned(st) or not Assigned(dst) then Exit;
+
+  tbl := nil;
+  sc := DxfAllocScanner(st, false);
   p := TDxfParser.Create;
   try
-    t.SetBuf(data);
-    p.scanner := t;
+    p.scanner := sc;
 
     done := false;
     while not done do begin
       res := p.Next;
-      //writeln('res = ', res);
+
       case res of
-        prSecStart: writeln('section start: ', p.secName);
-        prSecEnd:   writeln('section end:   ', p.secName);
-        prVarName:  writeln('value: ',p.varName);
+        prTableStart: begin
+          tbl := dst.AddTable( p.tableName );
+          tbl.Handle := p.tableHandle;
+        end;
+
+        prTableAttr: begin
+          case p.scanner.CodeGroup of
+            CB_NAME:   tbl.Name := p.tableName;
+            CB_HANDLE: tbl.Handle := p.tableHandle;
+          end;
+        end;
+
+        prSecEnd: begin
+          if tbl <> nil then tbl := nil;
+        end;
+
+
         prError: begin
-          writeln('err: ', p.ErrStr);
           done := true;
         end;
         prEof: begin
-          writeln('done');
           done := true;
         end;
+
       end;
     end;
   finally
     p.Free;
-    t.Free;
+    sc.Free;
   end;
 end;
 
-procedure LoadASCIIFromStream(const st: TStream; dst: TDxfFile);
-var
-  buf : string;
-begin
-  SetLength(buf, st.Size);
-  if st.Size>0 then begin
-    st.Read(buf[1], length(buf));
-    LoadASCIIFromString(buf, dst);
-  end;
-end;
-
-procedure LoadASCIIFromFile(const st: string; dst: TDxfFile);
+procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
 var
   f : TFileStream;
 begin
   f := TFileStream.Create(st, fmOpenRead or fmShareDenyNone);
   try
-    LoadASCIIFromStream(f, dst);
+    DxfLoadFromStream(f, dst);
   finally
     f.Free;
+  end;
+end;
+
+procedure DxfFileDump(dxf: TDxfFile);
+var
+  i : integer;
+  t : TDxfDbSymbolTable;
+begin
+  writeln('Tables: ', dxf.tables.Count);
+  for i:=0 to dxf.tables.Count-1 do begin
+    t := TDxfDbSymbolTable(dxf.tables[i]);
+    writeln('  ',t.Name);
   end;
 end;
 
