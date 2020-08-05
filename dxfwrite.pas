@@ -58,6 +58,10 @@ procedure TextLFToDst(d: TStream); inline;
 const
   LF = #13#10;
 
+procedure WrStartSection(w: TDxfWriter; const SecName: string);
+procedure WrEndSection(w: TDxfWriter);
+procedure WrEndOfFile(w: TDxfWriter);
+
 implementation
 
 procedure TextCodeGroupToDst(codeGroup: integer; d: TStream); inline;
@@ -221,6 +225,22 @@ begin
     TextStrToDst(s, dst);
   end;
   TextLFToDst(dst);
+end;
+
+procedure WrStartSection(w: TDxfWriter; const SecName: string);
+begin
+  w.WriteStr(CB_CONTROL, NAME_SECTION);
+  w.WriteStr(CB_NAME, SecName);
+end;
+
+procedure WrEndSection(w: TDxfWriter);
+begin
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
+end;
+
+procedure WrEndOfFile(w: TDxfWriter);
+begin
+  w.WriteStr(CB_CONTROL, NAME_EOF);
 end;
 
 end.

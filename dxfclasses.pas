@@ -3,7 +3,7 @@ unit dxfclasses;
 interface
 
 uses
-  Classes, SysUtils, dxftypes, dxfparse;
+  Classes, SysUtils, dxftypes, dxfparse, dxfwrite;
 
 type
   TDxfHeader = class(TObject)
@@ -132,6 +132,11 @@ procedure DxfFileDump(dxf: TDxfFile);
 function AllocEntity(const Name: string): TDxfEntity;
 
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
+
+function DxfSaveToString(dst: TDxfFile): string;
+procedure DxfSaveToStream(const st: TStream; dst: TDxfFile; binFormat: Boolean);
+procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
+procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
 
 implementation
 
@@ -484,6 +489,51 @@ begin
     20, 21, 42, 220: pt.y := scanner.ValFloat;
     30, 31, 43, 230: pt.z := scanner.ValFloat;
   end;
+end;
+
+
+function DxfSaveToString(dst: TDxfFile): string;
+var
+  st : TStringStream;
+begin
+  st := TStringStream.Create;
+  try
+    DxfSaveToStream(st, dst, false);
+    Result := st.DataString;
+  finally
+    st.Free;
+  end;
+end;
+
+procedure DxfSaveToStream(const st: TStream; dst: TDxfFile; binFormat: Boolean);
+var
+  w : TDxfWriter;
+begin
+  if binFormat then
+    w := TDxfBinaryWriter.Create
+  else
+    w := TDxfAsciiWriter.Create;
+  w.SetDest(st, false);
+  DxfSave(w, dst);
+end;
+
+procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
+var
+  fs : TFileStream;
+begin
+  fs := TFileStream.Create(st, fmCreate);
+  try
+    DxfSaveToStream(fs, dst, binFormat);
+  finally
+    fs.Free;
+  end;
+end;
+
+procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
+begin
+  WrStartSection(wr, NAME_ENTITIES);
+  WrEndSection(wr);
+  WrEndOfFile(wr);
 end;
 
 end.
