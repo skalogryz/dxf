@@ -194,6 +194,11 @@ type
                // by the chunk of bytes
   );
 
+const
+  MAX_STR   = 255;
+  MAX_STREX = 2049;
+
+
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
 
