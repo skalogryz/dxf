@@ -20,6 +20,7 @@ type
     Name   : string;
     Handle : string;
     procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); virtual;
+    procedure WriteAttr(w: TDxfWriter); virtual;
   end;
 
   { TDxfTable }
@@ -41,7 +42,8 @@ type
   { TDxfEntity }
 
   TDxfEntity = class(TDxfCommonObj)
-    LayerName  : string; // 8
+    LayerName   : string; // 8
+    OwnerHandle : string; // 330
     procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
   end;
 
@@ -228,6 +230,11 @@ begin
     CB_HANDLE: Handle := scanner.ValStr;
     CB_NAME: Name := scanner.ValStr;
   end;
+end;
+
+procedure TDxfCommonObj.WriteAttr(w: TDxfWriter);
+begin
+
 end;
 
 { TDxfTable }
@@ -530,8 +537,19 @@ begin
 end;
 
 procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
+var
+  i : integer;
+  e : TDxfEntity;
 begin
+  if not Assigned(wr) or not Assigned(dst) then Exit;
+
   WrStartSection(wr, NAME_ENTITIES);
+  for i:=0 to dst.entities.Count-1 do begin
+    e := TDxfEntity(dst.entities[i]);
+    wr.WriteStr(CB_CONTROL, e.Name);
+    WrHandle(wr, e.Handle);
+    WrHandle(wr, e.OwnerHandle, CB_OWNERHANDLE);
+  end;
   WrEndSection(wr);
   WrEndOfFile(wr);
 end;

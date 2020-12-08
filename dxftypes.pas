@@ -14,6 +14,7 @@ const
   CB_TABLE_NAME   = CB_NAME;
   CB_TABLE_HANDLE = CB_HANDLE;
 
+  CB_OWNERHANDLE  = 330;
   CB_COMMENT      = 999;
 
 const

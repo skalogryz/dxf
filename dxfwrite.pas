@@ -61,6 +61,8 @@ const
 procedure WrStartSection(w: TDxfWriter; const SecName: string);
 procedure WrEndSection(w: TDxfWriter);
 procedure WrEndOfFile(w: TDxfWriter);
+procedure WrName(w: TDxfWriter; const AName: string);
+procedure WrHandle(w: TDxfWriter; const AHandle: string; CodeGroup: Integer = CB_HANDLE );
 
 implementation
 
@@ -241,6 +243,18 @@ end;
 procedure WrEndOfFile(w: TDxfWriter);
 begin
   w.WriteStr(CB_CONTROL, NAME_EOF);
+end;
+
+procedure WrName(w: TDxfWriter; const AName: string);
+begin
+  if AName ='' then Exit;
+  w.WriteStr(CB_NAME, AName);
+end;
+
+procedure WrHandle(w: TDxfWriter; const AHandle: string; CodeGroup: Integer);
+begin
+  if AHandle = '' then Exit;
+  w.WriteStr(CodeGroup, AHandle);
 end;
 
 end.
