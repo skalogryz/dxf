@@ -6,7 +6,12 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  SysUtils, Classes, dxftypes, dxfparse;
+  SysUtils, Classes, dxftypes, dxfparse, dxfparseutils;
+
+procedure DumpBlock(const bl: TDxfBlock);
+begin
+  writeln('block started: ', bl.Ent.Handle,' ',bl.BlockName,' ',bl.BlockName2,' [',bl.Descr,']; Owner: ', bl.Ent.Owner);
+end;
 
 procedure ParseInputFile(const fn: string);
 var
@@ -14,7 +19,10 @@ var
   p : TDxfParser;
   ln,ofs: integer;
   mem : TMemoryStream;
+  inBlock: Boolean;
+  bl  : TDxfBlock;
 begin
+  inBlock := false;
   mem := TMemoryStream.Create;
   try
     f := TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
@@ -33,10 +41,22 @@ begin
     while p.Next <> prError do begin
       if p.token = prEof then Break;
 
+      p.scanner.GetLocationInfo(ln, ofs);
       if p.token = prSecStart then begin
-        p.scanner.GetLocationInfo(ln, ofs);
         writeln('start section ', p.secName,' at ', ln,'/',ofs);
+      end else if p.token = prBlockStart then begin
+        //writeln('block start! at ', ln,'/',ofs);
+        ParseBlock(p, bl);
+        DumpBlock(bl);
+        inBlock := true;
+      end else if p.token = prBlockEnd then begin
+        writeln('block end ',' at ', ln,'/',ofs);
+        inBlock := false;
       end;
+
+      //if inBlock and (p.Token<>prBlockStart) then begin
+      //  writeln('   >',p.token,' ',p.scanner.CodeGroup, ' ',p.Scanner.DataType,' ', p.scanner.ValStr);
+      //end;
 
       if p.token = prUnknown then begin
         writeln('value: ', p.scanner.CodeGroup,' ', DxfValAsStr(p.scanner));
