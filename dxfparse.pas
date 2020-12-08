@@ -111,10 +111,10 @@ type
     prTableAttr,
     prVarName,
     prVarValue,
-    prBlockStart,
-    prBlockAttr,
+    prBlockStart, // encountered 0/BLOCK
+    prBlockAttr,  // still within block
     prEntityInBlock,
-    prBlockEnd,
+    prBlockEnd,   //
     prEntityAttr,
     prEntityStart,
     prObjAttr,
@@ -525,6 +525,7 @@ function TDxfParser.ParseEntities(t: TDxfScanner; var newmode: integer
   ): TDxfParseToken;
 begin
   if (newmode = MODE_ENTITIESINBLOCK) and (t.CodeGroup = 0) and (t.ValStr = NAME_ENDBLK) then begin
+    newmode := MODE_BLOCKS; // return to block parsing mode
     Result := ParseBlocks(t, newmode);
   end else if (t.CodeGroup = 0) then begin
     EntityType := t.ValStr;

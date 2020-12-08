@@ -5,10 +5,14 @@ interface
 const
   DxfBinaryHeader = 'AutoCAD Binary DXF'#13#10#26#0;
 const
-  CB_CONTROL = 0; // control
-  CB_NAME    = 2; // section name
-  CB_HANDLE  = 5; // handle value
-  CB_VARNAME = 9; // variable name
+  CB_CONTROL   = 0; // control
+  CB_XREFPATH  = 1;
+  CB_NAME      = 2; // section name
+  CB_BLOCKNAME = 3; // block name
+  CB_DESCR     = 4;
+  CB_HANDLE    = 5; // handle value
+  CB_LAYERNAME = 8; // layername
+  CB_VARNAME   = 9; // variable name
 
   CB_SECtION_NAME = CB_NAME;
   CB_TABLE_NAME   = CB_NAME;
@@ -16,6 +20,15 @@ const
 
   CB_OWNERHANDLE  = 330;
   CB_COMMENT      = 999;
+
+  CB_FLAGS        = 70;
+
+  CB_SUBCLASS     = 100;
+  CB_APPDEFNAME   = 102;
+
+  CB_X = 10;
+  CB_Y = 20;
+  CB_Z = 30;
 
 const
   NAME_OBJECTS  = 'OBJECTS';

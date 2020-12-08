@@ -110,6 +110,7 @@ type
     header   : TDxfHeader;
     tables   : TList;
     entities : TList;
+    blocks   : TList;
     constructor Create;
     destructor Destroy; override;
     function AddTable(const TableName: string): TDxfTable;
