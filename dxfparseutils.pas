@@ -14,9 +14,10 @@ type
     Handle       : string;  // 5
     appDefGroup  : string;  // 102
     Owner        : string;  //
-    SubClass     : string;  // 102
+    SubClass     : string;  // 100
+    SpaceFlag    : int32;   // 67 -- optional!!!  (seen on Paper_Source)
     LayerName    : string;  // 8
-    Subclass2    : string;  // 102
+    Subclass2    : string;  // 100
   end;
 
   TDxfBlock = record
@@ -29,11 +30,13 @@ type
     Descr      : string;    // 4
   end;
 
-  TDxfEndBlock = record
+  TDxfBlockEnd = record
+    Ent        : TDxfEntity; // no special fields for EndBlock
   end;
 
 procedure ParseEnt(p: TDxfParser; var e: TDxfEntity);
 procedure ParseBlock(p: TDxfParser; var b: TDxfBlock);
+procedure ParseBlockEnd(p: TDxfParser; var b: TDxfBlockEnd);
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint);
 
 implementation
@@ -76,9 +79,14 @@ begin
     p.Next;
   end;
 
-  while p.scanner.CodeGroup = CB_APPDEFNAME do begin // 102
-    e.appDefGroup := e.appDefGroup + p.scanner.ValStr;
-    p.Next;
+  if (p.scanner.CodeGroup = CB_APPDEFNAME) then begin
+    p.Next; // skipping over the initial 102 "{blah"
+    while p.scanner.CodeGroup <> CB_APPDEFNAME do begin // 102
+      // consumeing initial 102
+      //e.appDefGroup := e.appDefGroup + p.scanner.ValStr;
+      p.Next;
+    end;
+    p.Next; // skipping over the trailing 102 "}"
   end;
 
   if p.scanner.CodeGroup = CB_OWNERHANDLE then begin
@@ -88,6 +96,11 @@ begin
 
   if p.scanner.CodeGroup = CB_SUBCLASS then begin
     e.SubClass := p.scanner.ValStr;
+    p.Next;
+  end;
+
+  if p.scanner.CodeGroup = CB_SPACEFLAG then begin
+    e.SpaceFlag := p.scanner.ValInt;
     p.Next;
   end;
 
@@ -133,6 +146,11 @@ begin
     b.Descr := p.scanner.valStr;
     p.Next;
   end;
+end;
+
+procedure ParseBlockEnd(p: TDxfParser; var b: TDxfBlockEnd);
+begin
+  ParseEnt(p, b.Ent);
 end;
 
 end.
