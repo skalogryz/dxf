@@ -46,6 +46,8 @@ const
   NAME_ENDSEC   = 'ENDSEC';
   NAME_EOF      = 'EOF';
 
+
+  NAME_DIMSTYLE = 'DIMSTYLE';
 const
   // $ANGDIR
   ANGDIR_CLOCKWISE        = 1;

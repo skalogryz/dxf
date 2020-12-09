@@ -109,6 +109,9 @@ type
     prClassAttr,
     prTableStart,
     prTableAttr,
+    prTableEnd,
+    prTableEntry,
+    prTableEntryAttr,
     prVarName,
     prVarValue,
     prBlockStart, // encountered 0/BLOCK
@@ -141,6 +144,8 @@ type
     secName   : string;
     varName   : string;
     tableName : string;
+    tableEntryType : string;
+    tableEntryHandle : string;
     tableHandle  : string;
     handle       : string;
     Comment      : string;
@@ -490,15 +495,27 @@ end;
 
 function TDxfParser.ParseTables(t: TDxfScanner; var newmode: integer): TDxfParseToken;
 begin
-  if (t.valStr = NAME_TABLE) then begin
+  if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_TABLE) then begin
     Result := prTableStart;
     tableName := '';
     Handle := '';
+    tableEntryType := '';
     ConsumeCodeBlock(t, CB_NAME, tableName);
     ConsumeCodeBlock(t, CB_HANDLE, tableHandle);
-  end
-  else
-    Result := prTableAttr;
+  end else if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_ENDTAB) then begin
+    Result := prTableEnd;
+    tableName := '';
+    Handle := '';
+  end else if (t.codeGroup = CB_CONTROL) then begin
+    tableEntryType := t.ValStr;
+    Result := prTableEntry;
+    tableEntryHandle := '';
+    if tableEntryType <> NAME_DIMSTYLE then
+      ConsumeCodeBlock(t, CB_HANDLE, tableEntryHandle);
+  end else begin
+    if tableEntryType<>'' then Result := prTableEntryAttr
+    else Result := prTableAttr;
+  end;
 end;
 
 function TDxfParser.ParseBlocks(t: TDxfScanner; var newmode: integer): TDxfParseToken;
