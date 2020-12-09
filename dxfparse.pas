@@ -16,7 +16,7 @@ NOTE: Accommodating DXF files from future releases of AutoCAD®  will be easier
 }
 
 type
-  TDxfScanResult = (scError, scValue, scEof);
+  TDxfScanResult = (scError, scValue, scEof, scInit);
 
   { TDxfScanner }
 
@@ -36,7 +36,7 @@ type
     ValBinLen  : Integer;        // set by DoNext
     ValFloat   : Double;         // set by DoNext
     // Binds a source ot the scanner. if OWnStream, the Scanner will free source, if the scanner is freed
-    procedure SetSource(ASource: TStream; OwnStream: Boolean); virtual; abstract;
+    procedure SetSource(ASource: TStream; OwnStream: Boolean); virtual;
 
     // reads the next pair in the
     function Next: TDxfScanResult;
@@ -226,6 +226,11 @@ end;
 
 { TDxfScanner }
 
+procedure TDxfScanner.SetSource(ASource: TStream; OwnStream: Boolean);
+begin
+  LastScan := scInit;
+end;
+
 function TDxfScanner.Next: TDxfScanResult;
 begin
   ValStr := '';
@@ -259,6 +264,7 @@ begin
   src := ASource;
   srcStart := src.Position;
   srcOwn := OwnStream;
+  inherited SetSource(ASource, OwnStream);
 end;
 
 procedure TDxfBinaryScanner.GetLocationInfo(out ALineNum, AOffset: Integer);
@@ -322,6 +328,7 @@ begin
   SetLength(s, fSrc.Size-fSrc.Position);
   if length(s)>0 then fSrc.Read(s[1], length(s));
   SetBuf(s);
+  inherited SetSource(ASource, OwnStream);
 end;
 
 destructor TDxfAsciiScanner.Destroy;
@@ -569,7 +576,8 @@ begin
   Result := prUnknown;
 
   t := scanner;
-  res := t.Next;
+  res := scanner.LastScan;
+  if (res = scInit) then res := t.Next;
 
   if res = scError then begin
     SetError('scanner error: '+t.errStr);
@@ -604,7 +612,6 @@ begin
       MODE_TABLES:
         Result := ParseTables(t, mode);
     end;
-
   case Result of
     prSecStart:
       inc(inSec);
@@ -613,7 +620,7 @@ begin
       mode := MODE_ROOT;
     end;
   end;
-
+  scanner.Next;
 end;
 
 procedure TDxfParser.SetError(const msg: string);

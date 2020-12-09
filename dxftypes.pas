@@ -21,6 +21,7 @@ const
   CB_OWNERHANDLE  = 330;
   CB_COMMENT      = 999;
 
+  CB_SPACEFLAG    = 67;
   CB_FLAGS        = 70;
 
   CB_SUBCLASS     = 100;
