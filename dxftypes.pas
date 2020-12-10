@@ -215,6 +215,11 @@ const
   MAX_STR   = 255;
   MAX_STREX = 2049;
 
+const
+  // default names and string constant used in a dxf file
+  _AcDbEntity     = 'AcDbEntity';
+  _AcDbBlockBegin = 'AcDbBlockBegin';
+  _AcDbBlockEnd   = 'AcDbBlockEnd';
 
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;

@@ -10,7 +10,9 @@ procedure WriteBlockEnd(w: TDxfWriter; const b: TDxfBlockEnd);
 procedure WritePoint(w: TDxfWriter; const b: TDxfPoint; const XCodeBase: Integer = 10);
 procedure WritePoint2D(w: TDxfWriter; const b: TDxfPoint; const XCodeBase: Integer = 10);
 
-function IfEmpt(const check, def: string): string;
+// returns def, if check is an empty string (no trimming check)
+// otherwise returns check
+function IfEmpt(const check, def: string): string; inline;
 
 implementation
 
@@ -46,16 +48,16 @@ begin
 end;
 
 // todo: this will change!
-procedure WriteBlockEnt(w: TDxfWriter; const b: TDxfEntity; WriteSpace: Boolean);
+procedure WriteBlockEnt(w: TDxfWriter; const b: TDxfEntity; WriteSpaceFlag: Boolean);
 begin
   w.WriteStr(CB_HANDLE, b.Handle);
   if b.appDefGroup<>'' then begin
+    // todo: support for custom application codes
   end;
   w.WriteStr(CB_OWNERHANDLE, b.Owner);
-  w.WriteStr(CB_SUBCLASS,    b.SubClass);
-  w.WriteInt(CB_SPACEFLAG,   b.SpaceFlag);
+  w.WriteStr(CB_SUBCLASS,    IfEmpt(b.SubClass, _AcDbEntity));
+  if WriteSpaceFlag then w.WriteInt(CB_SPACEFLAG,   b.SpaceFlag);
   w.WriteStr(CB_LAYERNAME,   b.LayerName);
-  w.WriteStr(CB_SUBCLASS,    b.Subclass2);
 end;
 
 procedure WriteBlock(w: TDxfWriter; const b: TDxfBlock);
@@ -63,6 +65,7 @@ begin
   if not Assigned(w) then Exit;
   WriteCtrl(w, NAME_BLOCK);
   WriteBlockEnt(w, b.Ent, b.Ent.SpaceFlag<>0);
+  w.WriteStr(CB_SUBCLASS, IfEmpt(b.Ent.Subclass2, _AcDbBlockBegin));
   w.WriteStr(CB_NAME, b.BlockName);
   w.WriteInt(CB_FLAGS, b.BlockFlags);
   w.WriteStr(CB_BLOCKNAME, b.BlockName2);
@@ -75,6 +78,7 @@ begin
   if not Assigned(w) then Exit;
   WriteCtrl(w, NAME_ENDBLK);
   WriteBlockEnt(w, b.Ent, false);
+  w.WriteStr(CB_SUBCLASS, IfEmpt(b.Ent.Subclass2, _AcDbBlockEnd));
 end;
 
 end.
