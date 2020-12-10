@@ -68,6 +68,7 @@ begin
   w.WriteStr(CB_SUBCLASS, IfEmpt(b.Ent.Subclass2, _AcDbBlockBegin));
   w.WriteStr(CB_NAME, b.BlockName);
   w.WriteInt(CB_FLAGS, b.BlockFlags);
+  WritePoint(w, b.BasePoint);
   w.WriteStr(CB_BLOCKNAME, b.BlockName2);
   w.WriteStr(CB_XREFPATH, b.XRef);
   if b.Descr<>'' then w.WriteStr(CB_DESCR, b.Descr);

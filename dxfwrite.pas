@@ -34,6 +34,7 @@ type
     procedure WriteStrPart(codeGroup: integer; const s: string); override;
     procedure WriteFloat(codeGroup: integer; f: double); override;
     procedure WriteBin(codeGroup: integer; const data; dataLen: integer); override;
+    function FloatToStr(d: double): string; virtual;
   end;
 
   { TDxfBinaryWriter }
@@ -223,7 +224,7 @@ var
   s : string;
 begin
   TextCodeGroupToDst(codeGroup, dst);
-  Str(f, s);
+  s := Self.FloatToStr(f);
   TextStrToDst(s, dst);
   TextLFToDst(dst);
 end;
@@ -241,6 +242,22 @@ begin
     TextStrToDst(s, dst);
   end;
   TextLFToDst(dst);
+end;
+
+function TDxfAsciiWriter.FloatToStr(d: double): string;
+var
+  i : integer;
+begin
+  Str(d:0:12, Result);
+  if Result = '' then Exit;
+
+  for i:=length(Result)-1 downto 1 do begin
+    if Result[i]<>'0' then begin
+      if Result[i]='.' then Result := Copy(Result, 1, i+1) // grabbing one extra zero. to get 10.0
+      else Result := Copy(Result, 1, i);
+      Exit;
+    end;
+  end;
 end;
 
 procedure WrStartSection(w: TDxfWriter; const SecName: string);
