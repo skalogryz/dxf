@@ -18,6 +18,8 @@ type
     procedure WriteFloat(codeGroup: integer; f: double); virtual; abstract;
     procedure WriteBin(codeGroup: integer; const data; dataLen: integer); virtual; abstract;
     procedure WriteStr(codeGroup: integer; const data: string; maxLen: Integer = -1);
+    // tries to determine the 16 vs 32 based on the group code
+    procedure WriteInt(codeGroup: integer; v: integer);
   end;
 
   { TDxfAsciiWriter }
@@ -106,6 +108,18 @@ begin
     if length(s) < maxLen then s := ''
     else s := Copy(s, maxLen, length(s));
   until s = '';
+end;
+
+procedure TDxfWriter.WriteInt(codeGroup: integer; v: integer);
+begin
+  case DxfDataType(codegroup) of
+    dtInt16: WriteInt16(codeGroup, Int16(v));
+    dtInt32,
+    dtInt64: WriteInt32(codeGroup, v);
+    dtDouble: WriteFloat(codeGroup, v);
+  else
+    WriteStr(codeGroup, intToStr(v));
+  end;
 end;
 
 { TDxfBinaryWriter }
