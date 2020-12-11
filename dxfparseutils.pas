@@ -105,6 +105,7 @@ procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer
 procedure ParseLine(p: TDxfParser; l: TDxfLine);
 
 procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
+function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
 function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
 
 implementation
@@ -211,6 +212,24 @@ begin
   ParsePoint(p, l.StartPoint, CB_X_EXTRUSION);
 end;
 
+function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
+var
+  nm : string;
+begin
+  if tp='' then Exit;
+  nm := upcase(tp);
+  case nm[1] of
+    'L': begin
+      if nm = ET_LINE then begin
+        Result := TDxfLine.Create;
+        ParseLine(p, TDxfLine(Result));
+      end;
+    end;
+  else
+    Result := nil;
+  end;
+end;
+
 function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
 var
   nm : string;
@@ -224,16 +243,7 @@ begin
     Result := nil;
     Exit;
   end;
-  case nm[1] of
-    'L': begin
-      if nm = ET_LINE then begin
-        Result := TDxfLine.Create;
-        ParseLine(p, TDxfLine(Result));
-      end;
-    end;
-  else
-    Result := nil;
-  end;
+  Result := ParseEntityFromType(p, nm);
 end;
 
 { TDxfLine }
