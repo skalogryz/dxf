@@ -82,41 +82,37 @@ type
     Transperancy    : Integer; // 440
     PoltObj         : string;  // 390
     ShadowMode      : Integer; // 284
+    Subclass2       : string;  // 100
   end;
-  //  Subclass2    : string;  // 100
+
+  TDxfLine = record
+    ent         : TDxfEntity;
+    Thickness   : double;
+    StartPoint  : TDxfPoint;
+    EndPoint    : TDxfPoint;
+    Extrusion   : TDxfPoint;
+  end;
+
+  ParseMasterEntity = record
+    entType : string;
+    line    : TDxfLine;
+  end;
 
 procedure ParseClass(p: TDxfParser; var c: TDxfClass);
 procedure ParseBlockEntity(p: TDxfParser; var e: TDxfBlockEntity);
 procedure ParseBlock(p: TDxfParser; var b: TDxfBlock);
 procedure ParseBlockEnd(p: TDxfParser; var b: TDxfBlockEnd);
-procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint);
+procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
 procedure ParseEntity(p: TDxfParser; var e: TDxfEntity);
+procedure ParseLine(p: TDxfParser; var l: TDxfLine);
 
 implementation
 
-procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint);
+procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
 begin
-  pt.x := 0;
-  pt.y := 0;
-  pt.z := 0;
-  case p.scanner.CodeGroup of
-    CB_X: begin
-      pt.x := p.scanner.ValFloat;
-      p.Next;
-    end;
-  end;
-  case p.scanner.CodeGroup of
-    CB_Y: begin
-      pt.y := p.scanner.ValFloat;
-      p.Next;
-    end;
-  end;
-  case p.scanner.CodeGroup of
-    CB_Z: begin
-      pt.z := p.scanner.ValFloat;
-      p.Next;
-    end;
-  end;
+  pt.x := ConsumeFlt(p, XCodeGroup, 0);
+  pt.y := ConsumeFlt(p, XCodeGroup + 10, 0);
+  pt.z := ConsumeFlt(p, XCodeGroup + 20, 0);
 end;
 
 procedure ParseBlockEntity(p: TDxfParser; var e: TDxfBlockEntity);
@@ -202,7 +198,17 @@ begin
 
   //      : string;  // 347
   //  ColorNumber  : string;  // 62
-  //e.Subclass2    := ConsumeStr(p, 100);
+  e.Subclass2    := ConsumeStr(p, 100);
 end;
+
+procedure ParseLine(p: TDxfParser; var l: TDxfLine);
+begin
+  ParseEntity(p, l.ent);
+  l.Thickness := ConsumeFlt(p, 39);
+  ParsePoint(p, l.StartPoint, CB_X);
+  ParsePoint(p, l.StartPoint, CB_X_ENDPOINT);
+  ParsePoint(p, l.StartPoint, CB_X_EXTRUSION);
+end;
+
 
 end.
