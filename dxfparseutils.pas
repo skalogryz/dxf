@@ -342,8 +342,11 @@ begin
         end;
 
         prBlockEnd: begin
+          if b<>nil then
+            ParseBlockEnd(p, b._blockEnd)
+          else
+            ParseBlockEnd(p, dummyEnd);
           b := nil;
-          ParseBlockEnd(p, dummyEnd);
         end;
 
         prEntityStart, prEntityInBlock:

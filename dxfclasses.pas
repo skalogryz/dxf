@@ -201,6 +201,7 @@ type
   TDxfFileBlock = class(TDxfBlock)
   public
     _entities : TList;
+    _blockEnd : TDxfBlockEnd;
     constructor Create;
     destructor Destroy; override;
     procedure AddEntity(ent: TDxfEntity);
@@ -262,7 +263,9 @@ end;
 
 constructor TDxfFileBlock.Create;
 begin
+  inherited Create;
   _entities := TList.Create;
+  _blockEnd := TDxfBlockEnd.Create;
 end;
 
 destructor TDxfFileBlock.Destroy;
@@ -272,6 +275,7 @@ begin
   for i:=0 to _entities.Count-1 do
     TObject(_entities[i]).Free;
   _entities.Free;
+  _blockEnd.Free;
   inherited Destroy;
 end;
 
