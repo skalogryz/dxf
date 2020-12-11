@@ -14,23 +14,16 @@ type
     AndDir     : Int16;  // $ANGDIR // 1 = Clockwise angles 0 = Counterclockwise angles
   end;
 
-  { TDxfCommonObj }
-
-  TDxfCommonObj = class(TObject)
-    Name   : string;
-    Handle : string;
-    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); virtual;
-    procedure WriteAttr(w: TDxfWriter); virtual;
-  end;
-
   { TDxfTable }
 
-  TDxfTable = class(TDxfCommonObj)
+  TDxfTable = class(TObject)
   private
     fItems: TList;
     function GetObject(i: integer): TObject;
     function GetCount: Integer;
   public
+    Name : string;
+    Handle : string;
     constructor Create;
     destructor Destroy; override;
     function AddItem(obj: TObject): Integer;
@@ -39,16 +32,52 @@ type
     property Count: Integer read GetCount;
   end;
 
-  { TDxfEntity }
-
-  TDxfEntity = class(TDxfCommonObj)
-    LayerName   : string; // 8
-    OwnerHandle : string; // 330
-    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
-  end;
-
   TDxfPoint = record
     x,y,z: double;
+  end;
+
+  // todo:
+  TDxfValue = class
+    s   : string;
+    i   : integer;
+    i64 : int64;
+    f   : double;
+  end;
+
+  TDxfValuesList = class
+    count     : integer;
+    vales     : array of TDxfValue;
+  end;
+
+  { TDxfEntity }
+
+  TDxfEntity = class
+    EntityType      : string; // 0. Not parsed, but assigned elsewhere
+    Handle          : string;          // 5
+    appName         : string;          // 120 (value of)
+    appValues       : TDxfValuesList;  // 120+custom
+    ACAD_Reactors   : TDxfValuesList;  // 120+330
+    ACAD_XDict      : TDxfValuesList;  // 120+360
+    Owner           : string;  // 330
+    SubClass        : string;  // 100 (should be AcDbEntity)
+    SpaceFlag       : int32;   // 67 -- optional!!!  (seen on Paper_Source)
+    AppTableLayout  : string; // 410
+    LayerName       : string;  // 8
+    LineTypeName    : string;  // 6 (default BYLAYER)
+    HardPtrId       : string;  // 347
+    ColorNumber     : string;  // 62
+    LineWidth       : Integer; // 370
+    LineScale       : Double;  // 48
+    isVisible       : Integer; // 60
+    ProxyBytesCount : Integer; // 92
+    ProxyGraph      : array of byte; // 310s
+    Color           : Integer; // 420
+    ColorName       : string;  // 430
+    Transperancy    : Integer; // 440
+    PoltObj         : string;  // 390
+    ShadowMode      : Integer; // 284
+    Subclass2       : string;  // 100
+    constructor Create(const AEntityType: string = '');
   end;
 
   { TDxfInsert }
@@ -64,17 +93,71 @@ type
     ColCount   : integer;
     RowCount   : integer;
     RotAngle   : double;
-    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
+  end;
+
+  TDxfClass = class
+    recName    : string;  // 1
+    cppName    : string;  // 2
+    appName    : string;  // 3
+    ProxyFlags : integer; // 90
+    InstCount  : integer; // 91
+    WasProxy   : integer; // 280
+    IsAnEntity : integer; // 281
+  end;
+
+  TDxfBlockEntity = class
+    Handle       : string;  // 5
+    appDefGroup  : string;  // 102
+    Owner        : string;  //
+    SubClass     : string;  // 100
+    SpaceFlag    : int32;   // 67 -- optional!!!  (seen on Paper_Source)
+    LayerName    : string;  // 8
+    Subclass2    : string;  // 100
+  end;
+
+  TDxfBlock = class(TDxfBlockEntity)
+    BlockName  : string;    // 2
+    BlockFlags : integer;   // 70
+    BasePoint  : TDxfPoint; // 10 20 30
+    BlockName2 : string;    // 3
+    XRef       : string;    // 1
+    Descr      : string;    // 4
+  end;
+
+  TDxfBlockEnd = class (TDxfBlockEntity)
+    // no special fields for EndBlock
+  end;
+
+  { TDxfCircle }
+
+  TDxfCircle = class(TDxfEntity)
+    Thickness   : double;
+    CenterPoint : TDxfPoint;
+    Radius      : double;
+    Extrusion   : TDxfPoint;
+    constructor Create(const AEntityType: string = ET_CIRCLE);
+  end;
+
+  { TDxfSolid }
+
+  TDxfSolid = class(TDxfEntity)
+    Corner1     : TDxfPoint;
+    Corner2     : TDxfPoint;
+    Corner3     : TDxfPoint;
+    Corner4     : TDxfPoint;
+    Thickness   : double;
+    Extrusion   : TDxfPoint;
+    constructor Create(const AEntityType: string = ET_SOLID);
   end;
 
   { TDxfLine }
 
   TDxfLine = class(TDxfEntity)
-    StPt       : TDxfPoint; // Start Point
-    EndPt      : TDxfPoint; // End Point
-    Thickness  : Double;    // Thickness
-    ExtrDir    : TDxfPoint; // Extrusion direction
-    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
+    Thickness   : double;
+    StartPoint  : TDxfPoint;
+    EndPoint    : TDxfPoint;
+    Extrusion   : TDxfPoint;
+    constructor Create(const AEntityType: string = ET_LINE);
   end;
 
   { TDxfPolyLine }
@@ -86,7 +169,6 @@ type
     EndWidth   : Double;    // 41
     SurfType   : Int16;     // 75
     ExtrDir    : TDxfPoint; // 210, 220, 230
-    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
   end;
 
   { TDxfVertex }
@@ -100,7 +182,6 @@ type
     Flags      : Integer; // 70
     PolyFace   : array [0..3] of Int16; // 71..74
     VertexIdx  : Integer; // 91
-    procedure SetAttr(const codeGroup: Integer; scanner: TDxfScanner); override;
   end;
 
   { TDxfFile }
@@ -142,101 +223,6 @@ procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
 procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
 
 implementation
-
-{ TDxfInsert }
-
-procedure TDxfInsert.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
-begin
-  case codeGroup of
-    66: VarFlag := scanner.ValInt;
-    2:  BlockName := scanner.ValStr;
-    10,20,30: PtrAttr(codeGroup, scanner, InsPt);
-    41,42,43: PtrAttr(codeGroup, scanner, Scale);
-    44: ColSpacing := scanner.ValFloat;
-    45: RowSpacing := scanner.ValFloat;
-    70: ColCount := scanner.ValInt;
-    71: RowCount := scanner.ValInt;
-    50: RotAngle := scanner.ValFloat;
-    210,220,230: PtrAttr(codeGroup, scanner, ExtrDir);
-  else
-    inherited SetAttr(codeGroup, scanner);
-  end;
-end;
-
-{ TDxfPolyLine }
-
-procedure TDxfPolyLine.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
-begin
-  case codeGroup of
-    39: Thickness  := scanner.ValFloat;
-    70: Flags      := scanner.ValInt;
-    40: StartWidth := scanner.ValFloat;
-    41: EndWidth   := scanner.ValFloat;
-    75: SurfType   := scanner.ValInt;
-    210, 220, 230: PtrAttr(codeGroup, scanner, ExtrDir);
-  else
-    inherited SetAttr(codeGroup, scanner);
-  end;
-end;
-
-{ TDxfEntity }
-
-procedure TDxfEntity.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
-begin
-  case codeGroup of
-    8: LayerName := scanner.ValStr;
-  else
-    //inherited SetAttr(codeGroup, scanner);
-  end;
-end;
-
-{ TDxfLine }
-
-procedure TDxfLine.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
-begin
-  case codeGroup of
-    10, 20, 30: PtrAttr(codeGroup, scanner, StPt);
-    11, 21, 31: PtrAttr(codeGroup, scanner, EndPt);
-    210, 220, 230: PtrAttr(codeGroup, scanner, ExtrDir);
-    39: Thickness := scanner.ValFloat;
-  else
-    inherited
-  end;
-end;
-
-{ TDxfVertex }
-
-procedure TDxfVertex.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
-begin
-  case codeGroup of
-    10, 20, 30: PtrAttr(codeGroup, scanner, pt);
-    40: StartWidth := scanner.ValFloat;
-    41: EndWidth := scanner.ValFloat;
-    42: Buldge := scanner.ValFloat;
-    50: TangentDir := scanner.ValFloat;
-    70: Flags := scanner.ValInt;
-    71..74:
-        PolyFace[codeGroup-71]:=scanner.ValInt;
-    91: VertexIdx := scanner.ValInt;
-  else
-    inherited
-  end;
-end;
-
-{ TDxfCommonObj }
-
-procedure TDxfCommonObj.SetAttr(const codeGroup: Integer; scanner: TDxfScanner);
-begin
-  case codeGroup of
-    CB_HANDLE: Handle := scanner.ValStr;
-    CB_NAME: Name := scanner.ValStr;
-  end;
-end;
-
-procedure TDxfCommonObj.WriteAttr(w: TDxfWriter);
-begin
-
-end;
 
 { TDxfTable }
 
@@ -402,18 +388,18 @@ begin
 
         prEntityStart:
         begin
-          if trim(p.EntityType) = '111' then begin
-            p.scanner.GetLocationInfo(ln, ofs);
-            writeln('odd entity type: ',ln,' ',ofs);
-          end;
-          ent := dst.AddEntity(p.EntityType);
-          ent.Handle := p.EntityHandle;
+          //if trim(p.EntityType) = '111' then begin
+          //  p.scanner.GetLocationInfo(ln, ofs);
+          //  writeln('odd entity type: ',ln,' ',ofs);
+          //end;
+          //ent := dst.AddEntity(p.EntityType);
+          //ent.Handle := p.EntityHandle;
         end;
 
         prEntityAttr:
         begin
-          if Assigned(ent) then
-            ent.SetAttr(p.scanner.CodeGroup, p.scanner);
+          //if Assigned(ent) then
+          //  ent.SetAttr(p.scanner.CodeGroup, p.scanner);
         end;
 
         prSecEnd: begin
@@ -462,7 +448,7 @@ begin
   writeln('Entities: ', dxf.entities.Count);
   for i:=0 to dxf.entities.Count-1 do begin
     e := TDxfEntity(dxf.entities[i]);
-    writeln('  ',e.Name,' ',e.ClassName);
+    //writeln('  ',e.Name,' ',e.ClassName);
   end;
 end;
 
@@ -487,7 +473,7 @@ begin
   end;
   if not Assigned(Result) then
     Result := TDxfEntity.Create;
-  Result.Name := Name;
+  //Result.Name := Name;
 end;
 
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
@@ -504,7 +490,7 @@ function DxfSaveToString(dst: TDxfFile): string;
 var
   st : TStringStream;
 begin
-  st := TStringStream.Create;
+  st := TStringStream.Create('');
   try
     DxfSaveToStream(st, dst, false);
     Result := st.DataString;
@@ -543,7 +529,7 @@ var
   e : TDxfEntity;
 begin
   if not Assigned(wr) or not Assigned(dst) then Exit;
-
+{
   WrStartSection(wr, NAME_ENTITIES);
   for i:=0 to dst.entities.Count-1 do begin
     e := TDxfEntity(dst.entities[i]);
@@ -552,7 +538,37 @@ begin
     WrHandle(wr, e.OwnerHandle, CB_OWNERHANDLE);
   end;
   WrEndSection(wr);
-  WrEndOfFile(wr);
+  WrEndOfFile(wr);}
 end;
+
+{ TDxfSolid }
+
+constructor TDxfSolid.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
+{ TDxfCircle }
+
+constructor TDxfCircle.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
+{ TDxfLine }
+
+constructor TDxfLine.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
+{ TDxfEntity }
+
+constructor TDxfEntity.Create(const AEntityType: string);
+begin
+  inherited Create;
+  Self.EntityType := AEntityType;
+end;
+
 
 end.
