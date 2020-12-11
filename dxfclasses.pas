@@ -57,16 +57,16 @@ type
   end;
 
   TDxfUserHeader = record
-    UserI1: Integer;   // 9 $USERI1 70    0
-    UserI2: Integer;   // 9 $USERI2 70   0
-    UserI3: Integer;   // 9 $USERI3 70   0
-    UserI4: Integer;   // 9 $USERI4 70    0
-    UserI5: Integer;   // 9 $USERI5 70    0
-    UserRR1: double;   // 9 $USERR1 40 0.0
-    UserRR2: double;   // 9 $USERR2 40 0.0
-    UserRR3: double;   // 9 $USERR3 40 0.0
-    UserRR4: double;   // 9 $USERR4 40 0.0
-    UserRR5: double;   // 9 $USERR5 40 0.0
+    I1: Integer;   // ($USERI1) Five integer variables intended for use by third-party developers
+    I2: Integer;   // ($USERI2)
+    I3: Integer;   // ($USERI3)
+    I4: Integer;   // ($USERI4)
+    I5: Integer;   // ($USERI5)
+    R1: double;    // ($USERR1) Five real variables intended for use by third-party developers
+    R2: double;    // ($USERR2)
+    R3: double;    // ($USERR3)
+    R4: double;    // ($USERR4)
+    R5: double;    // ($USERR5)
   end;
 
   // current editor settings
