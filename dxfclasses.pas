@@ -6,12 +6,64 @@ uses
   Classes, SysUtils, dxftypes, dxfparse, dxfwrite;
 
 type
+  TDxfPoint = record
+    x,y,z: double;
+  end;
+
+// todo: move it to dxf parseutils
+  TDxfSpacingHeader = record
+    Base         : string;     // $*BASE          9 $UCSBASE 2                                9 $PUCSBASE 2
+    Name         : string;     // $*NAME          9 $UCSNAME 2                                9 $PUCSNAME 2
+    Origin       : TDxfPoint;  // $*ORG           9 $UCSORG 10 0.0 20 0.0 30 0.0              9 $PUCSORG 10 0.0 20 0.0 30 0.0
+    OriginBack   : TDxfPoint;  // $*ORGBACK       9 $UCSXDIR 10 1.0 20 0.0 30 0.0             9 $PUCSXDIR 10 1.0 20 0.0 30 0.0
+    OriginBottom : TDxfPoint;  // $*ORGBOTTOM     9 $UCSYDIR 10 0.0 20 1.0 30 0.0             9 $PUCSYDIR 10 0.0 20 1.0 30 0.0
+    OriginFront  : TDxfPoint;  // $*ORGFRONT      9 $UCSORTHOREF 2                            9 $PUCSORTHOREF 2
+    OriginLeft   : TDxfPoint;  // $*ORGLEFT       9 $UCSORTHOVIEW 70    0                     9 $PUCSORTHOVIEW 70    0
+    OriginRight  : TDxfPoint;  // $*ORGRIGHT      9 $UCSORGTOP 10 0.0 20 0.0 30 0.0           9 $PUCSORGTOP 10 0.0 20 0.0 30 0.0
+    OriginTop    : TDxfPoint;  // $*ORGTOP        9 $UCSORGBOTTOM 10 0.0 20 0.0 30 0.0        9 $PUCSORGBOTTOM 10 0.0 20 0.0 30 0.0
+    OrthoRef     : string;     // $*ORTHOREF      9 $UCSORGLEFT 10 0.0 20 0.0 30 0.0          9 $PUCSORGLEFT 10 0.0 20 0.0 30 0.0
+    OrthoView    : Integer;    // $*ORTHOVIEW     9 $UCSORGRIGHT 10 0.0 20 0.0 30 0.0         9 $PUCSORGRIGHT 10 0.0 20 0.0 30 0.0
+    XDir         : TDxfPoint;  // $*XDIR          9 $UCSORGFRONT 10 0.0 20 0.0 30 0.0         9 $PUCSORGFRONT 10 0.0 20 0.0 30 0.0
+    YDir         : TDxfPoint;  // $*YDIR          9 $UCSORGBACK 10 0.0 20 0.0 30 0.0          9 $PUCSORGBACK 10 0.0 20 0.0 30 0.0
+  end;
+
+  TDxfAcadHeader = record
+    Version   : string;     // 9 $ACADVER        1 AC1015
+    MaintVer  : integer;    // 9 $ACADMAINTVER  70 20
+  end;
+
+  TDxfUserHeader = record
+    UserI1: Integer;   // 9 $USERI1 70    0
+    UserI2: Integer;   // 9 $USERI2 70   0
+    UserI3: Integer;   // 9 $USERI3 70   0
+    UserI4: Integer;   // 9 $USERI4 70    0
+    UserI5: Integer;   // 9 $USERI5 70    0
+    UserRR1: double;   // 9 $USERR1 40 0.0
+    UserRR2: double;   // 9 $USERR2 40 0.0
+    UserRR3: double;   // 9 $USERR3 40 0.0
+    UserRR4: double;   // 9 $USERR4 40 0.0
+    UserRR5: double;   // 9 $USERR5 40 0.0
+  end;
+
+  // current editor settings
+  TDxfCurrentSettings = record
+    Layer               : string;  // 9 $CLAYER         8 EL_DEVICE  // Current layer name
+// 9 $CMLSTYLE 2 Standard       // Current multiline style name
+// 9 $CMLJUST 70    0     // Current multiline justification:
+// 9 $CMLSCALE 40 1.0  // Current multiline scale
+// 9 $ELEVATION 40 0.0 // Current elevation set by ELEV command
+// 9 $THICKNESS 40 0.0      // Current thickness set by ELEV command
+// 9 $PELEVATION 40 Current paper space elevation
+// 9 $TEXTSTYLE      7 STANDARD  // Current text style name
+    EntityColor         : Integer; // 9 $CECOLOR       62  256       // Current entity color number:  0 = BYBLOCK; 256 = BYLAYER
+    EntityLineTypeScale : Double;  // 9 $CELTSCALE     40 1.0
+    //     9 $XEDIT 290    1 // Controls whether the current drawing can be edited inplace when being referenced by another drawing.
+  end;
+
   TDxfHeader = class(TObject)
-  public
-    MaintVer   : Int16;  // $ACADMAINTVER
-    AutoCadVer : string; // $ACADVER
-    AngBase    : double; // $ANGBASE
-    AndDir     : Int16;  // $ANGDIR // 1 = Clockwise angles 0 = Counterclockwise angles
+    acad : TDxfAcadHeader;
+    Ucs  : TDxfSpacingHeader;
+    PUcs : TDxfSpacingHeader; // Paper space
   end;
 
   { TDxfTable }
@@ -30,10 +82,6 @@ type
     procedure Clear;
     property Item[i: integer]: TObject read GetObject;
     property Count: Integer read GetCount;
-  end;
-
-  TDxfPoint = record
-    x,y,z: double;
   end;
 
   // todo:
