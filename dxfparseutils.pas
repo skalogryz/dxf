@@ -431,6 +431,7 @@ var
   //ln, ofs: integer;
   b : TDxfFileBlock;
   dummyEnd : TDxfBlockEnd;
+  cls : TDxfClass;
 begin
   if not Assigned(p) or not Assigned(dst) then Exit;
 
@@ -478,6 +479,13 @@ begin
           else
             dst.AddEntity(ent);
         end;
+
+        prClassStart:
+        begin
+          cls := dst.AddClass;
+          ParseClass(p, cls);
+        end;
+
 
         prSecEnd: begin
           tbl := nil;
