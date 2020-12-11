@@ -147,7 +147,6 @@ type
     tableEntryType : string;
     tableEntryHandle : string;
     tableHandle  : string;
-    handle       : string;
     Comment      : string;
     ErrStr       : string;
 
@@ -511,14 +510,12 @@ begin
   if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_TABLE) then begin
     Result := prTableStart;
     tableName := '';
-    Handle := '';
     tableEntryType := '';
     ConsumeCodeBlock(t, CB_NAME, tableName);
     ConsumeCodeBlock(t, CB_HANDLE, tableHandle);
   end else if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_ENDTAB) then begin
     Result := prTableEnd;
     tableName := '';
-    Handle := '';
   end else if (t.codeGroup = CB_CONTROL) then begin
     tableEntryType := t.ValStr;
     Result := prTableEntry;
@@ -535,12 +532,8 @@ function TDxfParser.ParseBlocks(t: TDxfScanner; var newmode: integer): TDxfParse
 begin
   if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_BLOCK) then begin
     Result := prBlockStart;
-    Handle := '';
-    ConsumeCodeBlock(t, CB_HANDLE, BlockHandle);
   end else if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_ENDBLK) then begin
     Result := prBlockEnd;
-    Handle := '';
-    ConsumeCodeBlock(t, CB_HANDLE, BlockHandle);
   end else if (t.CodeGroup = CB_CONTROL) then begin
     // Entity!
     Result := ParseEntities(t, newmode);
@@ -563,7 +556,6 @@ begin
     EntityHandle := '';
     ConsumeCodeBlock(t, CB_HANDLE, EntityHandle);
   end else begin
-    if (t.CodeGroup = CB_HANDLE) and (Handle = '') then EntityHandle := t.ValStr;
     Result := prEntityAttr;
   end;
 end;
