@@ -52,7 +52,10 @@ begin
     writeln('read in ', tm, 'ms');
     DumpFile(f);
 
+    tm:={%H-}GetTickCount;
     WriteFileAscii(ChangeFileExt(fn, '.outdxf'), f);
+    tm:=GetTickCount-tm;
+    writeln('written in ', tm, 'ms');
   finally
     f.Free;
   end;
