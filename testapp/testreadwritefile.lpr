@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, dxfwrite, dxfclasses, dxftypes, dxfparseutils;
+  Classes, SysUtils, dxfwrite, dxfclasses, dxftypes, dxfparseutils, dxfwriteutils;
 
 procedure DumpEntities(const en: TList; const pfx: string );
 var
@@ -46,11 +46,13 @@ var
 begin
   f:=TDxfFile.Create;
   try
-    tm:=GetTickCount;
+    tm:={%H-}GetTickCount;
     ReadFile(fn, f);
     tm:=GetTickCount-tm;
     writeln('read in ', tm, 'ms');
     DumpFile(f);
+
+    WriteFileAscii(ChangeFileExt(fn, '.outdxf'), f);
   finally
     f.Free;
   end;
