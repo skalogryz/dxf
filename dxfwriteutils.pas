@@ -3,7 +3,8 @@ unit dxfwriteutils;
 interface
 
 uses
-  dxftypes, dxfwrite, dxfparseutils;
+  Classes, SysUtils,
+  dxftypes, dxfwrite, dxfclasses;
 
 type
 // todo: move it to dxf parseutils
@@ -239,6 +240,11 @@ procedure WriteHeaderVarPnt2d(w: TDxfWriter; const Name: string; const v: TDxfPo
 
 procedure WriteAcadHeader(w: TDxfWriter; const h: TDxfAcadHeader);
 
+
+procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
+procedure WriteFileAscii(const dst: TStream; src: TDxfFile);
+procedure WriteFile(w: TDxfWriter; src: TDxfFile);
+
 implementation
 
 const
@@ -273,12 +279,12 @@ begin
 end;
 
 // todo: this will change!
-procedure WriteBlockEnt(w: TDxfWriter; const b: TDxfEntity; WriteSpaceFlag: Boolean);
+procedure WriteBlockEnt(w: TDxfWriter; const b: TDxfBlockEntity; WriteSpaceFlag: Boolean);
 begin
   w.WriteStr(CB_HANDLE, b.Handle);
-  if b.appDefGroup<>'' then begin
-    // todo: support for custom application codes
-  end;
+  //if b.appDefGroup<>'' then begin
+  //  // todo: support for custom application codes
+  //end;
   w.WriteStr(CB_OWNERHANDLE, b.Owner);
   w.WriteStr(CB_SUBCLASS,    IfEmpt(b.SubClass, _AcDbEntity));
   if WriteSpaceFlag then w.WriteInt(CB_SPACEFLAG,   b.SpaceFlag);
@@ -289,8 +295,8 @@ procedure WriteBlock(w: TDxfWriter; const b: TDxfBlock);
 begin
   if not Assigned(w) then Exit;
   WriteCtrl(w, NAME_BLOCK);
-  WriteBlockEnt(w, b.Ent, b.Ent.SpaceFlag<>0);
-  w.WriteStr(CB_SUBCLASS, IfEmpt(b.Ent.Subclass2, _AcDbBlockBegin));
+  WriteBlockEnt(w, b, b.SpaceFlag<>0);
+  w.WriteStr(CB_SUBCLASS, IfEmpt(b.Subclass2, _AcDbBlockBegin));
   w.WriteStr(CB_NAME, b.BlockName);
   w.WriteInt(CB_FLAGS, b.BlockFlags);
   WritePoint(w, b.BasePoint);
@@ -303,8 +309,8 @@ procedure WriteBlockEnd(w: TDxfWriter; const b: TDxfBlockEnd);
 begin
   if not Assigned(w) then Exit;
   WriteCtrl(w, NAME_ENDBLK);
-  WriteBlockEnt(w, b.Ent, false);
-  w.WriteStr(CB_SUBCLASS, IfEmpt(b.Ent.Subclass2, _AcDbBlockEnd));
+  WriteBlockEnt(w, b, false);
+  w.WriteStr(CB_SUBCLASS, IfEmpt(b.Subclass2, _AcDbBlockEnd));
 end;
 
 procedure WriteHeaderVarStr(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
@@ -344,6 +350,36 @@ begin
   WriteHeaderVarStr(w, vACADVER, h.Version, CB_VARVALUE);
   if h.MaintVer<>0 then
     WriteHeaderVarInt(w, vACADMAINTVER, h.MaintVer, CB_FLAGS);
+end;
+
+procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
+var
+  fs : TFileStream;
+begin
+  fs := TFileStream.Create(dstFn, fmCreate);
+  try
+    WriteFileAscii(fs, src);
+  finally
+    fs.Free;
+  end;
+end;
+
+procedure WriteFileAscii(const dst: TStream; src: TDxfFile);
+var
+  w : TDxfAsciiWriter;
+begin
+  w := TDxfAsciiWriter.Create;
+  try
+    w.SetDest(dst, false);
+    WriteFile(w, src);
+  finally
+    w.Free;
+  end;
+end;
+
+procedure WriteFile(w: TDxfWriter; src: TDxfFile);
+begin
+
 end;
 
 end.
