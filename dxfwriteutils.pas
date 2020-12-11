@@ -226,7 +226,12 @@ type
 procedure WriteBlock(w: TDxfWriter; const b: TDxfBlock);
 procedure WriteBlockEnd(w: TDxfWriter; const b: TDxfBlockEnd);
 procedure WritePoint(w: TDxfWriter; const b: TDxfPoint; const XCodeBase: Integer = 10);
+procedure WriteExtrusionPoint(w: TDxfWriter; const b: TDxfPoint);
 procedure WritePoint2D(w: TDxfWriter; const b: TDxfPoint; const XCodeBase: Integer = 10);
+
+procedure WriteOptInt(w: TDxfWriter; v, def: Integer; codeGroup: integer);
+procedure WriteOptFlt(w: TDxfWriter; v, def: double; codeGroup: integer; const epsilon: double = DEF_EPSILON);
+procedure WriteOptStr(w: TDxfWriter; const v, def: string; codeGroup: integer);
 
 // returns def, if check is an empty string (no trimming check)
 // otherwise returns check
@@ -243,6 +248,8 @@ procedure WriteAcadHeader(w: TDxfWriter; const h: TDxfAcadHeader);
 procedure WriteStartSection(w: TDxfWriter; const SecName: string);
 
 procedure WriteEntityBase(w: TDxfWriter; e: TDxfEntity);
+
+procedure WriteLine(w: TDxfWriter; l: TDxfLine);
 
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
@@ -264,6 +271,12 @@ begin
   w.WriteFloat(XCodeBase + XOFS, b.x);
   w.WriteFloat(XCodeBase + YOFS, b.y);
   w.WriteFloat(XCodeBase + ZOFS, b.z);
+end;
+
+procedure WriteExtrusionPoint(w: TDxfWriter; const b: TDxfPoint);
+begin
+  if not Assigned(w) or isSamePoint(b, DefExtrusionPoint) then Exit; // it's the same as default
+  WritePoint(w, b, CB_X_EXTRUSION);
 end;
 
 procedure WritePoint2D(w: TDxfWriter; const b: TDxfPoint; const XCodeBase: Integer = 10);
@@ -378,29 +391,42 @@ begin
   if (e.LineTypeName<>'') and (e.LineTypeName<>'BYLAYER') then w.WriteStr(6  , e.LineTypeName );
   if (e.HardPtrId<>'') and (e.HardPtrId<>'BYLAYER') then w.WriteStr(347, e.HardPtrId    );
   if (e.ColorNumber<>256) then w.Writeint(62 , e.ColorNumber  );
-  w.WriteInt(370, e.LineWidth    );
 
-  w.WriteFloat(48, e.LineScale  );
-  w.WriteInt(60, e.isVisible     );
-  w.WriteInt(92,e.ProxyBytesCount);
+  // according to documents, it's NOT omitted... hmm
+  WriteOptInt(w, e.LineWidth, 0, 370);
+
+  WriteOptFlt(w, e.LineScale, DEF_LINESCALE, 48);
+  WriteOptInt(w, e.isHidden,  DEF_HIDDEN, 60);
+
   if (e.ProxyBytesCount>0) then begin
+    w.WriteInt(92,e.ProxyBytesCount);
+    //todo:
     //  e.ProxyGraph      := ConsumeInt array of byte; // 310s
   end;
-  w.WriteInt(420, e.Color        );
-  w.WriteStr(430, e.ColorName    );
-  w.WriteInt(440, e.Transperancy );
-  w.WriteStr(390, e.PoltObj      );
-  w.WriteInt(284, e.ShadowMode   );
 
-  //      : string;  // 347
-  //  ColorNumber  : string;  // 62
+  WriteOptInt(w, e.Color,        0,  420);
+  WriteOptStr(w, e.ColorName,    '', 430);
+  WriteOptInt(w, e.Transperancy, 0,  440);
+  WriteOptStr(w, e.PlotObj,      '', 390);
+  WriteOptInt(w, e.ShadowMode,   0,  284);
+
   w.WriteStr(100, e.Subclass2);
+end;
+
+procedure WriteLine(w: TDxfWriter; l: TDxfLine);
+begin
+  WriteEntityBase(w, l);
+  WriteOptFlt(w, l.Thickness, DEF_THICKENS, CB_THICKNESS);
+  WritePoint(w, l.StartPoint, CB_X);
+  WritePoint(w, l.EndPoint, CB_X_ENDPOINT);
+  WriteExtrusionPoint(w, l.Extrusion);
 end;
 
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 begin
   if not Assigned(w) or not Assigned(e) then Exit;
-  WriteEntityBase(w, e);
+  if e is TDxfLine then
+    WriteLine(w, TDxfLine(e));
 end;
 
 procedure WriteEntityList(w: TDxfWriter; lst: TList);
@@ -445,5 +471,24 @@ begin
 
   w.WriteStr(CB_CONTROL, NAME_EOF);
 end;
+
+procedure WriteOptInt(w: TDxfWriter; v, def: Integer; codeGroup: integer);
+begin
+  if v = def then Exit;
+  w.WriteInt(codeGroup, v);
+end;
+
+procedure WriteOptFlt(w: TDxfWriter; v, def: double; codeGroup: integer; const epsilon: double);
+begin
+  if isSameDbl(v,def,epsilon) then Exit;
+  w.WriteFloat(codeGroup, v);
+end;
+
+procedure WriteOptStr(w: TDxfWriter; const v, def: string; codeGroup: integer);
+begin
+  if ((def = '') and (v='')) or (def = v) then Exit;
+  w.WriteStr(codeGroup, v);
+end;
+
 
 end.
