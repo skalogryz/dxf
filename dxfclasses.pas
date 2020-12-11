@@ -230,18 +230,9 @@ procedure UnregisterHeaderVar(proc: THeaderReadProc);
 procedure RunHeaderVarProc(Header: TDxfHeader; const curVar: string; codeblock: Integer; const value: string; out Handled: Boolean);
 procedure DefaultHeaderVar(Header: TDxfHeader; const curVar: string; codeblock: Integer; const value: string; var Handled: Boolean);
 
-procedure DxfLoadFromString(const data: string; dst: TDxfFile);
-procedure DxfLoadFromStream(const st: TStream; dst: TDxfFile);
-procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
-
 procedure DxfFileDump(dxf: TDxfFile);
 
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
-
-function DxfSaveToString(dst: TDxfFile): string;
-procedure DxfSaveToStream(const st: TStream; dst: TDxfFile; binFormat: Boolean);
-procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
-procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
 
 implementation
 
@@ -417,103 +408,6 @@ begin
     Handled := false;
 end;
 
-
-procedure DxfLoadFromString(const data: string; dst: TDxfFile);
-var
-  st : TStringStream;
-begin
-  st := TStringStream.Create(data);
-  try
-    DxfLoadFromStream(st, dst);
-  finally
-    st.free;
-  end;
-end;
-
-procedure DxfLoadFromStream(const st: TStream; dst: TDxfFile);
-var
-  sc   : TDxfScanner;
-  p    : TDxfParser;
-  res  : TDxfParseToken;
-  done : boolean;
-  tbl  : TDxfTable;
-  ent  : TDxfEntity;
-
-  ln, ofs: integer;
-begin
-  if not Assigned(st) or not Assigned(dst) then Exit;
-
-  tbl := nil;
-  sc := DxfAllocScanner(st, false);
-  p := TDxfParser.Create;
-  try
-    p.scanner := sc;
-
-    done := false;
-    while not done do begin
-      res := p.Next;
-
-      case res of
-        prTableStart: begin
-          tbl := dst.AddTable( p.tableName );
-          tbl.Handle := p.tableHandle;
-        end;
-
-        prTableAttr: begin
-          case p.scanner.CodeGroup of
-            CB_NAME:   tbl.Name := p.tableName;
-            CB_HANDLE: tbl.Handle := p.tableHandle;
-          end;
-        end;
-
-        prEntityStart:
-        begin
-          //if trim(p.EntityType) = '111' then begin
-          //  p.scanner.GetLocationInfo(ln, ofs);
-          //  writeln('odd entity type: ',ln,' ',ofs);
-          //end;
-          //ent := dst.AddEntity(p.EntityType);
-          //ent.Handle := p.EntityHandle;
-        end;
-
-        prEntityAttr:
-        begin
-          //if Assigned(ent) then
-          //  ent.SetAttr(p.scanner.CodeGroup, p.scanner);
-        end;
-
-        prSecEnd: begin
-          tbl := nil;
-          ent := nil;
-        end;
-
-        prError: begin
-          done := true;
-        end;
-        prEof: begin
-          done := true;
-        end;
-
-      end;
-    end;
-  finally
-    p.Free;
-    sc.Free;
-  end;
-end;
-
-procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
-var
-  f : TFileStream;
-begin
-  f := TFileStream.Create(st, fmOpenRead or fmShareDenyNone);
-  try
-    DxfLoadFromStream(f, dst);
-  finally
-    f.Free;
-  end;
-end;
-
 procedure DxfFileDump(dxf: TDxfFile);
 var
   i : integer;
@@ -565,61 +459,6 @@ begin
   end;
 end;
 
-
-function DxfSaveToString(dst: TDxfFile): string;
-var
-  st : TStringStream;
-begin
-  st := TStringStream.Create('');
-  try
-    DxfSaveToStream(st, dst, false);
-    Result := st.DataString;
-  finally
-    st.Free;
-  end;
-end;
-
-procedure DxfSaveToStream(const st: TStream; dst: TDxfFile; binFormat: Boolean);
-var
-  w : TDxfWriter;
-begin
-  if binFormat then
-    w := TDxfBinaryWriter.Create
-  else
-    w := TDxfAsciiWriter.Create;
-  w.SetDest(st, false);
-  DxfSave(w, dst);
-end;
-
-procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
-var
-  fs : TFileStream;
-begin
-  fs := TFileStream.Create(st, fmCreate);
-  try
-    DxfSaveToStream(fs, dst, binFormat);
-  finally
-    fs.Free;
-  end;
-end;
-
-procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
-var
-  i : integer;
-  e : TDxfEntity;
-begin
-  if not Assigned(wr) or not Assigned(dst) then Exit;
-{
-  WrStartSection(wr, NAME_ENTITIES);
-  for i:=0 to dst.entities.Count-1 do begin
-    e := TDxfEntity(dst.entities[i]);
-    wr.WriteStr(CB_CONTROL, e.Name);
-    WrHandle(wr, e.Handle);
-    WrHandle(wr, e.OwnerHandle, CB_OWNERHANDLE);
-  end;
-  WrEndSection(wr);
-  WrEndOfFile(wr);}
-end;
 
 { TDxfSolid }
 
