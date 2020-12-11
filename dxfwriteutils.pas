@@ -25,6 +25,7 @@ procedure WriteHeaderVarInt(w: TDxfWriter; const Name: string; v: Integer; codeG
 procedure WriteHeaderVarFlt(w: TDxfWriter; const Name: string; v: double; codeGroup: Integer = CB_VARFLOAT);
 procedure WriteHeaderVarPnt(w: TDxfWriter; const Name: string; const v: TDxfPoint);
 procedure WriteHeaderVarP2d(w: TDxfWriter; const Name: string; const v: TDxfPoint);
+procedure WriteHeaderVarSpace(w: TDxfWriter; const hdr: TDxfSpacingHeader; isPaper: Boolean);
 
 procedure WriteAcadHeader(w: TDxfWriter; const h: TDxfAcadHeader);
 
@@ -161,6 +162,43 @@ procedure WriteHeaderVarP2d(w: TDxfWriter; const Name: string;
 begin
   w.WriteStr(CB_VARNAME, Name);
   WritePoint2d(w, v)
+end;
+
+procedure WriteHeaderVarSpace(w: TDxfWriter; const hdr: TDxfSpacingHeader; isPaper: Boolean);
+begin
+  if isPaper then begin
+    WriteHeaderVarStr(w, vPUCSBASE      , hdr.Base, 2);
+    WriteHeaderVarStr(w, vPUCSNAME      , hdr.Name, 2);
+    WriteHeaderVarPnt(w, vPUCSORG       , hdr.Origin);
+    WriteHeaderVarPnt(w, vPUCSXDIR      , hdr.XDir);
+    WriteHeaderVarPnt(w, vPUCSYDIR      , hdr.YDir);
+
+    WriteHeaderVarStr(w, vPUCSORTHOREF  , hdr.OrthoRef, 2);
+    WriteHeaderVarInt(w, vPUCSORTHOVIEW , hdr.OrthoView, CB_VARINT);
+    WriteHeaderVarPnt(w, vPUCSORGTOP    , hdr.OriginTop);
+    WriteHeaderVarPnt(w, vPUCSORGBOTTOM , hdr.OriginBottom);
+    WriteHeaderVarPnt(w, vPUCSORGLEFT   , hdr.OriginLeft);
+
+    WriteHeaderVarPnt(w, vPUCSORGRIGHT  , hdr.OriginRight);
+    WriteHeaderVarPnt(w, vPUCSORGFRONT  , hdr.OriginFront);
+    WriteHeaderVarPnt(w, vPUCSORGBACK   , hdr.OriginBack);
+  end else begin
+    WriteHeaderVarStr(w, vUCSBASE      , hdr.Base, 2);
+    WriteHeaderVarStr(w, vUCSNAME      , hdr.Name, 2);
+    WriteHeaderVarPnt(w, vUCSORG       , hdr.Origin);
+    WriteHeaderVarPnt(w, vUCSXDIR      , hdr.XDir);
+    WriteHeaderVarPnt(w, vUCSYDIR      , hdr.YDir);
+
+    WriteHeaderVarStr(w, vUCSORTHOREF  , hdr.OrthoRef, 2);
+    WriteHeaderVarInt(w, vUCSORTHOVIEW , hdr.OrthoView, CB_VARINT);
+    WriteHeaderVarPnt(w, vUCSORGTOP    , hdr.OriginTop);
+    WriteHeaderVarPnt(w, vUCSORGBOTTOM , hdr.OriginBottom);
+    WriteHeaderVarPnt(w, vUCSORGLEFT   , hdr.OriginLeft);
+
+    WriteHeaderVarPnt(w, vUCSORGRIGHT  , hdr.OriginRight);
+    WriteHeaderVarPnt(w, vUCSORGFRONT  , hdr.OriginFront);
+    WriteHeaderVarPnt(w, vUCSORGBACK   , hdr.OriginBack);
+  end;
 end;
 
 procedure WriteAcadHeader(w: TDxfWriter; const h: TDxfAcadHeader);
@@ -364,6 +402,9 @@ begin
   WriteHeaderVarInt(w, vDIMLWD       ,header.Dim.LineWeight      , CB_VARINT);
   WriteHeaderVarInt(w, vDIMLWE       ,header.Dim.LineWeightExt   , CB_VARINT);
   WriteHeaderVarInt(w, vDIMTMOVE     ,header.Dim.TextMove        , CB_VARINT);
+
+  WriteHeaderVarSpace(w, header.Ucs, false);
+  WriteHeaderVarSpace(w, header.PUcs, true);
 
   WriteHeaderVarInt(w, vUSERI1       ,header.User.I1, CB_VARINT);
   WriteHeaderVarInt(w, vUSERI2       ,header.User.I2, CB_VARINT);
