@@ -170,6 +170,12 @@ const
   MODE_OBJECTS  = 6;
   MODE_ENTITIESINBLOCK = 7;
 
+// if the current CodeObject is equal to cd, return its value and calls Next()
+// otherwise returns "def" and takes no action.
+function ConsumeStr(p: TDxfParser; cd: Integer; const def: string = ''): string;
+function ConsumeInt(p: TDxfParser; cd: Integer; const def: Integer = 0): Integer;
+function ConsumeFlt(p: TDxfParser; cd: Integer; const def: double = 0): double;
+
 implementation
 
 const
@@ -693,6 +699,33 @@ begin
     end;
 
   end;
+end;
+
+function ConsumeStr(p: TDxfParser; cd: Integer; const def: string = ''): string;
+begin
+  if Assigned(p) and (p.scanner.CodeGroup = cd) then begin
+    Result := p.scanner.ValStr;
+    p.Next;
+  end else
+    Result := def;
+end;
+
+function ConsumeInt(p: TDxfParser; cd: Integer; const def: Integer = 0): Integer;
+begin
+  if Assigned(p) and (p.scanner.CodeGroup = cd) then begin
+    Result := p.scanner.ValInt;
+    p.Next;
+  end else
+    Result := def;
+end;
+
+function ConsumeFlt(p: TDxfParser; cd: Integer; const def: double = 0): double;
+begin
+  if Assigned(p) and (p.scanner.CodeGroup = cd) then begin
+    Result := p.scanner.ValFloat;
+    p.Next;
+  end else
+    Result := def;
 end;
 
 end.

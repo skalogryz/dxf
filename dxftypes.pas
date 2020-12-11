@@ -5,15 +5,15 @@ interface
 const
   DxfBinaryHeader = 'AutoCAD Binary DXF'#13#10#26#0;
 const
-  CB_CONTROL   = 0; // control
-  CB_XREFPATH  = 1;
+  CB_CONTROL    = 0; // control
+  CB_XREFPATH   = 1;
   CB_VARVALUE  = 1;
-  CB_NAME      = 2; // section name
-  CB_BLOCKNAME = 3; // block name
-  CB_DESCR     = 4;
-  CB_HANDLE    = 5; // handle value
-  CB_LAYERNAME = 8; // layername
-  CB_VARNAME   = 9; // variable name
+  CB_NAME       = 2; // section name
+  CB_BLOCKNAME  = 3; // block name
+  CB_DESCR      = 4;
+  CB_HANDLE     = 5; // handle value
+  CB_LAYERNAME  = 8; // layername
+  CB_VARNAME    = 9; // variable name
 
   CB_SECtION_NAME = CB_NAME;
   CB_TABLE_NAME   = CB_NAME;
@@ -31,6 +31,15 @@ const
   CB_X = 10;
   CB_Y = 20;
   CB_Z = 30;
+
+  // for class
+  CB_DXFRECNAME   = 1;
+  CB_CPPNAME      = 2;
+  CB_APPANME      = 3;
+  CB_PROXYFLAG    = 90;
+  CB_INSTCOUNT    = 91;
+  CB_WASAPROXY    = 280;
+  CB_ISENTITY     = 281;
 
 const
   NAME_OBJECTS  = 'OBJECTS';
@@ -75,7 +84,7 @@ const
   CMLJUST_MIDDLE    = 1;
   CMLJUST_BOTTOM    = 2;
 
-  // $CSHADOW
+  // $CSHADOW  (used in entity shadow mode 284)
   CSHADOW_CASTRECV  = 0; // Casts and receives shadows
   CSHADOW_CASTONLY  = 1; // Casts shadows
   CSHADOW_RECVONLY  = 2; // Receives shadows

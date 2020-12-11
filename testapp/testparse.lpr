@@ -13,6 +13,11 @@ begin
   writeln('block started: ', bl.Ent.Handle,' ',bl.BlockName,' ',bl.BlockName2,' [',bl.Descr,']; Owner: ', bl.Ent.Owner);
 end;
 
+procedure DumpClass(const cls: TDxfClass);
+begin
+  writeln('class: "',cls.recName,'" ', cls.cppName, ' isEntity:',cls.IsAnEntity);
+end;
+
 procedure ParseInputFile(const fn: string);
 var
   f : TFileStream;
@@ -21,6 +26,8 @@ var
   mem : TMemoryStream;
   inBlock: Boolean;
   bl  : TDxfBlock;
+  be  : TDxfBlockEnd;
+  cls : TDxfClass;
 begin
   inBlock := false;
   mem := TMemoryStream.Create;
@@ -38,19 +45,24 @@ begin
   p := TDxfParser.Create;
   try
     p.scanner := DxfAllocScanner(mem, true);
+
+    p.scanner.GetLocationInfo(ln, ofs);
     while p.Next <> prError do begin
       if p.token = prEof then Break;
 
-      p.scanner.GetLocationInfo(ln, ofs);
-      if p.token = prSecStart then begin
+      if p.token = prClassStart then begin
+        ParseClass(p, cls);
+        DumpClass(cls);
+      end else if p.token = prSecStart then begin
         writeln('start section ', p.secName,' at ', ln,'/',ofs);
       end else if p.token = prBlockStart then begin
         //writeln('block start! at ', ln,'/',ofs);
         ParseBlock(p, bl);
         DumpBlock(bl);
         inBlock := true;
+        p.scanner.GetLocationInfo(ln, ofs);
       end else if p.token = prBlockEnd then begin
-        writeln('block end ',' at ', ln,'/',ofs);
+        ParseBlockEnd(p, be);
         inBlock := false;
       end;
 
@@ -66,6 +78,7 @@ begin
         else writeln('line: ', ln, ' col: ', ofs);
         Break;
       end;
+      p.scanner.GetLocationInfo(ln, ofs);
     end;
     if p.token = prError then
       writeln('err: ', p.ErrStr);
