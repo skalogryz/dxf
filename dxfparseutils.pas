@@ -111,7 +111,7 @@ begin
   e.LayerName    := ConsumeStr(p, 8);
   e.LineTypeName := ConsumeStr(p, 6,   'BYLAYER');
   e.HardPtrId    := ConsumeStr(p, 347, 'BYLAYER');
-  e.ColorNumber  := ConsumeStr(p, 62,  'BYLAYER');
+  e.ColorNumber  := ConsumeInt(p, 62,  256);
   e.LineWidth    := ConsumeInt(p, 370);
 
   e.LineScale       := ConsumeFlt(p, 48);

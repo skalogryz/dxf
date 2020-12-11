@@ -15,7 +15,7 @@ const
   CB_LAYERNAME  = 8; // layername
   CB_VARNAME    = 9; // variable name
 
-  CB_SECtION_NAME = CB_NAME;
+  CB_SECTION_NAME = CB_NAME;
   CB_TABLE_NAME   = CB_NAME;
   CB_TABLE_HANDLE = CB_HANDLE;
 

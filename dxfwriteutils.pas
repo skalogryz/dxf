@@ -240,6 +240,12 @@ procedure WriteHeaderVarPnt2d(w: TDxfWriter; const Name: string; const v: TDxfPo
 
 procedure WriteAcadHeader(w: TDxfWriter; const h: TDxfAcadHeader);
 
+procedure WriteStartSection(w: TDxfWriter; const SecName: string);
+
+procedure WriteEntityBase(w: TDxfWriter; e: TDxfEntity);
+
+procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
+procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
 procedure WriteFileAscii(const dst: TStream; src: TDxfFile);
@@ -352,6 +358,60 @@ begin
     WriteHeaderVarInt(w, vACADMAINTVER, h.MaintVer, CB_FLAGS);
 end;
 
+procedure WriteStartSection(w: TDxfWriter; const SecName: string);
+begin
+  w.WriteStr(CB_CONTROL, NAME_SECTION);
+  w.WriteStr(CB_SECTION_NAME, SecName);
+end;
+
+procedure WriteEntityBase(w: TDxfWriter; e: TDxfEntity);
+begin
+  if not Assigned(w) or not Assigned(e) or (e.EntityType ='') then Exit;
+  w.WriteStr(CB_CONTROL, e.EntityType);
+  w.WriteStr(CB_HANDLE, e.Handle);
+
+  w.WriteStr(330, e.Owner);
+  w.WriteStr(100, e.SubClass);
+  if (e.SpaceFlag<>0) then w.WriteInt(67 , e.SpaceFlag);
+  if (e.AppTableLayout<>'') then w.WriteStr(410, e.AppTableLayout);
+  w.WriteStr(8  , e.LayerName    );
+  if (e.LineTypeName<>'') and (e.LineTypeName<>'BYLAYER') then w.WriteStr(6  , e.LineTypeName );
+  if (e.HardPtrId<>'') and (e.HardPtrId<>'BYLAYER') then w.WriteStr(347, e.HardPtrId    );
+  if (e.ColorNumber<>256) then w.Writeint(62 , e.ColorNumber  );
+  w.WriteInt(370, e.LineWidth    );
+
+  w.WriteFloat(48, e.LineScale  );
+  w.WriteInt(60, e.isVisible     );
+  w.WriteInt(92,e.ProxyBytesCount);
+  if (e.ProxyBytesCount>0) then begin
+    //  e.ProxyGraph      := ConsumeInt array of byte; // 310s
+  end;
+  w.WriteInt(420, e.Color        );
+  w.WriteStr(430, e.ColorName    );
+  w.WriteInt(440, e.Transperancy );
+  w.WriteStr(390, e.PoltObj      );
+  w.WriteInt(284, e.ShadowMode   );
+
+  //      : string;  // 347
+  //  ColorNumber  : string;  // 62
+  w.WriteStr(100, e.Subclass2);
+end;
+
+procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
+begin
+  if not Assigned(w) or not Assigned(e) then Exit;
+  WriteEntityBase(w, e);
+end;
+
+procedure WriteEntityList(w: TDxfWriter; lst: TList);
+var
+  i : integer;
+begin
+  if not Assigned(w) or not Assigned(lst) then Exit;
+  for i:=0 to lst.Count-1 do
+    WriteAnyEntity(w, TDxfEntity(lst[i]));
+end;
+
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
 var
   fs : TFileStream;
@@ -379,7 +439,11 @@ end;
 
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
 begin
+  WriteStartSection(w, NAME_ENTITIES);
+  WriteEntityList(w, src.entities);
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
 
+  w.WriteStr(CB_CONTROL, NAME_EOF);
 end;
 
 end.

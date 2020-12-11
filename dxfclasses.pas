@@ -65,7 +65,7 @@ type
     LayerName       : string;  // 8
     LineTypeName    : string;  // 6 (default BYLAYER)
     HardPtrId       : string;  // 347
-    ColorNumber     : string;  // 62
+    ColorNumber     : Integer;  // 62
     LineWidth       : Integer; // 370
     LineScale       : Double;  // 48
     isVisible       : Integer; // 60
