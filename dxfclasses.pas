@@ -3,7 +3,7 @@ unit dxfclasses;
 interface
 
 uses
-  Classes, SysUtils, dxftypes, dxfparse, dxfwrite;
+  Classes, SysUtils, dxftypes, dxfparse;
 
 type
   TDxfPoint = record
@@ -556,6 +556,7 @@ type
   TDxfFile = class(TObject)
   public
     header   : TDxfHeader;
+    classes  : TList;
     tables   : TList;
     entities : TList; // of TDxfEntitie
     blocks   : TList; // of TDxfFileBlock
@@ -564,6 +565,7 @@ type
     function AddTable(const TableName: string): TDxfTable;
     procedure AddEntity(ent: TDxfEntity);
     function AddBlock: TDxfFileBlock;
+    function AddClass: TDxfClass;
     procedure Clear;
   end;
 
@@ -703,6 +705,7 @@ begin
   tables := TList.Create;
   blocks := TList.Create;
   entities := TList.Create;
+  classes := TList.Create;
 end;
 
 destructor TDxfFile.Destroy;
@@ -715,6 +718,9 @@ begin
   for i:=0 to blocks.Count-1 do
     TObject(blocks[i]).Free;
   blocks.Free;
+  for i:=0 to classes.Count-1 do
+    TObject(classes[i]).Free;
+  classes.Free;
   tables.Free;
   header.Free;
   inherited;
@@ -737,6 +743,12 @@ function TDxfFile.AddBlock: TDxfFileBlock;
 begin
   Result := TDxfFileBlock.Create;
   blocks.Add(Result);
+end;
+
+function TDxfFile.AddClass: TDxfClass;
+begin
+  Result:=TDxfClass.Create;
+  classes.Add(Result);
 end;
 
 procedure TDxfFile.Clear;
