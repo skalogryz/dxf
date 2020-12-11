@@ -248,7 +248,7 @@ function TDxfAsciiWriter.FloatToStr(d: double): string;
 var
   i : integer;
 const
-  DEF_PREC = 16;
+  DEF_PREC = 17;
 begin
   Str(d:0:DEF_PREC, Result);
   if Result = '' then Exit;
