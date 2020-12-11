@@ -364,6 +364,18 @@ begin
   WriteHeaderVarInt(w, vDIMLWD       ,header.Dim.LineWeight      , CB_VARINT);
   WriteHeaderVarInt(w, vDIMLWE       ,header.Dim.LineWeightExt   , CB_VARINT);
   WriteHeaderVarInt(w, vDIMTMOVE     ,header.Dim.TextMove        , CB_VARINT);
+
+  WriteHeaderVarInt(w, vUSERI1       ,header.User.I1, CB_VARINT);
+  WriteHeaderVarInt(w, vUSERI2       ,header.User.I2, CB_VARINT);
+  WriteHeaderVarInt(w, vUSERI3       ,header.User.I3, CB_VARINT);
+  WriteHeaderVarInt(w, vUSERI4       ,header.User.I4, CB_VARINT);
+  WriteHeaderVarInt(w, vUSERI5       ,header.User.I5, CB_VARINT);
+  WriteHeaderVarFlt(w, vUSERR1       ,header.User.R1, CB_VARFLOAT);
+  WriteHeaderVarFlt(w, vUSERR2       ,header.User.R2, CB_VARFLOAT);
+  WriteHeaderVarFlt(w, vUSERR3       ,header.User.R3, CB_VARFLOAT);
+  WriteHeaderVarFlt(w, vUSERR4       ,header.User.R4, CB_VARFLOAT);
+  WriteHeaderVarFlt(w, vUSERR5       ,header.User.R5, CB_VARFLOAT);
+
 end;
 
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
