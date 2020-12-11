@@ -118,6 +118,19 @@ begin
   w.WriteStr(CB_SUBCLASS, IfEmpt(b.Subclass2, _AcDbBlockEnd));
 end;
 
+procedure WriteClass(w: TDxfWriter; c: TDxfClass);
+begin
+  if not Assigned(w) or not Assigned(c) then Exit;
+  WriteCtrl(w, NAME_CLASS);
+  w.WriteStr(CB_DXFRECNAME, c.recName   );  {1  }
+  w.WriteStr(CB_CPPNAME   , c.cppName   );  {2  }
+  w.WriteStr(CB_APPANME   , c.appName   );  {3  }
+  w.WriteInt(CB_PROXYFLAG , c.ProxyFlags);  {90 }
+  WriteOptInt(w, c.InstCount, 0, CB_INSTCOUNT );  {91 }
+  w.WriteInt(CB_WASAPROXY , c.WasProxy  );  {280}
+  w.WriteInt(CB_ISENTITY  , c.IsAnEntity);  {281}
+end;
+
 procedure WriteHeaderVarStr(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
 begin
   w.WriteStr(CB_VARNAME, Name);
@@ -357,10 +370,18 @@ procedure WriteFile(w: TDxfWriter; src: TDxfFile);
 var
   i  : integer;
   fb : TDxfFileBlock;
+  cl : TDxfClass;
 begin
   if not Assigned(w) or not Assigned(src) then Exit;
   WriteStartSection(w, NAME_HEADER);
   WriteHeaderVars(w, src.header);
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
+
+  WriteStartSection(w, NAME_CLASSES);
+  for i := 0 to src.classes.Count - 1 do begin
+    cl := TDxfClass(src.classes[i]);
+    WriteClass(w, cl);
+  end;
   w.WriteStr(CB_CONTROL, NAME_ENDSEC);
 
   WriteStartSection(w, NAME_BLOCKS);
