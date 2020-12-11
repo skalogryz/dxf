@@ -10,7 +10,7 @@ type
     x,y,z : double;
   end;
 
-  TDxfClass = record
+  TDxfClass = class
     recName    : string;  // 1
     cppName    : string;  // 2
     appName    : string;  // 3
@@ -20,7 +20,7 @@ type
     IsAnEntity : integer; // 281
   end;
 
-  TDxfBlockEntity = record
+  TDxfBlockEntity = class
     Handle       : string;  // 5
     appDefGroup  : string;  // 102
     Owner        : string;  //
@@ -30,8 +30,7 @@ type
     Subclass2    : string;  // 100
   end;
 
-  TDxfBlock = record
-    Ent        : TDxfBlockEntity;
+  TDxfBlock = class(TDxfBlockEntity)
     BlockName  : string;    // 2
     BlockFlags : integer;   // 70
     BasePoint  : TDxfPoint; // 10 20 30
@@ -40,24 +39,26 @@ type
     Descr      : string;    // 4
   end;
 
-  TDxfBlockEnd = record
-    Ent        : TDxfBlockEntity; // no special fields for EndBlock
+  TDxfBlockEnd = class (TDxfBlockEntity)
+    // no special fields for EndBlock
   end;
 
   // todo:
-  TDxfValue = record
+  TDxfValue = class
     s   : string;
     i   : integer;
     i64 : int64;
     f   : double;
   end;
 
-  TDxfValuesList = record
+  TDxfValuesList = class
     count     : integer;
     vales     : array of TDxfValue;
   end;
 
-  TDxfEntity = record
+  { TDxfEntity }
+
+  TDxfEntity = class
     EntityType      : string; // 0. Not parsed, but assigned elsewhere
     Handle          : string;          // 5
     appName         : string;          // 120 (value of)
@@ -83,28 +84,28 @@ type
     PoltObj         : string;  // 390
     ShadowMode      : Integer; // 284
     Subclass2       : string;  // 100
+    constructor Create(const AEntityType: string = '');
   end;
 
-  TDxfLine = record
-    ent         : TDxfEntity;
+  { TDxfLine }
+
+  TDxfLine = class(TDxfEntity)
     Thickness   : double;
     StartPoint  : TDxfPoint;
     EndPoint    : TDxfPoint;
     Extrusion   : TDxfPoint;
+    constructor Create(const AEntityType: string = ET_LINE);
   end;
 
-  ParseMasterEntity = record
-    entType : string;
-    line    : TDxfLine;
-  end;
-
-procedure ParseClass(p: TDxfParser; var c: TDxfClass);
-procedure ParseBlockEntity(p: TDxfParser; var e: TDxfBlockEntity);
-procedure ParseBlock(p: TDxfParser; var b: TDxfBlock);
-procedure ParseBlockEnd(p: TDxfParser; var b: TDxfBlockEnd);
+procedure ParseClass(p: TDxfParser; c: TDxfClass);
+procedure ParseBlockEntity(p: TDxfParser; e: TDxfBlockEntity);
+procedure ParseBlock(p: TDxfParser; b: TDxfBlock);
+procedure ParseBlockEnd(p: TDxfParser; b: TDxfBlockEnd);
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
-procedure ParseEntity(p: TDxfParser; var e: TDxfEntity);
-procedure ParseLine(p: TDxfParser; var l: TDxfLine);
+procedure ParseLine(p: TDxfParser; l: TDxfLine);
+
+procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
+function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
 
 implementation
 
@@ -115,7 +116,7 @@ begin
   pt.z := ConsumeFlt(p, XCodeGroup + 20, 0);
 end;
 
-procedure ParseBlockEntity(p: TDxfParser; var e: TDxfBlockEntity);
+procedure ParseBlockEntity(p: TDxfParser; e: TDxfBlockEntity);
 begin
   e.Handle    := ConsumeStr(p, CB_HANDLE);
 
@@ -138,9 +139,9 @@ begin
   e.Subclass2 := ConsumeStr(p, CB_SUBCLASS);
 end;
 
-procedure ParseBlock(p: TDxfParser; var b: TDxfBlock );
+procedure ParseBlock(p: TDxfParser; b: TDxfBlock );
 begin
-  ParseBlockEntity(p, b.Ent);
+  ParseBlockEntity(p, b);
   b.BlockName  := ConsumeStr(p, CB_NAME);
   b.BlockFlags := ConsumeInt(p, CB_FLAGS);
   ParsePoint(p, b.basePoint);
@@ -149,12 +150,12 @@ begin
   b.Descr      := ConsumeStr(p, CB_DESCr);
 end;
 
-procedure ParseBlockEnd(p: TDxfParser; var b: TDxfBlockEnd);
+procedure ParseBlockEnd(p: TDxfParser; b: TDxfBlockEnd);
 begin
-  ParseBlockEntity(p, b.Ent);
+  ParseBlockEntity(p, b);
 end;
 
-procedure ParseClass(p: TDxfParser; var c: TDxfClass);
+procedure ParseClass(p: TDxfParser; c: TDxfClass);
 begin
   c.recName    := ConsumeStr(p, CB_DXFRECNAME );  {1  }
   c.cppName    := ConsumeStr(p, CB_CPPNAME    );  {2  }
@@ -165,7 +166,7 @@ begin
   c.IsAnEntity := ConsumeInt(p, CB_ISENTITY   );  {281}
 end;
 
-procedure ParseEntity(p: TDxfParser; var e: TDxfEntity);
+procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
 begin
   e.EntityType    := ConsumeStr(p, 0);
   e.Handle        := ConsumeStr(p, 5);
@@ -201,14 +202,52 @@ begin
   e.Subclass2    := ConsumeStr(p, 100);
 end;
 
-procedure ParseLine(p: TDxfParser; var l: TDxfLine);
+procedure ParseLine(p: TDxfParser; l: TDxfLine);
 begin
-  ParseEntity(p, l.ent);
+  ParseEntity(p, l);
   l.Thickness := ConsumeFlt(p, 39);
   ParsePoint(p, l.StartPoint, CB_X);
   ParsePoint(p, l.StartPoint, CB_X_ENDPOINT);
   ParsePoint(p, l.StartPoint, CB_X_EXTRUSION);
 end;
 
+function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
+var
+  nm : string;
+begin
+  if p.scanner.CodeGroup <> CB_CONTROL then begin
+    Result := nil;
+    Exit;
+  end;
+  nm := p.scanner.ValStr;
+  if nm ='' then begin
+    Result := nil;
+    Exit;
+  end;
+  case nm[1] of
+    'L': begin
+      if nm = ET_LINE then begin
+        Result := TDxfLine.Create;
+        ParseLine(p, TDxfLine(Result));
+      end;
+    end;
+  else
+    Result := nil;
+  end;
+end;
+
+{ TDxfLine }
+
+constructor TDxfLine.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
+{ TDxfEntity }
+
+constructor TDxfEntity.Create(const AEntityType: string);
+begin
+  EntityType := AEntityType;
+end;
 
 end.
