@@ -270,7 +270,7 @@ var
 begin
   f := TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
-    DxfLoadFromStream(f, dst);
+    ReadFile(f, dst);
   finally
     f.Free;
   end;
@@ -311,7 +311,6 @@ begin
   try
     while not done do begin
       res := p.Next;
-
       case res of
         prTableStart: begin
           tbl := dst.AddTable( p.tableName );
@@ -338,12 +337,10 @@ begin
         prEntityStart, prEntityInBlock:
         begin
           ent := ParseEntityFromType(p, p.EntityType);
-          if Assigned(ent) then begin
-            if (res = prEntityInBlock) and Assigned(b) then
-              b.AddEntity(ent)
-            else
-              dst.AddEntity(ent);
-          end;
+          if Assigned(b) then
+            b.AddEntity(ent)
+          else
+            dst.AddEntity(ent);
         end;
 
         prSecEnd: begin

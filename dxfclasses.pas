@@ -341,6 +341,7 @@ begin
   inherited Create;
   header := TDxfHeader.Create;
   tables := TList.Create;
+  blocks := TList.Create;
   entities := TList.Create;
 end;
 
@@ -351,6 +352,9 @@ begin
   for i:=0 to entities.Count-1 do
     TObject(entities[i]).Free;
   entities.Free;
+  for i:=0 to blocks.Count-1 do
+    TObject(blocks[i]).Free;
+  blocks.Free;
   tables.Free;
   header.Free;
   inherited;
