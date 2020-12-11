@@ -97,12 +97,37 @@ type
     constructor Create(const AEntityType: string = ET_LINE);
   end;
 
+  { TDxfCircle }
+
+  TDxfCircle = class(TDxfEntity)
+    Thickness   : double;
+    CenterPoint : TDxfPoint;
+    Radius      : double;
+    Extrusion   : TDxfPoint;
+    constructor Create(const AEntityType: string = ET_CIRCLE);
+  end;
+
+  { TDxfSolid }
+
+  TDxfSolid = class(TDxfEntity)
+    Corner1     : TDxfPoint;
+    Corner2     : TDxfPoint;
+    Corner3     : TDxfPoint;
+    Corner4     : TDxfPoint;
+    Thickness   : double;
+    Extrusion   : TDxfPoint;
+    constructor Create(const AEntityType: string = ET_SOLID);
+  end;
+
 procedure ParseClass(p: TDxfParser; c: TDxfClass);
 procedure ParseBlockEntity(p: TDxfParser; e: TDxfBlockEntity);
 procedure ParseBlock(p: TDxfParser; b: TDxfBlock);
 procedure ParseBlockEnd(p: TDxfParser; b: TDxfBlockEnd);
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
+
 procedure ParseLine(p: TDxfParser; l: TDxfLine);
+procedure ParseCircle(p: TDxfParser; c: TDxfCircle);
+procedure ParseSolid(p: TDxfParser; s: TDxfSolid);
 
 procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
@@ -169,7 +194,7 @@ end;
 
 procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
 begin
-  e.EntityType    := ConsumeStr(p, 0);
+  //e.EntityType    := ConsumeStr(p, 0);
   e.Handle        := ConsumeStr(p, 5);
   {appName       := ConsumeStr(p, 120);
   appValues     : TDxfValuesList;  // 120+custom}
@@ -206,27 +231,57 @@ end;
 procedure ParseLine(p: TDxfParser; l: TDxfLine);
 begin
   ParseEntity(p, l);
-  l.Thickness := ConsumeFlt(p, 39);
+  l.Thickness := ConsumeFlt(p, CB_THICKNESS);
   ParsePoint(p, l.StartPoint, CB_X);
-  ParsePoint(p, l.StartPoint, CB_X_ENDPOINT);
-  ParsePoint(p, l.StartPoint, CB_X_EXTRUSION);
+  ParsePoint(p, l.EndPoint, CB_X_ENDPOINT);
+  ParsePoint(p, l.Extrusion, CB_X_EXTRUSION);
+end;
+
+procedure ParseCircle(p: TDxfParser; c: TDxfCircle);
+begin
+  ParseEntity(p, c);
+  c.Thickness := ConsumeFlt(p, CB_THICKNESS);
+  ParsePoint(p, c.CenterPoint, CB_X);
+  c.Radius := ConsumeFlt(p, CB_RADIUS);
+  ParsePoint(p, c.Extrusion, CB_X_EXTRUSION);
+end;
+
+procedure ParseSolid(p: TDxfParser; s: TDxfSolid);
+begin
+  ParseEntity(p, s);
+  ParsePoint(p, s.Corner1, CB_X0);
+  ParsePoint(p, s.Corner2, CB_X1);
+  ParsePoint(p, s.Corner3, CB_X2);
+  ParsePoint(p, s.Corner4, CB_X3);
+
+  s.Thickness := ConsumeFlt(p, CB_THICKNESS);
+  ParsePoint(p, s.Extrusion, CB_X_EXTRUSION);
 end;
 
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
 var
   nm : string;
 begin
+  Result := nil;
   if tp='' then Exit;
+
   nm := upcase(tp);
   case nm[1] of
-    'L': begin
+    'C':
+      if nm = ET_CIRCLE then begin
+        Result := TDxfCircle.Create;
+        ParseCircle(p, TDxfCircle(Result));
+      end;
+    'L':
       if nm = ET_LINE then begin
         Result := TDxfLine.Create;
         ParseLine(p, TDxfLine(Result));
       end;
-    end;
-  else
-    Result := nil;
+    'S':
+      if nm = ET_SOLID then begin
+        Result := TDxfSolid.Create;
+        ParseSolid(p, TDxfSolid(Result));
+      end;
   end;
 end;
 
@@ -246,6 +301,20 @@ begin
   Result := ParseEntityFromType(p, nm);
 end;
 
+{ TDxfSolid }
+
+constructor TDxfSolid.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
+{ TDxfCircle }
+
+constructor TDxfCircle.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
 { TDxfLine }
 
 constructor TDxfLine.Create(const AEntityType: string);
@@ -257,7 +326,8 @@ end;
 
 constructor TDxfEntity.Create(const AEntityType: string);
 begin
-  EntityType := AEntityType;
+  inherited Create;
+  Self.EntityType := AEntityType;
 end;
 
 end.
