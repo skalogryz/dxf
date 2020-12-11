@@ -390,6 +390,19 @@ begin
       if v = vTEXTSIZE then hdr.Base.TextHeight := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vTRACEWID then hdr.Base.TraceWidth := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vTEXTSTYLE then hdr.Sel.TextStyle := ConsumeStr(p, 7)
+      ;
+    'U':
+      if v = vUSERI1 then hdr.User.I1 := ConsumeInt(p, CB_VARINT)
+      else if v = vUSERI2 then hdr.User.I2 := ConsumeInt(p, CB_VARINT)
+      else if v = vUSERI3 then hdr.User.I3 := ConsumeInt(p, CB_VARINT)
+      else if v = vUSERI4 then hdr.User.I4 := ConsumeInt(p, CB_VARINT)
+      else if v = vUSERI5 then hdr.User.I5 := ConsumeInt(p, CB_VARINT)
+      else if v = vUSERR1 then hdr.User.R1 := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vUSERR2 then hdr.User.R2 := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vUSERR3 then hdr.User.R3 := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vUSERR4 then hdr.User.R4 := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vUSERR5 then hdr.User.R5 := ConsumeFlt(p, CB_VARFLOAT)
+      ;
   end;
 end;
 
