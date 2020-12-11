@@ -86,7 +86,7 @@ type
     DispSilhMode        : Integer; // ($DISPSILH)  Controls the display of silhouette curves of body objects in
   end;
 
-  TDimension = record
+  TDxfDimensions = record
     // sub divide intos common, "format"(decplaces), "text", "arrows", "extension"
     Scale             : double;  // ($DIMSCALE)    Overall dimensioning scale factor
     ArrowSize         : double;  // ($DIMASZ)      Dimensioning arrow size
@@ -356,6 +356,7 @@ type
     acad : TDxfAcadHeader;
     Base : TDxfBaseHeader;
     Sel  : TDxfCurrentSettings;
+    Dim  : TDxfDimensions;
     Ucs  : TDxfSpacingHeader;
     PUcs : TDxfSpacingHeader; // Paper space
     User : TDxfUserHeader;
