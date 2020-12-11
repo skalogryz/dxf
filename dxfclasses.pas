@@ -27,9 +27,33 @@ type
     YDir         : TDxfPoint;  // $*YDIR          9 $UCSORGBACK 10 0.0 20 0.0 30 0.0          9 $PUCSORGBACK 10 0.0 20 0.0 30 0.0
   end;
 
+  // anything related to versioning of Autodesk
   TDxfAcadHeader = record
     Version   : string;     // 9 $ACADVER        1 AC1015
     MaintVer  : integer;    // 9 $ACADMAINTVER  70 20
+  end;
+
+  // basic (global/default) configuration settings
+  TDxfBaseHeader = record
+    CodePage      : string;     // 9 $DWGCODEPAGE    3 ANSI_1251
+    InsPoint      : TDxfPoint;  // 9 $INSBASE       10 0.0 20 0.0 30 0.0
+    ExtLowLeft    : TDxfPoint;  // 9 $EXTMIN        10 -2.5 20 -2.5 30 0.0
+    ExtUpRight    : TDxfPoint;  // 9 $EXTMAX        10 2.5 20 2.5 30 0.0
+    LimLowLeft    : TDxfPoint;  // ($LIMMIN) XY drawing limits lower-left corner (in WCS)
+    LimUpRight    : TDxfPoint;  // ($LIMMAX) XY drawing limits upper-right corner (in WCS)
+    // is it "current setting?"
+    isOrtho       : Integer;    // ($ORTHOMODE) Ortho mode on if nonzero,
+    isRegen       : Integer;    // ($REGENMODE) REGENAUTO mode on if nonzero
+    isFill        : Integer;    // ($FILLMODE)  Fill mode on if nonzero
+    isQText       : Integer;    // ($QUICKTEXT) Quick Text mode on if nonzero
+    isMirrText    : Integer;    // ($MIRRTEXT)  Mirror text if nonzero
+    LineTypeScale : Double;     // ($LTSCALE)   Global linetype scale
+    AttrVisMode   : Integer;    // ($ATTMODE)  Attribute visibility:
+                                //   0 = None
+                                //   1 = Normal
+                                //   2 = All
+    TextHeight    : Double;     // ($TEXTSIZE) Default text height
+    TraceWidth    : Double;     // ($TRACEWID) Default trace width
   end;
 
   TDxfUserHeader = record
@@ -54,16 +78,287 @@ type
 // 9 $ELEVATION 40 0.0 // Current elevation set by ELEV command
 // 9 $THICKNESS 40 0.0      // Current thickness set by ELEV command
 // 9 $PELEVATION 40 Current paper space elevation
-// 9 $TEXTSTYLE      7 STANDARD  // Current text style name
-    EntityColor         : Integer; // 9 $CECOLOR       62  256       // Current entity color number:  0 = BYBLOCK; 256 = BYLAYER
-    EntityLineTypeScale : Double;  // 9 $CELTSCALE     40 1.0
+    EntLineType         : string;  // ($CELTYPE)   Entity linetype name, or BYBLOCK or BYLAYER
+    TextStyle           : string;  // ($TEXTSTYLE) Current text style name
+    EntColor            : Integer; // ($CECOLOR)   Current entity color number:  0 = BYBLOCK; 256 = BYLAYER
+    EntLineTypeScale    : Double;  // (CELTSCALE)  Current entity linetype scale
     //     9 $XEDIT 290    1 // Controls whether the current drawing can be edited inplace when being referenced by another drawing.
+    DispSilhMode        : Integer; // ($DISPSILH)  Controls the display of silhouette curves of body objects in
   end;
+
+  TDimension = record
+    // sub divide intos common, "format"(decplaces), "text", "arrows", "extension"
+    Scale             : double;  // ($DIMSCALE)    Overall dimensioning scale factor
+    ArrowSize         : double;  // ($DIMASZ)      Dimensioning arrow size
+    ExtLineOfs        : double;  // ($DIMEXO)      Extension line offset
+    DimLineInc        : double;  // ($DIMDLI)      Dimension line increment
+    RoundVal          : double;  // ($DIMRND)      Rounding value for dimension distances
+    DimLineExt        : double;  // ($DIMDLE)      Dimension line extension
+    ExtLineExt        : double;  // ($DIMEXE)      Extension line extension
+    PlusToler         : double;  // ($DIMTP)       Plus tolerance
+    MinusToler        : double;  // ($DIMTM)       Minus tolerance
+    TextHeight        : double;  // ($DIMTXT)      Dimensioning text height
+    CenterSize        : double;  // ($DIMCEN)      Size of center mark/lines
+    TickSize          : double;  // ($DIMTSZ)      Dimensioning tick size: 0 = No ticks
+    Tolerance         : integer; // ($DIMTOL)      Dimension tolerances generated if nonzero
+    Limits            : integer; // ($DIMLIM)      Dimension limits generated if nonzero
+    isTextIns         : integer; // ($DIMTIH)      Text inside horizontal if nonzero
+    isTextOut         : integer; // ($DIMTOH)      Text outside horizontal if nonzero
+    isSupExt1         : integer; // ($DIMSE1)      First extension line suppressed if nonzero
+    isSupExt2         : integer; // ($DIMSE2)      Second extension line suppressed if nonzero
+    isTextAbove       : integer; // ($DIMTAD)      Text above dimension line if nonzero
+    SupZeros          : integer; // ($DIMZIN)      Controls suppression of zeros for primary unit values:
+                                 //                0 = Suppresses zero feet and precisely zero inches
+                                 //                1 = Includes zero feet and precisely zero inches
+                                 //                2 = Includes zero feet and suppresses zero inches
+                                 //                3 = Includes zero inches and suppresses zero feet
+    ArrowBlock        : string;  // ($DIMBLK)      Arrow block name
+    isAssocDim        : Integer; // ($DIMASO)      1 = Create associative dimensioning
+                                 //                0 = Draw individual entities
+    isRecompDim       : Integer; // ($DIMSHO)      1 = Recompute dimensions while dragging
+                                 //                0 = Drag original image
+    Suffix            : string;  // ($DIMPOST)     General dimensioning suffix
+    AltSuffix         : string;  // ($DIMAPOST)    Alternate dimensioning suffix
+    isUseAltUnit      : integer; // ($DIMALT)      Alternate unit dimensioning performed if nonzero
+    AltDec            : integer; // ($DIMALTD)     Alternate unit decimal places
+    AltScale          : double;  // ($DIMALTF)     Alternate unit scale factor
+    LinearScale       : double;  // ($DIMLFAC)     Linear measurements scale factor
+    isTextOutExt      : Integer; // ($DIMTOFL)     If text is outside extensions, force line extensions between extensions if nonzero
+    TextVertPos       : double;  // ($DIMTVP)      Text vertical position
+    isForceTextIns    : Integer; // ($DIMTIX)      Force text inside extensions if nonzero
+    isSuppOutExt      : Integer; // ($DIMSOXD)     Suppress outside-extensions dimension lines if nonzero
+    isUseSepArrow     : Integer; // ($DIMSAH)      Use separate arrow blocks if nonzero
+    ArrowBlock1       : string;  // ($DIMBLK1)     First arrow block name
+    ArrowBlock2       : string;  // ($DIMBLK2)     Second arrow block name
+    StyleName         : string;  // ($DIMSTYLE)    Dimension style name
+    LineColor         : integer; // ($DIMCLRD)     Dimension line color: range is 0 = BYBLOCK; 256 = BYLAYER
+    ExtLineColor      : integer; // ($DIMCLRE)     Dimension extension line color: range is 0 = BYBLOCK; 256 = BYLAYER
+    TextColor         : integer; // ($DIMCLRT)     Dimension text color: range is 0 = BYBLOCK; 256 = BYLAYER
+    DispTolerance     : double;  // ($DIMTFAC)     Dimension tolerance display scale factor
+    LineGap           : double;  // ($DIMGAP)      Dimension line gap
+    HorzTextJust      : integer; // ($DIMJUST)     Horizontal dimension text position:
+                                 //                0 = Above dimension line and center-justified between extension lines
+                                 //                1 = Above dimension line and next to first extension line
+                                 //                2 = Above dimension line and next to second extension line
+                                 //                3 = Above and center-justified to first extension line
+                                 //                4 = Above and center-justified to second extension line
+    isSuppLine1       : Integer; // ($DIMSD1)      Suppression of first extension line: 0 = Not suppressed; 1 = Suppressed
+    isSuppLine2       : Integer; // ($DIMSD2)      Suppression of second extension line: 0 = Not suppressed; 1 = Suppressed
+    VertJustTol       : Integer; // ($DIMTOLJ)     Vertical justification for tolerance values: 0 = Top; 1 = Middle; 2 = Bottom
+    ZeroSupTol        : Integer; // ($DIMTZIN)     Controls suppression of zeros for tolerance values:
+                                 //                0 = Suppresses zero feet and precisely zero inches
+                                 //                1 = Includes zero feet and precisely zero inches
+                                 //                2 = Includes zero feet and suppresses zero inches
+                                 //                3 = Includes zero inches and suppresses zero feet
+    ZeroSupAltUnitTol : Integer; // ($DIMALTZ)     Controls suppression of zeros for alternate unit dimension values:
+                                 //                0 = Suppresses zero feet and precisely zero inches
+                                 //                1 = Includes zero feet and precisely zero inches
+                                 //                2 = Includes zero feet and suppresses zero inches
+                                 //                3 = Includes zero inches and suppresses zero feet
+    ZeroSupAltTol     : Integer; // ($DIMALTTZ)    Controls suppression of zeros for alternate tolerance values:
+                                 //                0 = Suppresses zero feet and precisely zero inches
+                                 //                1 = Includes zero feet and precisely zero inches
+                                 //                2 = Includes zero feet and suppresses zero inches
+                                 //                3 = Includes zero inches and suppresses zero feet
+    isEditCursorText  : Integer; // ($DIMUPT)      Cursor functionality for user-positioned text:
+                                 //                0 = Controls only the dimension line location
+                                 //                1 = Controls the text position as well as the dimension line location
+    DecPlacesPrim     : Integer; // ($DIMDEC)      Number of decimal places for the tolerance values of a primary units dimension
+    DecPlacesOther    : Integer; // ($DIMTDEC)     Number of decimal places to display the tolerance values
+    UnitsFormat       : Integer; // ($DIMALTU)     Units format for alternate units of all dimension style family members except angular:
+                                 //                1 = Scientific; 2 = Decimal; 3 = Engineering;
+                                 //                4 = Architectural (stacked); 5 = Fractional (stacked);
+                                 //                6 = Architectural; 7 = Fractional
+    DecPlacesAltUnit  : Integer; // ($DIMALTTD)    Number of decimal places for tolerance values of an alternate units dimension
+    TextStyle         : string;  // ($DIMTXSTY)    Dimension text style
+    AngleFormat       : Integer; // ($DIMAUNIT)    Angle format for angular dimensions:
+                                 //                0 = Decimal degrees; 1 = Degrees/minutes/seconds;
+                                 //                2 = Gradians; 3 = Radians; 4 = Surveyor's units
+    AngleDecPlaces    : Integer; // ($DIMADEC)     Number of precision places displayed in angular dimensions
+    RoundValAlt       : double;  // ($DIMALTRND)   Determines rounding of alternate units
+    ZeroSupAngUnit    : Integer; // ($DIMAZIN)     Controls suppression of zeros for angular dimensions:
+                                 //                0 = Displays all leading and trailing zeros
+                                 //                1 = Suppresses leading zeros in decimal dimensions
+                                 //                2 = Suppresses trailing zeros in decimal dimensions
+                                 //                3 = Suppresses leading and trailing zeros
+    DecSeparator      : Integer; // ($DIMDSEP)     Single-character decimal separator used when creating dimensions whose unit format is decimal
+    TextArrowPlace    : Integer; // ($DIMATFIT)    Controls dimension text and arrow placement when space
+                                 //                is not sufficient to place both within the extension lines:
+                                 //                0 = Places both text and arrows outside extension lines
+                                 //                1 = Moves arrows first, then text
+                                 //                2 = Moves text first, then arrows
+                                 //                3 = Moves either text or arrows, whichever fits best
+                                 //                AutoCAD adds a leader to moved dimension text when DIMTMOVE is set to 1
+    // ($DIMFRAC) (DOES NOT EXIST?)
+    ArrowBlockLead    : string;  // ($DIMLDRBLK)   Arrow block name for leaders
+    Units             : Integer; // ($DIMLUNIT)    Sets units for all dimension types except Angular:
+                                 //                1 = Scientific; 2 = Decimal; 3 = Engineering;
+                                 //                4 = Architectural; 5 = Fractional; 6 = Windows desktop
+    LineWeight        : Integer; // ($DIMLWD)      Dimension line lineweight:
+                                 //                -3 = Standard
+                                 //                -2 = ByLayer
+                                 //                -1 = ByBlock
+                                 //                0-211 = an integer representing 100th of mm
+    LineWeightExt     : Integer; // ($DIMLWE)      Extension line lineweight:
+                                 //                -3 = Standard
+                                 //                -2 = ByLayer
+                                 //                -1 = ByBlock
+                                 //                0-211 = an integer representing 100th of mm
+    TextMove          : Integer; // ($DIMTMOVE)    Dimension text movement rules:
+                                 //                0 = Moves the dimension line with dimension text
+                                 //                1 = Adds a leader when dimension text is moved
+                                 //                2 = Allows text to be moved freely without a leader
+  end;
+
+  (*
+  9 $DIMSCALE      40 1.0
+  9 $DIMASZ        40 2.5
+  9 $DIMEXO        40 0.625
+  9 $DIMDLI        40 3.75
+  9 $DIMRND        40 0.0
+  9 $DIMDLE        40 0.0
+  9 $DIMEXE        40 1.25
+  9 $DIMTP         40 0.0
+  9 $DIMTM         40 0.0
+  9 $DIMTXT        40 2.5
+  9 $DIMCEN 40 -2.5
+  9 $DIMTSZ 40 0.0
+  9 $DIMTOL 70    0
+  9 $DIMLIM 70    0
+  9 $DIMTIH 70    0
+  9 $DIMTOH 70    1
+  9 $DIMSE1 70    0
+  9 $DIMSE2 70    0
+  9 $DIMTAD 70    1
+  9 $DIMZIN 70    8
+  9 $DIMBLK 1 None
+  9 $DIMASO 70    1
+  9 $DIMSHO 70    1
+  9 $DIMPOST 1
+  9 $DIMAPOST 1
+  9 $DIMALT 70    0
+  9 $DIMALTD 70    3
+  9 $DIMALTF 40 0.03937007874016
+  9 $DIMLFAC 40 100.0
+  9 $DIMTOFL 70    1
+  9 $DIMTVP 40 0.0
+  9 $DIMTIX 70    0
+  9 $DIMSOXD 70    0
+  9 $DIMSAH 70    0
+  9 $DIMBLK1 1
+  9 $DIMBLK2 1
+  9 $DIMSTYLE 2 MY
+  9 $DIMCLRD 70  256
+  9 $DIMCLRE 70  256
+  9 $DIMCLRT 70  256
+  9 $DIMTFAC 40 1.0
+  9 $DIMGAP 40 0.625
+  9 $DIMJUST 70    0
+  9 $DIMSD1 70    0
+  9 $DIMSD2 70    0
+  9 $DIMTOLJ 70    1
+  9 $DIMTZIN 70    8
+  9 $DIMALTZ 70   8
+  9 $DIMALTTZ 70    8
+  9 $DIMUPT 70    0
+  9 $DIMDEC 70    4
+  9 $DIMTDEC 70    4
+  9 $DIMALTU 70    2
+  9 $DIMALTTD 70   3
+  9 $DIMTXSTY 7 STANDARD
+  9 $DIMAUNIT 70    0
+  9 $DIMADEC 70    0
+  9 $DIMALTRND 40 0.0
+  9 $DIMAZIN 70    0
+  9 $DIMDSEP 70   46
+  9 $DIMATFIT 70    3
+  9 $DIMFRAC 70    0
+  9 $DIMLDRBLK 1 None
+  9 $DIMLUNIT 70    2
+  9 $DIMLWD 70   -2
+  9 $DIMLWE 70   -2
+  9 $DIMTMOVE 70   2
+  9 $LUNITS 70    2
+  9 $LUPREC 70    4
+  9 $SKETCHINC 40 1.0
+  9 $FILLETRAD 40 10.0
+  9 $AUNITS 70    0
+  9 $AUPREC 70    0
+  9 $MENU 1 .
+
+  9 $LIMCHECK 70    0
+  9 $CHAMFERA 4010.0
+  9 $CHAMFERB 40 10.0
+  9 $CHAMFERC 40 0.0
+  9 $CHAMFERD 40 0.0
+  9 $SKPOLY 70    0
+  9 $TDCREATE   40 2452500.693435810
+  9 $TDUCREATE  40 2452500.485102477
+  9 $TDUPDATE   40 2454843.156291413
+  9 $TDUUPDATE  40 2454842.947958079
+  9 $TDINDWG    40 1.1395893750
+  9 $TDUSRTIMER 40 1.1395855903
+  9 $USRTIMER   70 1
+  9 $ANGBASE 50 0.0
+  9 $ANGDIR 70    0
+  9 $PDMODE 70    3
+  9 $PDSIZE 40 0.0
+  9 $PLINEWID 40 0.0
+  9 $SPLFRAME 70 0
+  9 $SPLINETYPE 70    6
+  9 $SPLINESEGS 70    8
+  9 $HANDSEED 5 1B3
+  9 $SURFTAB1 70    6
+  9 $SURFTAB2 70    6
+  9 $SURFTYPE 70    6
+  9 $SURFU 70    6
+  9 $SURFV 70    6
+
+
+  9 $WORLDVIEW 70   1
+  9 $SHADEDGE 70    3
+  9 $SHADEDIF 70   70
+  9 $TILEMODE 70    1
+  9 $MAXACTVP 70   64
+  9 $PINSBASE 10 0.0 20 0.0 30 0.0
+  9 $PLIMCHECK 70    0
+  9 $PEXTMIN 10 0.0 20 0.0 30 0.0
+  9 $PEXTMAX 10 0.0 20 0.0 30 0.0
+  9 $PLIMMIN 10 0.0 20 0.0
+  9 $PLIMMAX 10 12.0 20 9.0
+  9 $UNITMODE 70    0
+  9 $VISRETAIN 70    1
+  9 $PLINEGEN 70    0
+  9 $PSLTSCALE 70    1
+  9 $TREEDEPTH 70 3020
+
+  9 $PROXYGRAPHICS 70    1
+  9 $MEASUREMENT 70    0
+  9 $CELWEIGHT 370   -1
+  9 $ENDCAPS 280    0
+  9 $JOINSTYLE 280   0
+  9 $LWDISPLAY 290   0
+  9 $INSUNITS 70    0
+  9 $HYPERLINKBASE 1
+  9 $STYLESHEET 1
+
+  9 $CEPSNTYPE 380    0
+  9 $PSTYLEMODE 290    1
+  9 $FINGERPRINTGUID 2 {C6BCC4B8-0A70-4D6B-8BC3-38669135F434}
+  9 $VERSIONGUID 2 {703F571C-B03F-455F-A924-D4402EC0C5D8}
+  9 $EXTNAMES 290    1
+  9 $PSVPSCALE 40 0.0
+  9 $OLESTARTUP 290   0 // unknown
+  *)
+
 
   TDxfHeader = class(TObject)
     acad : TDxfAcadHeader;
+    Base : TDxfBaseHeader;
+    Sel  : TDxfCurrentSettings;
     Ucs  : TDxfSpacingHeader;
     PUcs : TDxfSpacingHeader; // Paper space
+    User : TDxfUserHeader;
   end;
 
   { TDxfTable }
