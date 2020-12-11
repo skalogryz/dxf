@@ -116,6 +116,8 @@ type
     Subclass2    : string;  // 100
   end;
 
+  { TDxfBlock }
+
   TDxfBlock = class(TDxfBlockEntity)
     BlockName  : string;    // 2
     BlockFlags : integer;   // 70
@@ -194,18 +196,29 @@ type
     constructor Create(const AEntityType: string = ET_VERTEX);
   end;
 
+  { TDxfFileBlock }
+
+  TDxfFileBlock = class(TDxfBlock)
+  public
+    _entities : TList;
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddEntity(ent: TDxfEntity);
+  end;
+
   { TDxfFile }
 
   TDxfFile = class(TObject)
   public
     header   : TDxfHeader;
     tables   : TList;
-    entities : TList;
-    blocks   : TList;
+    entities : TList; // of TDxfEntitie
+    blocks   : TList; // of TDxfFileBlock
     constructor Create;
     destructor Destroy; override;
     function AddTable(const TableName: string): TDxfTable;
-    function AddEntity(const EntityName: string): TDxfEntity;
+    procedure AddEntity(ent: TDxfEntity);
+    function AddBlock: TDxfFileBlock;
     procedure Clear;
   end;
 
@@ -223,8 +236,6 @@ procedure DxfLoadFromFile(const st: string; dst: TDxfFile);
 
 procedure DxfFileDump(dxf: TDxfFile);
 
-function AllocEntity(const Name: string): TDxfEntity;
-
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
 
 function DxfSaveToString(dst: TDxfFile): string;
@@ -233,6 +244,30 @@ procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
 procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
 
 implementation
+
+
+{ TDxfFileBlock }
+
+constructor TDxfFileBlock.Create;
+begin
+  _entities := TList.Create;
+end;
+
+destructor TDxfFileBlock.Destroy;
+var
+  i : integer;
+begin
+  for i:=0 to _entities.Count-1 do
+    TObject(_entities[i]).Free;
+  _entities.Free;
+  inherited Destroy;
+end;
+
+procedure TDxfFileBlock.AddEntity(ent: TDxfEntity);
+begin
+  if not Assigned(ent) then Exit;
+  _entities.Add(ent);
+end;
 
 { TDxfVertex }
 
@@ -310,7 +345,11 @@ begin
 end;
 
 destructor TDxfFile.Destroy;
+var
+  i : integer;
 begin
+  for i:=0 to entities.Count-1 do
+    TObject(entities[i]).Free;
   entities.Free;
   tables.Free;
   header.Free;
@@ -324,10 +363,16 @@ begin
   tables.Add(Result);
 end;
 
-function TDxfFile.AddEntity(const EntityName: string): TDxfEntity;
+procedure TDxfFile.AddEntity(ent: TDxfEntity);
 begin
-  Result := AllocEntity(EntityName);
-  entities.Add(Result);
+  if not Assigned(ent) then Exit;
+  entities.Add(ent);
+end;
+
+function TDxfFile.AddBlock: TDxfFileBlock;
+begin
+  Result := TDxfFileBlock.Create;
+  blocks.Add(Result);
 end;
 
 procedure TDxfFile.Clear;

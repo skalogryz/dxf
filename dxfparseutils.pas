@@ -3,6 +3,7 @@ unit dxfparseutils;
 interface
 
 uses
+  Classes, SysUtils,
   dxftypes, dxfparse, dxfclasses;
 
 procedure ParseClass(p: TDxfParser; c: TDxfClass);
@@ -23,6 +24,10 @@ procedure ParseVertex(p: TDxfParser; v: TDxfVertex);
 procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
 function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
+
+procedure ReadFile(const fn: string; dst: TDxfFile);
+procedure ReadFile(const st: TStream; dst: TDxfFile);
+procedure ReadFile(p: TDxfParser; dst: TDxfFile);
 
 implementation
 
@@ -257,6 +262,111 @@ begin
     Exit;
   end;
   Result := ParseEntityFromType(p, nm);
+end;
+
+procedure ReadFile(const fn: string; dst: TDxfFile);
+var
+  f : TFileStream;
+begin
+  f := TFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
+  try
+    DxfLoadFromStream(f, dst);
+  finally
+    f.Free;
+  end;
+end;
+
+procedure ReadFile(const st: TStream; dst: TDxfFile);
+var
+  sc : TDxfScanner;
+  p  : TDxfParser;
+begin
+  sc := DxfAllocScanner(st, false);
+  p := TDxfParser.Create;
+  try
+    p.scanner := sc;
+    ReadFile(p, dst);
+  finally
+    p.Free;
+    sc.Free;
+  end;
+end;
+
+procedure ReadFile(p: TDxfParser; dst: TDxfFile);
+var
+  res  : TDxfParseToken;
+  done : boolean;
+  tbl  : TDxfTable;
+  ent  : TDxfEntity;
+
+  //ln, ofs: integer;
+  b : TDxfFileBlock;
+  dummyEnd : TDxfBlockEnd;
+begin
+  if not Assigned(p) or not Assigned(dst) then Exit;
+
+  b:=nil;
+  done := false;
+  dummyEnd := TDxfBlockEnd.Create;
+  try
+    while not done do begin
+      res := p.Next;
+
+      case res of
+        prTableStart: begin
+          tbl := dst.AddTable( p.tableName );
+          tbl.Handle := p.tableHandle;
+        end;
+
+        prTableAttr: begin
+          case p.scanner.CodeGroup of
+            CB_NAME:   tbl.Name := p.tableName;
+            CB_HANDLE: tbl.Handle := p.tableHandle;
+          end;
+        end;
+
+        prBlockStart: begin
+          b := dst.AddBlock;
+          ParseBlock(p, b);
+        end;
+
+        prBlockEnd: begin
+          b := nil;
+          ParseBlockEnd(p, dummyEnd);
+        end;
+
+        prEntityStart, prEntityInBlock:
+        begin
+          ent := ParseEntityFromType(p, p.EntityType);
+          if Assigned(ent) then begin
+            if (res = prEntityInBlock) and Assigned(b) then
+              b.AddEntity(ent)
+            else
+              dst.AddEntity(ent);
+          end;
+        end;
+
+        prSecEnd: begin
+          tbl := nil;
+          ent := nil;
+        end;
+
+        prError: begin
+          done := true;
+        end;
+        prEof: begin
+          done := true;
+        end;
+
+      else
+       // prEntityAttr - we should never get this one!
+
+      end;
+    end;
+  finally
+    dummyEnd.Free;
+  end;
+
 end;
 
 end.
