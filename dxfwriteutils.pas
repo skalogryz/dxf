@@ -84,7 +84,7 @@ begin
 end;
 
 // todo: this will change!
-procedure WriteBlockEnt(w: TDxfWriter; const b: TDxfBlockEntity; WriteSpaceFlag: Boolean);
+procedure WriteBlockEnt(w: TDxfWriter; const b: TDxfBlockEntity);
 begin
   w.WriteStr(CB_HANDLE, b.Handle);
   //if b.appDefGroup<>'' then begin
@@ -92,7 +92,7 @@ begin
   //end;
   w.WriteStr(CB_OWNERHANDLE, b.Owner);
   w.WriteStr(CB_SUBCLASS,    IfEmpt(b.SubClass, _AcDbEntity));
-  if WriteSpaceFlag then w.WriteInt(CB_SPACEFLAG,   b.SpaceFlag);
+  WriteOptInt(w, b.SpaceFlag, 0, CB_SPACEFLAG);
   w.WriteStr(CB_LAYERNAME,   b.LayerName);
 end;
 
@@ -100,7 +100,7 @@ procedure WriteBlock(w: TDxfWriter; const b: TDxfBlock);
 begin
   if not Assigned(w) then Exit;
   WriteCtrl(w, NAME_BLOCK);
-  WriteBlockEnt(w, b, b.SpaceFlag<>0);
+  WriteBlockEnt(w, b);
   w.WriteStr(CB_SUBCLASS, IfEmpt(b.Subclass2, _AcDbBlockBegin));
   w.WriteStr(CB_NAME, b.BlockName);
   w.WriteInt(CB_FLAGS, b.BlockFlags);
@@ -114,7 +114,7 @@ procedure WriteBlockEnd(w: TDxfWriter; const b: TDxfBlockEnd);
 begin
   if not Assigned(w) then Exit;
   WriteCtrl(w, NAME_ENDBLK);
-  WriteBlockEnt(w, b, false);
+  WriteBlockEnt(w, b);
   w.WriteStr(CB_SUBCLASS, IfEmpt(b.Subclass2, _AcDbBlockEnd));
 end;
 
