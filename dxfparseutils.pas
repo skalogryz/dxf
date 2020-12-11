@@ -10,16 +10,28 @@ procedure ParseBlockEntity(p: TDxfParser; e: TDxfBlockEntity);
 procedure ParseBlock(p: TDxfParser; b: TDxfBlock);
 procedure ParseBlockEnd(p: TDxfParser; b: TDxfBlockEnd);
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
+procedure ParseScale(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X_SCALE);
 
 procedure ParseLine(p: TDxfParser; l: TDxfLine);
 procedure ParseCircle(p: TDxfParser; c: TDxfCircle);
 procedure ParseSolid(p: TDxfParser; s: TDxfSolid);
+procedure ParseInsert(p: TDxfParser; i: TDxfInsert);
+procedure ParsePolyLine(p: TDxfParser; l: TDxfPolyLine);
+procedure ParseVertex(p: TDxfParser; v: TDxfVertex);
+
 
 procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
 function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
 
 implementation
+
+procedure ParseScale(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X_SCALE);
+begin
+  pt.x := ConsumeFlt(p, XCodeGroup + 0, 0);
+  pt.y := ConsumeFlt(p, XCodeGroup + 1, 0);
+  pt.z := ConsumeFlt(p, XCodeGroup + 2, 0);
+end;
 
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
 begin
@@ -144,6 +156,56 @@ begin
   ParsePoint(p, s.Extrusion, CB_X_EXTRUSION);
 end;
 
+procedure ParseInsert(p: TDxfParser; i: TDxfInsert);
+begin
+  ParseEntity(p, i);
+  i.AttrFlag := ConsumeInt(p, 66);
+  i.BlockName := ConsumeStr(p, 2);
+  ParsePoint(p, i.InsPoint);
+  ParseScale(p, i.Scale);
+  i.Rotation := ConsumeFlt(p, 50);
+  i.ColCount := ConsumeInt(p, 70, 1);
+  i.RowCount := ConsumeInt(p, 71, 1);
+  i.ColSpace := ConsumeFlt(p, 44);
+  i.RowSpace := ConsumeFlt(p, 45);
+  ParsePoint(p, i.Extrusion, CB_X_EXTRUSION);
+end;
+
+procedure ParsePolyLine(p: TDxfParser; l: TDxfPolyLine);
+begin
+  ParseEntity(p, l);
+  l.ObsFlag := ConsumeInt(p, 66);
+  ParsePoint(p, l.ElevPoint, CB_X);
+  l.Thickness := ConsumeFlt(p, CB_THICKNESS);
+  l.PolyFlags := ConsumeInt(p, CB_FLAGS);
+  l.StartWidth := ConsumeFlt(p, 40);
+  l.EndWidth := ConsumeFlt(p, 41);
+
+  l.MCount   := ConsumeInt(p, 71);
+  l.NCount   := ConsumeInt(p, 72);
+  l.MDensity := ConsumeInt(p, 73);
+  l.NDensity := ConsumeInt(p, 74);
+  l.SurfType := ConsumeInt(p, 75);
+  ParsePoint(p, l.Extrusion, CB_X_EXTRUSION);
+end;
+
+procedure ParseVertex(p: TDxfParser; v: TDxfVertex);
+begin
+  ParseEntity(p, v);
+  v.SubClass3   := ConsumeStr(p, 100);
+  ParsePoint(p, v.Location);
+  v.StartWidth  := ConsumeFlt(p, 40);
+  v.EndWidth    := ConsumeFlt(p, 41);
+  v.Buldge      := ConsumeFlt(p, 42);
+  v.Flags       := ConsumeInt(p, 70);
+  v.TangentDir  := ConsumeFlt(p, 50);
+  v.PolyFace[0] := ConsumeInt(p, 71);
+  v.PolyFace[1] := ConsumeInt(p, 72);
+  v.PolyFace[2] := ConsumeInt(p, 73);
+  v.PolyFace[3] := ConsumeInt(p, 74);
+  v.VertexIdx   := ConsumeInt(p, 91)
+end;
+
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
 var
   nm : string;
@@ -158,10 +220,20 @@ begin
         Result := TDxfCircle.Create;
         ParseCircle(p, TDxfCircle(Result));
       end;
+    'I':
+      if nm = ET_INSERT then begin
+        Result := TDxfInsert.Create;
+        ParseInsert(p, TDxfInsert(Result));
+      end;
     'L':
       if nm = ET_LINE then begin
         Result := TDxfLine.Create;
         ParseLine(p, TDxfLine(Result));
+      end;
+    'P':
+      if nm = ET_POLYLINE then begin
+        Result := TDxfPolyLine.Create;
+        ParsePolyLine(p, TDxfPolyLine(Result));
       end;
     'S':
       if nm = ET_SOLID then begin

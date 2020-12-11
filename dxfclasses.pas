@@ -83,16 +83,17 @@ type
   { TDxfInsert }
 
   TDxfInsert = class(TDxfEntity)
+    AttrFlag   : Integer;
     BlockName  : string;
-    VarFlag    : Int16;
-    InsPt      : TDxfPoint;
+    InsPoint   : TDxfPoint;
     Scale      : TDxfPoint;
-    ExtrDir    : TDxfPoint; // Extrusion direction
-    ColSpacing : double;
-    RowSpacing : double;
+    Rotation   : double;
     ColCount   : integer;
     RowCount   : integer;
-    RotAngle   : double;
+    ColSpace   : double;
+    RowSpace   : double;
+    Extrusion  : TDxfPoint; // Extrusion direction
+    constructor Create(const AEntityType: string = ET_INSERT);
   end;
 
   TDxfClass = class
@@ -163,25 +164,34 @@ type
   { TDxfPolyLine }
 
   TDxfPolyLine = class(TDxfEntity)
-    Thickness  : Double;    // 39
-    Flags      : Integer;   // 70
-    StartWidth : Double;    // 40
-    EndWidth   : Double;    // 41
-    SurfType   : Int16;     // 75
-    ExtrDir    : TDxfPoint; // 210, 220, 230
+    ObsFlag    : Integer;
+    ElevPoint  : TDxfPoint;
+    Thickness  : Double;
+    PolyFlags  : Integer;
+    StartWidth : Double;
+    EndWidth   : Double;
+    MCount     : Integer;
+    NCount     : Integer;
+    MDensity   : Integer;
+    NDensity   : Integer;
+    SurfType   : Integer;
+    Extrusion  : TDxfPoint; //
+    constructor Create(const AEntityType: string = ET_POLYLINE);
   end;
 
   { TDxfVertex }
 
   TDxfVertex = class(TDxfEntity)
-    Pt         : TDxfPoint; // 10,20,30
+    SubClass3  : string;
+    Location   : TDxfPoint; // 10,20,30
     StartWidth : Double; // 40
     EndWidth   : Double; // 41
     Buldge     : Double; // 42
-    TangentDir : Double; // 50
     Flags      : Integer; // 70
-    PolyFace   : array [0..3] of Int16; // 71..74
+    TangentDir : Double; // 50
+    PolyFace   : array [0..3] of Integer; // 71..74
     VertexIdx  : Integer; // 91
+    constructor Create(const AEntityType: string = ET_VERTEX);
   end;
 
   { TDxfFile }
@@ -223,6 +233,27 @@ procedure DxfSaveToFile(const st: string; dst: TDxfFile; binFormat: Boolean);
 procedure DxfSave(wr: TDxfWriter; dst: TDxfFile);
 
 implementation
+
+{ TDxfVertex }
+
+constructor TDxfVertex.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType)
+end;
+
+{ TDxfPolyLine }
+
+constructor TDxfPolyLine.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
+{ TDxfInsert }
+
+constructor TDxfInsert.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
 
 { TDxfTable }
 

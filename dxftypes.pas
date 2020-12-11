@@ -46,6 +46,9 @@ const
   CB_X_ENDPOINT   = CB_X1;
   CB_Y_ENDPOINT   = CB_Y1;
   CB_Z_ENDPOINT   = CB_Z1;
+  CB_X_SCALE      = 41;
+  CB_Y_SCALE      = 42;
+  CB_Z_SCALE      = 43;
   CB_X_EXTRUSION  = 210;
   CB_Y_EXTRUSION  = 220;
   CB_Z_EXTRUSION  = 230;
