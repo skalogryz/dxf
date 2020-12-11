@@ -28,9 +28,15 @@ const
   CB_SUBCLASS     = 100;
   CB_APPDEFNAME   = 102;
 
-  CB_X = 10;
-  CB_Y = 20;
-  CB_Z = 30;
+  CB_X            = 10;
+  CB_Y            = 20;
+  CB_Z            = 30;
+  CB_X_ENDPOINT   = 11;
+  CB_Y_ENDPOINT   = 21;
+  CB_Z_ENDPOINT   = 31;
+  CB_X_EXTRUSION  = 210;
+  CB_Y_EXTRUSION  = 220;
+  CB_Z_EXTRUSION  = 230;
 
   // for class
   CB_DXFRECNAME   = 1;
@@ -429,6 +435,51 @@ const
   vEXTNAMES        = '$EXTNAMES';
   vPSVPSCALE       = '$PSVPSCALE';
   vOLESTARTUP      = '$OLESTARTUP';
+
+const
+  ET_3DFACE            = '3DFACE';
+  ET_3DSOLID           = '3DSOLID';
+  ET_ACAD_PROXY_ENTITY = 'ACAD_PROXY_ENTITY';
+  ET_ARC               = 'ARC';
+  ET_ATTDEF            = 'ATTDEF';
+  ET_ATTRIB            = 'ATTRIB';
+  ET_BODY              = 'BODY';
+  ET_CIRCLE            = 'CIRCLE';
+  ET_DIMENSION         = 'DIMENSION';
+  ET_ELLIPSE           = 'ELLIPSE';
+  ET_HATCH             = 'HATCH';
+  ET_HELIX             = 'HELIX';
+  ET_IMAGE             = 'IMAGE';
+  ET_INSERT            = 'INSERT';
+  ET_LEADER            = 'LEADER';
+  ET_LIGHT             = 'LIGHT';
+  ET_LINE              = 'LINE';
+  ET_LWPOLYLINE        = 'LWPOLYLINE';
+  ET_MESH              = 'MESH';
+  ET_MLINE             = 'MLINE';
+  ET_MLEADERSTYLE      = 'MLEADERSTYLE';
+  ET_MLEADER           = 'MLEADER';
+  ET_MTEXT             = 'MTEXT';
+  ET_OLEFRAME          = 'OLEFRAME';
+  ET_POINT             = 'POINT';
+  ET_POLYLINE          = 'POLYLINE';
+  ET_RAY               = 'RAY';
+  ET_REGION            = 'REGION';
+  ET_SECTION           = 'SECTION';
+  ET_SEQEND            = 'SEQEND';
+  ET_SHAPE             = 'SHAPE';
+  ET_SOLID             = 'SOLID';
+  ET_SPLINE            = 'SPLINE';
+  ET_SUN               = 'SUN';
+  ET_SURFACE           = 'SURFACE';
+  ET_TABLE             = 'TABLE';
+  ET_TEXT              = 'TEXT';
+  ET_TOLERANCE         = 'TOLERANCE';
+  ET_TRACE             = 'TRACE';
+  ET_UNDERLAY          = 'UNDERLAY';
+  ET_VERTEX            = 'VERTEX';
+  ET_WIPEOUT           = 'WIPEOUT';
+  ET_XLINE             = 'XLINE';
 
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
