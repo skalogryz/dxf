@@ -150,9 +150,7 @@ type
     Comment      : string;
     ErrStr       : string;
 
-    BlockHandle  : string;
     EntityType   : string; // entity type
-    EntityHandle : string;
     function Next: TDxfParseToken;
   end;
 
@@ -539,7 +537,6 @@ begin
     Result := ParseEntities(t, newmode);
     newmode := MODE_ENTITIESINBLOCK;
   end else begin
-    if (t.CodeGroup = CB_HANDLE) and (BlockHandle = '') then BlockHandle := t.ValStr;
     Result := prBlockAttr;
   end;
 end;
@@ -553,8 +550,6 @@ begin
   end else if (t.CodeGroup = 0) then begin
     EntityType := t.ValStr;
     Result := prEntityStart;
-    EntityHandle := '';
-    ConsumeCodeBlock(t, CB_HANDLE, EntityHandle);
   end else begin
     Result := prEntityAttr;
   end;
