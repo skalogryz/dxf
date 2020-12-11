@@ -68,13 +68,13 @@ type
     ColorNumber     : Integer;  // 62
     LineWidth       : Integer; // 370
     LineScale       : Double;  // 48
-    isVisible       : Integer; // 60
+    isHidden        : Integer; // 60
     ProxyBytesCount : Integer; // 92
     ProxyGraph      : array of byte; // 310s
     Color           : Integer; // 420
     ColorName       : string;  // 430
     Transperancy    : Integer; // 440
-    PoltObj         : string;  // 390
+    PlotObj         : string;  // 390
     ShadowMode      : Integer; // 284
     Subclass2       : string;  // 100
     constructor Create(const AEntityType: string = '');
@@ -234,8 +234,29 @@ procedure DxfFileDump(dxf: TDxfFile);
 
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
 
+const
+  DefZeroPoint : TDxfPoint = (x:0; y:0; z:0);
+  DefExtrusionPoint : TDxfPoint = (x:0; y:0; z:1);
+
+const
+  DEF_EPSILON = 0.0000001;
+
+function isSamePoint(const a,b: TDxfPoint; epsilon: Double = DEF_EPSILON): Boolean;
+function isSameDbl(a,b: double; epsilon: Double = DEF_EPSILON): Boolean; inline;
+
 implementation
 
+function isSameDbl(a,b: double; epsilon: Double): Boolean; inline;
+begin
+  Result := (a=b) or (Abs(a-b)<epsilon);
+end;
+
+function isSamePoint(const a,b: TDxfPoint; epsilon: Double): Boolean;
+begin
+  Result:= isSameDbl(a.x,b.x, epsilon)
+    and isSameDbl(a.y,b.y, epsilon)
+    and isSameDbl(a.z,b.z, epsilon);
+end;
 
 { TDxfFileBlock }
 

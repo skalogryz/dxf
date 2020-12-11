@@ -503,6 +503,11 @@ const
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
 
+const
+  DEF_THICKENS  = 0.0; // entity 39
+  DEF_LINESCALE = 1.0; // entity 48
+  DEF_HIDDEN    = 0;   // entity 60
+
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;

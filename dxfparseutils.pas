@@ -10,7 +10,9 @@ procedure ParseClass(p: TDxfParser; c: TDxfClass);
 procedure ParseBlockEntity(p: TDxfParser; e: TDxfBlockEntity);
 procedure ParseBlock(p: TDxfParser; b: TDxfBlock);
 procedure ParseBlockEnd(p: TDxfParser; b: TDxfBlockEnd);
+procedure ParsePointDef(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer; const Def: TDxfPoint);
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
+procedure ParseExtrusionPoint(p: TDxfParser; var pt: TDxfPoint);
 procedure ParseScale(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X_SCALE);
 
 procedure ParseLine(p: TDxfParser; l: TDxfLine);
@@ -38,11 +40,21 @@ begin
   pt.z := ConsumeFlt(p, XCodeGroup + 2, 0);
 end;
 
+procedure ParsePointDef(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer; const Def: TDxfPoint);
+begin
+  pt.x := ConsumeFlt(p, XCodeGroup, def.x);
+  pt.y := ConsumeFlt(p, XCodeGroup + 10, def.y);
+  pt.z := ConsumeFlt(p, XCodeGroup + 20, def.z)
+end;
+
 procedure ParsePoint(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X);
 begin
-  pt.x := ConsumeFlt(p, XCodeGroup, 0);
-  pt.y := ConsumeFlt(p, XCodeGroup + 10, 0);
-  pt.z := ConsumeFlt(p, XCodeGroup + 20, 0);
+  ParsePointDef(p, pt, XcodeGroup, DefZeroPoint);
+end;
+
+procedure ParseExtrusionPoint(p: TDxfParser; var pt: TDxfPoint);
+begin
+  ParsePointDef(p, pt, CB_X_EXTRUSION, DefExtrusionPoint);
 end;
 
 procedure ParseBlockEntity(p: TDxfParser; e: TDxfBlockEntity);
@@ -114,8 +126,8 @@ begin
   e.ColorNumber  := ConsumeInt(p, 62,  256);
   e.LineWidth    := ConsumeInt(p, 370);
 
-  e.LineScale       := ConsumeFlt(p, 48);
-  e.isVisible       := ConsumeInt(p, 60);
+  e.LineScale       := ConsumeFlt(p, 48, 1.0);
+  e.isHidden        := ConsumeInt(p, 60);
   e.ProxyBytesCount := ConsumeInt(p, 92);
   if (e.ProxyBytesCount>0) then begin
     //  e.ProxyGraph      := ConsumeInt array of byte; // 310s
@@ -123,7 +135,7 @@ begin
   e.Color           := ConsumeInt(p, 420);
   e.ColorName       := ConsumeStr(p, 430);
   e.Transperancy    := ConsumeInt(p, 440);
-  e.PoltObj         := ConsumeStr(p, 390);
+  e.PlotObj         := ConsumeStr(p, 390);
   e.ShadowMode      := ConsumeInt(p, 284);
 
   //      : string;  // 347
@@ -137,7 +149,7 @@ begin
   l.Thickness := ConsumeFlt(p, CB_THICKNESS);
   ParsePoint(p, l.StartPoint, CB_X);
   ParsePoint(p, l.EndPoint, CB_X_ENDPOINT);
-  ParsePoint(p, l.Extrusion, CB_X_EXTRUSION);
+  ParseExtrusionPoint(p, l.Extrusion);
 end;
 
 procedure ParseCircle(p: TDxfParser; c: TDxfCircle);
@@ -146,7 +158,7 @@ begin
   c.Thickness := ConsumeFlt(p, CB_THICKNESS);
   ParsePoint(p, c.CenterPoint, CB_X);
   c.Radius := ConsumeFlt(p, CB_RADIUS);
-  ParsePoint(p, c.Extrusion, CB_X_EXTRUSION);
+  ParseExtrusionPoint(p, c.Extrusion);
 end;
 
 procedure ParseSolid(p: TDxfParser; s: TDxfSolid);
@@ -158,7 +170,7 @@ begin
   ParsePoint(p, s.Corner4, CB_X3);
 
   s.Thickness := ConsumeFlt(p, CB_THICKNESS);
-  ParsePoint(p, s.Extrusion, CB_X_EXTRUSION);
+  ParseExtrusionPoint(p, s.Extrusion);
 end;
 
 procedure ParseInsert(p: TDxfParser; i: TDxfInsert);
@@ -173,7 +185,7 @@ begin
   i.RowCount := ConsumeInt(p, 71, 1);
   i.ColSpace := ConsumeFlt(p, 44);
   i.RowSpace := ConsumeFlt(p, 45);
-  ParsePoint(p, i.Extrusion, CB_X_EXTRUSION);
+  ParseExtrusionPoint(p, i.Extrusion);
 end;
 
 procedure ParsePolyLine(p: TDxfParser; l: TDxfPolyLine);
@@ -191,7 +203,7 @@ begin
   l.MDensity := ConsumeInt(p, 73);
   l.NDensity := ConsumeInt(p, 74);
   l.SurfType := ConsumeInt(p, 75);
-  ParsePoint(p, l.Extrusion, CB_X_EXTRUSION);
+  ParseExtrusionPoint(p, l.Extrusion);
 end;
 
 procedure ParseVertex(p: TDxfParser; v: TDxfVertex);
