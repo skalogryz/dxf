@@ -63,7 +63,7 @@ type
     PUcs : TDxfSpacingHeader; // Paper space
   end;
 
-{
+(*
 9 $DWGCODEPAGE    3 ANSI_1251
 9 $INSBASE       10 0.0 20 0.0 30 0.0
 9 $EXTMIN        10 -2.5 20 -2.5 30 0.0
@@ -221,7 +221,7 @@ type
 9 $EXTNAMES 290    1
 9 $PSVPSCALE 40 0.0
 9 $OLESTARTUP 290   0 // unknown
-}
+*)
 
 procedure WriteBlock(w: TDxfWriter; const b: TDxfBlock);
 procedure WriteBlockEnd(w: TDxfWriter; const b: TDxfBlockEnd);
@@ -474,7 +474,21 @@ begin
 end;
 
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
+var
+  i  : integer;
+  fb : TDxfFileBlock;
 begin
+  if not Assigned(w) or not Assigned(src) then Exit;
+  WriteStartSection(w, NAME_BLOCKS);
+  for i := 0 to src.blocks.Count-1 do begin
+    fb := TDxfFileBlock(src.blocks[i]);
+    if not Assigned(fb) then Continue;
+    WriteBlock(w, fb);
+    WriteEntityList(w, fb._entities);
+    WriteBlockEnd(w, fb._blockEnd);
+  end;
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
+
   WriteStartSection(w, NAME_ENTITIES);
   WriteEntityList(w, src.entities);
   w.WriteStr(CB_CONTROL, NAME_ENDSEC);
