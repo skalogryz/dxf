@@ -250,6 +250,7 @@ procedure WriteStartSection(w: TDxfWriter; const SecName: string);
 procedure WriteEntityBase(w: TDxfWriter; e: TDxfEntity);
 
 procedure WriteLine(w: TDxfWriter; l: TDxfLine);
+procedure WriteCircle(w: TDxfWriter; c: TDxfCircle);
 
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
@@ -422,11 +423,20 @@ begin
   WriteExtrusionPoint(w, l.Extrusion);
 end;
 
+procedure WriteCircle(w: TDxfWriter; c: TDxfCircle);
+begin
+  WriteEntityBase(w, c);
+  WriteOptFlt(w, c.Thickness, DEF_THICKENS, CB_THICKNESS);
+  WritePoint(w, c.CenterPoint);
+  w.WriteFloat(CB_RADIUS, c.Radius);
+  WriteExtrusionPoint(w, c.Extrusion);
+end;
+
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 begin
   if not Assigned(w) or not Assigned(e) then Exit;
-  if e is TDxfLine then
-    WriteLine(w, TDxfLine(e));
+  if e is TDxfLine then WriteLine(w, TDxfLine(e))
+  else if e is TDxfCircle then  WriteCircle(w, TDxfCircle(e))
 end;
 
 procedure WriteEntityList(w: TDxfWriter; lst: TList);
