@@ -31,9 +31,21 @@ const
   CB_X            = 10;
   CB_Y            = 20;
   CB_Z            = 30;
-  CB_X_ENDPOINT   = 11;
-  CB_Y_ENDPOINT   = 21;
-  CB_Z_ENDPOINT   = 31;
+  CB_X0           = CB_X;
+  CB_Y0           = CB_Y;
+  CB_Z0           = CB_Z;
+  CB_X1           = 11;
+  CB_Y1           = 21;
+  CB_Z1           = 31;
+  CB_X2           = 12;
+  CB_Y2           = 22;
+  CB_Z2           = 32;
+  CB_X3           = 13;
+  CB_Y3           = 23;
+  CB_Z3           = 33;
+  CB_X_ENDPOINT   = CB_X1;
+  CB_Y_ENDPOINT   = CB_Y1;
+  CB_Z_ENDPOINT   = CB_Z1;
   CB_X_EXTRUSION  = 210;
   CB_Y_EXTRUSION  = 220;
   CB_Z_EXTRUSION  = 230;
@@ -46,6 +58,10 @@ const
   CB_INSTCOUNT    = 91;
   CB_WASAPROXY    = 280;
   CB_ISENTITY     = 281;
+
+  // for entities
+  CB_THICKNESS    = 39;
+  CB_RADIUS       = 40;
 
 const
   NAME_OBJECTS  = 'OBJECTS';
