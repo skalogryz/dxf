@@ -8,13 +8,49 @@ uses
   {$ENDIF}{$ENDIF}
   Classes, SysUtils, dxfwrite, dxfclasses, dxftypes, dxfparseutils;
 
+procedure DumpEntities(const en: TList; const pfx: string );
+var
+  i : integer;
+  e : TDxfEntity;
+begin
+  if not Assigned(en) or (en.Count=0) then Exit;
+  for i := 0 to en.Count-1 do begin
+    e := TDxfEntity(en[i]);
+    write(pfx, e.EntityType);
+    if e is TDxfInsert then
+      write(' @',TDxfInsert(e).BlockName);
+    writeln;
+  end;
+end;
+
+procedure DumpFile(f: TDxfFile);
+var
+  i : integer;
+  b : TDxfFileBlock;
+begin
+  if not Assigned(f) then Exit;
+  writeln('Blocks: ', f.blocks.Count);
+  for i:=0 to f.Blocks.Count-1 do begin
+    b := TDxfFileBlock(f.Blocks[i]);
+    writeln('  ',b.BlockName2,'  Entities: ', b._entities.Count);
+    DumpEntities(b._entities,'    ');
+  end;
+  writeln('Entities: ', f.entities.Count);
+  DumpEntities(f.entities, '   ');
+end;
+
 procedure TestReadWrite(const fn: string);
 var
-  f: TDxfFile;
+  f  : TDxfFile;
+  tm : LongWord;
 begin
   f:=TDxfFile.Create;
   try
+    tm:=GetTickCount;
     ReadFile(fn, f);
+    tm:=GetTickCount-tm;
+    writeln('read in ', tm, 'ms');
+    DumpFile(f);
   finally
     f.Free;
   end;
