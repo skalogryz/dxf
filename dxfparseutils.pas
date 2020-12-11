@@ -382,6 +382,20 @@ begin
       if v = vMIRRTEXT then hdr.Base.isMirrText := ConsumeInt(p, CB_VARINT);
     'O':
       if v = vORTHOMODE then hdr.Base.isOrtho := ConsumeInt(p, CB_VARINT);
+    'P':
+      if v = vPUCSBASE then hdr.PUcs.Base := ConsumeStr(p, 2)
+      else if v = vPUCSNAME then hdr.PUcs.Name := ConsumeStr(p, 2)
+      else if v = vPUCSORG  then ParsePoint(p, hdr.PUcs.Origin)
+      else if v = vPUCSXDIR then ParsePoint(p, hdr.PUcs.XDir)
+      else if v = vPUCSYDIR then ParsePoint(p, hdr.PUcs.YDir)
+      else if v = vPUCSORTHOREF  then hdr.PUcs.OrthoRef := ConsumeStr(p, 2)
+      else if v = vPUCSORTHOVIEW then hdr.PUcs.OrthoView := ConsumeINT(p, CB_VARINT)
+      else if v = vPUCSORGTOP    then ParsePoint(p, hdr.PUcs.OriginTop)
+      else if v = vPUCSORGBOTTOM then ParsePoint(p, hdr.PUcs.OriginBottom)
+      else if v = vPUCSORGLEFT   then ParsePoint(p, hdr.PUcs.OriginLeft)
+      else if v = vPUCSORGRIGHT  then ParsePoint(p, hdr.PUcs.OriginRight)
+      else if v = vPUCSORGFRONT  then ParsePoint(p, hdr.PUcs.OriginFront)
+      else if v = vPUCSORGBACK   then ParsePoint(p, hdr.PUcs.OriginBack);
     'Q':
       if v = vQTEXTMODE then hdr.Base.isQText := ConsumeInt(p, CB_VARINT);
     'R':
@@ -390,6 +404,19 @@ begin
       if v = vTEXTSIZE then hdr.Base.TextHeight := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vTRACEWID then hdr.Base.TraceWidth := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vTEXTSTYLE then hdr.Sel.TextStyle := ConsumeStr(p, 7)
+      else if v = vUCSBASE then hdr.Ucs.Base := ConsumeStr(p, 2)
+      else if v = vUCSNAME then hdr.Ucs.Name := ConsumeStr(p, 2)
+      else if v = vUCSORG  then ParsePoint(p, hdr.Ucs.Origin)
+      else if v = vUCSXDIR then ParsePoint(p, hdr.Ucs.XDir)
+      else if v = vUCSYDIR then ParsePoint(p, hdr.Ucs.YDir)
+      else if v = vUCSORTHOREF  then hdr.Ucs.OrthoRef := ConsumeStr(p, 2)
+      else if v = vUCSORTHOVIEW then hdr.Ucs.OrthoView := ConsumeINT(p, CB_VARINT)
+      else if v = vUCSORGTOP    then ParsePoint(p, hdr.Ucs.OriginTop)
+      else if v = vUCSORGBOTTOM then ParsePoint(p, hdr.Ucs.OriginBottom)
+      else if v = vUCSORGLEFT   then ParsePoint(p, hdr.Ucs.OriginLeft)
+      else if v = vUCSORGRIGHT  then ParsePoint(p, hdr.Ucs.OriginRight)
+      else if v = vUCSORGFRONT  then ParsePoint(p, hdr.Ucs.OriginFront)
+      else if v = vUCSORGBACK   then ParsePoint(p, hdr.Ucs.OriginBack)
       ;
     'U':
       if v = vUSERI1 then hdr.User.I1 := ConsumeInt(p, CB_VARINT)
