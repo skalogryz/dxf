@@ -6,166 +6,6 @@ uses
   Classes, SysUtils,
   dxftypes, dxfwrite, dxfclasses;
 
-(*
-9 $DWGCODEPAGE    3 ANSI_1251
-9 $INSBASE       10 0.0 20 0.0 30 0.0
-9 $EXTMIN        10 -2.5 20 -2.5 30 0.0
-9 $EXTMAX        10 2.5 20 2.5 30 0.0
-9 $LIMMIN        10 0.0 20 0.0
-9 $LIMMAX        10 420.0 20 297.0
-9 $ORTHOMODE     70    0
-9 $REGENMODE     70    1
-9 $FILLMODE      70    1
-9 $QTEXTMODE     70    0
-9 $MIRRTEXT      70    1
-9 $LTSCALE       40 1.0
-9 $ATTMODE       70    1
-9 $TEXTSIZE      40 2.5
-9 $TRACEWID      40 1.0
-
-
-9 $CELTYPE        6 ByLayer
-9 $DISPSILH      70    0
-9 $DIMSCALE      40 1.0
-9 $DIMASZ        40 2.5
-9 $DIMEXO        40 0.625
-9 $DIMDLI        40 3.75
-9 $DIMRND        40 0.0
-9 $DIMDLE        40 0.0
-9 $DIMEXE        40 1.25
-9 $DIMTP         40 0.0
-9 $DIMTM         40 0.0
-9 $DIMTXT        40 2.5
-9 $DIMCEN 40 -2.5
-9 $DIMTSZ 40 0.0
-9 $DIMTOL 70    0
-9 $DIMLIM 70    0
-9 $DIMTIH 70    0
-9 $DIMTOH 70    1
-9 $DIMSE1 70    0
-9 $DIMSE2 70    0
-9 $DIMTAD 70    1
-9 $DIMZIN 70    8
-9 $DIMBLK 1 None
-9 $DIMASO 70    1
-9 $DIMSHO 70    1
-9 $DIMPOST 1
-9 $DIMAPOST 1
-9 $DIMALT 70    0
-9 $DIMALTD 70    3
-9 $DIMALTF 40 0.03937007874016
-9 $DIMLFAC 40 100.0
-9 $DIMTOFL 70    1
-9 $DIMTVP 40 0.0
-9 $DIMTIX 70    0
-9 $DIMSOXD 70    0
-9 $DIMSAH 70    0
-9 $DIMBLK1 1
-9 $DIMBLK2 1
-9 $DIMSTYLE 2 MY
-9 $DIMCLRD 70  256
-9 $DIMCLRE 70  256
-9 $DIMCLRT 70  256
-9 $DIMTFAC 40 1.0
-9 $DIMGAP 40 0.625
-9 $DIMJUST 70    0
-9 $DIMSD1 70    0
-9 $DIMSD2 70    0
-9 $DIMTOLJ 70    1
-9 $DIMTZIN 70    8
-9 $DIMALTZ 70   8
-9 $DIMALTTZ 70    8
-9 $DIMUPT 70    0
-9 $DIMDEC 70    4
-9 $DIMTDEC 70    4
-9 $DIMALTU 70    2
-9 $DIMALTTD 70   3
-9 $DIMTXSTY 7 STANDARD
-9 $DIMAUNIT 70    0
-9 $DIMADEC 70    0
-9 $DIMALTRND 40 0.0
-9 $DIMAZIN 70    0
-9 $DIMDSEP 70   46
-9 $DIMATFIT 70    3
-9 $DIMFRAC 70    0
-9 $DIMLDRBLK 1 None
-9 $DIMLUNIT 70    2
-9 $DIMLWD 70   -2
-9 $DIMLWE 70   -2
-9 $DIMTMOVE 70   2
-9 $LUNITS 70    2
-9 $LUPREC 70    4
-9 $SKETCHINC 40 1.0
-9 $FILLETRAD 40 10.0
-9 $AUNITS 70    0
-9 $AUPREC 70    0
-9 $MENU 1 .
-
-9 $LIMCHECK 70    0
-9 $CHAMFERA 4010.0
-9 $CHAMFERB 40 10.0
-9 $CHAMFERC 40 0.0
-9 $CHAMFERD 40 0.0
-9 $SKPOLY 70    0
-9 $TDCREATE   40 2452500.693435810
-9 $TDUCREATE  40 2452500.485102477
-9 $TDUPDATE   40 2454843.156291413
-9 $TDUUPDATE  40 2454842.947958079
-9 $TDINDWG    40 1.1395893750
-9 $TDUSRTIMER 40 1.1395855903
-9 $USRTIMER   70 1
-9 $ANGBASE 50 0.0
-9 $ANGDIR 70    0
-9 $PDMODE 70    3
-9 $PDSIZE 40 0.0
-9 $PLINEWID 40 0.0
-9 $SPLFRAME 70 0
-9 $SPLINETYPE 70    6
-9 $SPLINESEGS 70    8
-9 $HANDSEED 5 1B3
-9 $SURFTAB1 70    6
-9 $SURFTAB2 70    6
-9 $SURFTYPE 70    6
-9 $SURFU 70    6
-9 $SURFV 70    6
-
-
-9 $WORLDVIEW 70   1
-9 $SHADEDGE 70    3
-9 $SHADEDIF 70   70
-9 $TILEMODE 70    1
-9 $MAXACTVP 70   64
-9 $PINSBASE 10 0.0 20 0.0 30 0.0
-9 $PLIMCHECK 70    0
-9 $PEXTMIN 10 0.0 20 0.0 30 0.0
-9 $PEXTMAX 10 0.0 20 0.0 30 0.0
-9 $PLIMMIN 10 0.0 20 0.0
-9 $PLIMMAX 10 12.0 20 9.0
-9 $UNITMODE 70    0
-9 $VISRETAIN 70    1
-9 $PLINEGEN 70    0
-9 $PSLTSCALE 70    1
-9 $TREEDEPTH 70 3020
-
-9 $PROXYGRAPHICS 70    1
-9 $MEASUREMENT 70    0
-9 $CELWEIGHT 370   -1
-9 $ENDCAPS 280    0
-9 $JOINSTYLE 280   0
-9 $LWDISPLAY 290   0
-9 $INSUNITS 70    0
-9 $HYPERLINKBASE 1
-9 $STYLESHEET 1
-
-9 $CEPSNTYPE 380    0
-9 $PSTYLEMODE 290    1
-9 $FINGERPRINTGUID 2 {C6BCC4B8-0A70-4D6B-8BC3-38669135F434}
-9 $VERSIONGUID 2 {703F571C-B03F-455F-A924-D4402EC0C5D8}
-9 $EXTNAMES 290    1
-9 $PSVPSCALE 40 0.0
-9 $OLESTARTUP 290   0 // unknown
-*)
-
 procedure WriteBlock(w: TDxfWriter; const b: TDxfBlock);
 procedure WriteBlockEnd(w: TDxfWriter; const b: TDxfBlockEnd);
 procedure WritePoint(w: TDxfWriter; const b: TDxfPoint; const XCodeBase: Integer = 10);
@@ -182,9 +22,9 @@ function IfEmpt(const check, def: string): string; inline;
 
 procedure WriteHeaderVarStr(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
 procedure WriteHeaderVarInt(w: TDxfWriter; const Name: string; v: Integer; codeGroup: Integer);
-procedure WriteHeaderVarFlt(w: TDxfWriter; const Name: string; v: double; codeGroup: Integer);
+procedure WriteHeaderVarFlt(w: TDxfWriter; const Name: string; v: double; codeGroup: Integer = CB_VARFLOAT);
 procedure WriteHeaderVarPnt(w: TDxfWriter; const Name: string; const v: TDxfPoint);
-procedure WriteHeaderVarPnt2d(w: TDxfWriter; const Name: string; const v: TDxfPoint);
+procedure WriteHeaderVarP2d(w: TDxfWriter; const Name: string; const v: TDxfPoint);
 
 procedure WriteAcadHeader(w: TDxfWriter; const h: TDxfAcadHeader);
 
@@ -197,6 +37,8 @@ procedure WriteCircle(w: TDxfWriter; c: TDxfCircle);
 
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
+
+procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
 procedure WriteFileAscii(const dst: TStream; src: TDxfFile);
@@ -301,7 +143,7 @@ begin
   WritePoint(w, v)
 end;
 
-procedure WriteHeaderVarPnt2d(w: TDxfWriter; const Name: string;
+procedure WriteHeaderVarP2d(w: TDxfWriter; const Name: string;
   const v: TDxfPoint);
 begin
   w.WriteStr(CB_VARNAME, Name);
@@ -416,12 +258,44 @@ begin
   end;
 end;
 
+procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
+begin
+  WriteHeaderVarStr(w, vACADVER,      header.acad.Version,         CB_VARVALUE);
+  WriteHeaderVarInt(w, vACADMAINTVER, header.acad.MaintVer,        CB_VARINT);
+
+  WriteHeaderVarStr(w, vDWGCODEPAGE,  header.base.CodePage,        3);
+  WriteHeaderVarPnt(w, vINSBASE,      header.Base.InsPoint);
+  WriteHeaderVarPnt(w, vEXTMIN,       header.Base.ExtLowLeft);
+  WriteHeaderVarPnt(w, vEXTMAX,       header.Base.ExtUpRight);
+  WriteHeaderVarP2d(w, vLIMMIN,       header.Base.LimLowLeft);
+  WriteHeaderVarP2d(w, vLIMMAX,       header.Base.LimUpRight);
+  WriteHeaderVarInt(w, vORTHOMODE,    header.Base.isOrtho,         CB_VARINT);
+  WriteHeaderVarInt(w, vREGENMODE,    header.Base.isRegen,         CB_VARINT);
+  WriteHeaderVarInt(w, vFILLMODE,     header.Base.isFill,          CB_VARINT);
+  WriteHeaderVarInt(w, vQTEXTMODE,    header.Base.isQText,         CB_VARINT);
+  WriteHeaderVarInt(w, vMIRRTEXT,     header.Base.isMirrText,      CB_VARINT);
+  WriteHeaderVarFlt(w, vLTSCALE,      header.Base.LineTypeScale);
+  WriteHeaderVarInt(w, vATTMODE,      header.Base.AttrVisMode,     CB_VARINT);
+  WriteHeaderVarFlt(w, vTEXTSIZE,     header.Base.TextHeight,      CB_VARFLOAT);
+  WriteHeaderVarFlt(w, vTRACEWID,     header.Base.TraceWidth,      CB_VARFLOAT);
+  WriteHeaderVarStr(w, vTEXTSTYLE,    header.Sel.TextStyle,        7);
+  WriteHeaderVarStr(w, vCLAYER,       header.Sel.Layer,            CB_LAYERNAME);
+  WriteHeaderVarStr(w, vCELTYPE,      header.Sel.EntLineType,      6);
+  WriteHeaderVarInt(w, vCECOLOR,      header.Sel.EntColor,         62);
+  WriteHeaderVarFlt(w, vCELTSCALE,    header.Sel.EntLineTypeScale);
+  WriteHeaderVarFlt(w, vDISPSILH,     header.Sel.DispSilhMode,     7);
+end;
+
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
 var
   i  : integer;
   fb : TDxfFileBlock;
 begin
   if not Assigned(w) or not Assigned(src) then Exit;
+  WriteStartSection(w, NAME_HEADER);
+  WriteHeaderVars(w, src.header);
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
+
   WriteStartSection(w, NAME_BLOCKS);
   for i := 0 to src.blocks.Count-1 do begin
     fb := TDxfFileBlock(src.blocks[i]);

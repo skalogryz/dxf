@@ -27,6 +27,8 @@ procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
 function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
 
+procedure ParseVariable(P: TDxfParser; hdr: TDxfHeader);
+
 procedure ReadFile(const fn: string; dst: TDxfFile);
 procedure ReadFile(const st: TStream; dst: TDxfFile);
 procedure ReadFile(p: TDxfParser; dst: TDxfFile);
@@ -276,6 +278,55 @@ begin
   Result := ParseEntityFromType(p, nm);
 end;
 
+procedure ParseVariable(p: TDxfParser; hdr: TDxfHeader);
+var
+  v : string;
+begin
+  if not Assigned(p) or not Assigned(hdr) then Exit;
+  v := p.varName;
+  if (v = '') or (length(v)<=2) then Exit;
+  case v[2] of
+    'A':
+      if v = vACADVER then hdr.acad.Version := ConsumeStr(p, CB_VARVALUE)
+      else if p.varName = vACADMAINTVER then hdr.acad.MaintVer := ConsumeInt(p, CB_VARINT)
+      else if p.varName = vATTMODE then hdr.Base.AttrVisMode := ConsumeInt(p, CB_VARINT);
+    'C':
+      if v = vCLAYER then hdr.Sel.Layer := ConsumeStr(p, CB_LAYERNAME)
+      else if v = vCELTYPE then hdr.Sel.EntLineType := ConsumeStr(p, 6)
+      else if v = vCECOLOR then hdr.Sel.EntColor := ConsumeInt(p, 62)
+      else if v = vCELTSCALE then hdr.Sel.EntLineTypeScale := ConsumeFlt(p, CB_VARFLOAT)
+      ;
+    'D':
+      if v = vDWGCODEPAGE then hdr.base.CodePage := ConsumeStr(p, 3)
+      else if v = vDISPSILH then hdr.Sel.DispSilhMode := ConsumeInt(p, 7)
+      ;
+    'E':
+      if v = vEXTMIN then ParsePoint(p, hdr.Base.ExtLowLeft)
+      else if v = vEXTMAX then ParsePoint(p, hdr.Base.ExtUpRight);
+    'F':
+      if v = vFILLMODE then hdr.Base.isFill := ConsumeInt(p, CB_VARINT);
+    'I':
+      if v = vINSBASE then ParsePoint(p, hdr.Base.InsPoint);
+    'L':
+      if v = vLIMMIN then ParsePoint(p, hdr.Base.LimLowLeft)
+      else if v = vLIMMAX then ParsePoint(p, hdr.Base.LimUpRight)
+      else if v = vLTSCALE then hdr.Base.LineTypeScale := ConsumeFlt(p, CB_VARFLOAT)
+      ;
+    'M':
+      if v = vMIRRTEXT then hdr.Base.isMirrText := ConsumeInt(p, CB_VARINT);
+    'O':
+      if v = vORTHOMODE then hdr.Base.isOrtho := ConsumeInt(p, CB_VARINT);
+    'Q':
+      if v = vQTEXTMODE then hdr.Base.isQText := ConsumeInt(p, CB_VARINT);
+    'R':
+      if v = vREGENMODE then hdr.Base.isRegen := ConsumeInt(p, CB_VARINT);
+    'T':
+      if v = vTEXTSIZE then hdr.Base.TextHeight := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vTRACEWID then hdr.Base.TraceWidth := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vTEXTSTYLE then hdr.Sel.TextStyle := ConsumeStr(p, 7)
+  end;
+end;
+
 procedure ReadFile(const fn: string; dst: TDxfFile);
 var
   f : TFileStream;
@@ -324,6 +375,10 @@ begin
     while not done do begin
       res := p.Next;
       case res of
+        prVarName: begin
+          ParseVariable(p, dst.header);
+        end;
+
         prTableStart: begin
           tbl := dst.AddTable( p.tableName );
           tbl.Handle := p.tableHandle;
