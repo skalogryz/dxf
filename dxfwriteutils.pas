@@ -403,6 +403,47 @@ begin
   WriteHeaderVarInt(w, vDIMLWE       ,header.Dim.LineWeightExt   , CB_VARINT);
   WriteHeaderVarInt(w, vDIMTMOVE     ,header.Dim.TextMove        , CB_VARINT);
 
+  WriteHeaderVarInt(w, vLUNITS       ,header.Base.DistFormat     , CB_VARINT);
+  WriteHeaderVarInt(w, vLUPREC       ,header.base.DistPrec       , CB_VARINT);
+  WriteHeaderVarFlt(w, vSKETCHINC    ,header.base.SketchInc      );
+  WriteHeaderVarFlt(w, vFILLETRAD    ,header.base.FilletRadius   );
+  WriteHeaderVarInt(w, vAUNITS       ,header.base.AnglesFormat   , CB_VARINT);
+  WriteHeaderVarInt(w, vAUPREC       ,header.base.AnglesPrec     , CB_VARINT);
+  WriteHeaderVarStr(w, vMENU         ,header.base.MenuName       , 1);
+  WriteHeaderVarFlt(w, vELEVATION    ,header.Sel.Elev      );
+  WriteHeaderVarFlt(w, vPELEVATION   ,header.sel.PaperElev );
+  WriteHeaderVarFlt(w, vTHICKNESS    ,header.sel.Thickness );
+  WriteHeaderVarInt(w, vLIMCHECK     ,header.base.isLimCheck     , CB_VARINT);
+  WriteHeaderVarFlt(w, vCHAMFERA     ,header.base.ChamferDist1   );
+  WriteHeaderVarFlt(w, vCHAMFERB     ,header.base.ChamferDist2   );
+  WriteHeaderVarFlt(w, vCHAMFERC     ,header.base.ChamferLen     );
+  WriteHeaderVarFlt(w, vCHAMFERD     ,header.base.ChamferAngle   );
+  WriteHeaderVarInt(w, vSKPOLY       ,header.base.isSketchPoly   , CB_VARINT);
+
+  WriteHeaderVarFlt(w, vTDCREATE     ,header.Time.CreateTimeLocal );
+  WriteHeaderVarFlt(w, vTDUCREATE    ,header.Time.CreateTimeUniv  );
+  WriteHeaderVarFlt(w, vTDUPDATE     ,header.Time.UpdateTimeLocal );
+  WriteHeaderVarFlt(w, vTDUUPDATE    ,header.Time.UpdateTimeUniv  );
+  WriteHeaderVarFlt(w, vTDINDWG      ,header.Time.TotalTime       );
+  WriteHeaderVarFlt(w, vTDUSRTIMER   ,header.Time.ElasedTime      );
+  WriteHeaderVarInt(w, vUSRTIMER     ,header.Time.isTimerOn , CB_VARINT);
+
+  WriteHeaderVarFlt(w, vANGBASE      ,header.base.AngleBase      );
+  WriteHeaderVarInt(w, vANGDIR       ,header.base.isClockWise    , CB_VARINT);
+
+  WriteHeaderVarInt(w, vPDMODE       ,header.base.PtDispMode     , CB_VARINT);
+  WriteHeaderVarFlt(w, vPDSIZE       ,header.base.PtDispSize     );
+  WriteHeaderVarFlt(w, vPLINEWID     ,header.base.DefPolyWidth   );
+    //: Integer; // ($SPLFRAME) 70
+  WriteHeaderVarInt(w, vSPLINETYPE   ,header.base.SplineCurvType , CB_VARINT);
+  WriteHeaderVarInt(w, vSPLINESEGS   ,header.base.LineSegments   , CB_VARINT);
+  WriteHeaderVarStr(w, vHANDSEED     ,header.base.NextHandle     , 5);
+  WriteHeaderVarInt(w, vSURFTAB1     ,header.base.MeshCount1     , CB_VARINT);
+  WriteHeaderVarInt(w, vSURFTAB2     ,header.base.MeshCount2     , CB_VARINT);
+  WriteHeaderVarInt(w, vSURFTYPE     ,header.base.SurfType       , CB_VARINT);
+  WriteHeaderVarInt(w, vSURFU        ,header.base.SurfDensityM   , CB_VARINT);
+  WriteHeaderVarInt(w, vSURFV        ,header.base.SurfDensityN   , CB_VARINT);
+
   WriteHeaderVarSpace(w, header.Ucs, false);
   WriteHeaderVarSpace(w, header.PUcs, true);
 
