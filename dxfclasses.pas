@@ -33,6 +33,17 @@ type
     MaintVer  : integer;    // 9 $ACADMAINTVER  70 20
   end;
 
+
+  TDxfTimeHeader = record
+    CreateTimeLocal : Double;  // ($TDCREATE)   40  Local date/time of drawing creation
+    CreateTimeUniv  : Double;  // ($TDUCREATE)  40  Universal date/time the drawing was created
+    UpdateTimeLocal : Double;  // ($TDUPDATE)   40  Local date/time of last drawing update
+    UpdateTimeUniv  : Double;  // ($TDUUPDATE)  40  Universal date/time of the last update/save
+    TotalTime       : Double;  // ($TDINDWG)    40  Cumulative editing time for this drawing
+    ElasedTime      : Double;  // ($TDUSRTIMER) 40  User-elapsed timer
+    isTimerOn       : Integer; // ($USRTIMER)   70  0 = Timer off; 1 = Timer on
+  end;
+
   // basic (global/default) configuration settings
   TDxfBaseHeader = record
     CodePage      : string;     // 9 $DWGCODEPAGE    3 ANSI_1251
@@ -54,6 +65,45 @@ type
                                 //   2 = All
     TextHeight    : Double;     // ($TEXTSIZE) Default text height
     TraceWidth    : Double;     // ($TRACEWID) Default trace width
+
+    DistFormat     : Integer;   // ($LUNITS) 70      Units format for coordinates and distances
+    DistPrec       : Integer;   // ($LUPREC) 70      Units precision for coordinates and distances
+    SketchInc      : Double;    // ($SKETCHINC) 40   Sketch record increment
+    FilletRadius   : Double;    // ($FILLETRAD) 40   Fillet radius
+    AnglesFormat   : Integer;   // ($AUNITS) 70      Units format for angles
+    AnglesPrec     : Integer;   // ($AUPREC) 70      Units precision for angles
+    MenuName       : string;    // ($MENU)  1        Name of menu file
+    // : Double;  // ($ELEVATION) 40   Current elevation set by ELEV command
+    // : Double;  // ($PELEVATION) 40  Current paper space elevation
+    //: Double;  // ($THICKNESS) 40
+    isLimCheck     : Integer;   // ($LIMCHECK) 70
+    ChamferDist1   : Double;    // ($CHAMFERA) 40    First chamfer distance
+    ChamferDist2   : Double;    // ($CHAMFERB) 40    Second chamfer distance
+    ChamferLen     : Double;    // ($CHAMFERC) 40    Chamfer length
+    ChamferAngle   : Double;    // ($CHAMFERD) 40    Chamfer angle
+    isSketchPoly   : Integer;   // ($SKPOLY) 70      0 = Sketch lines; 1 = Sketch polylines
+    //: Double;  // ($TDCREATE) 40    Local date/time of drawing creation
+    //: Double;  // ($TDUCREATE) 40   Universal date/time the drawing was created
+    //: Double;  // ($TDUPDATE) 40    Local date/time of last drawing update
+    //: Double;  // ($TDUUPDATE) 40   Universal date/time of the last update/save
+    //: Double;  // ($TDINDWG) 40     Cumulative editing time for this drawing
+    //: Double;  // ($TDUSRTIMER) 40  User-elapsed timer
+    //: Integer; // ($USRTIMER) 70    0 = Timer off; 1 = Timer on
+    AngleBase      : Double;    // ($ANGBASE)    50  Angle 0 direction
+    isClockWise    : Integer;   // ($ANGDIR)     70  1 = Clockwise angles 0 = Counterclock wise angles
+
+    PtDispMode     : Integer;   // ($PDMODE)     70  Point display mode
+    PtDispSize     : Double;    // ($PDSIZE)     40  Point display size
+    DefPolyWidth   : Double;    // ($PLINEWID)   40  Default polyline width
+    //: Integer; // ($SPLFRAME) 70
+    SplineCurvType : Integer;   // ($SPLINETYPE) 70  Spline curve type for PEDIT Spline
+    LineSegments   : Integer;   // ($SPLINESEGS) 70  Number of line segments per spline patch
+    NextHandle     : string;    // ($HANDSEED)    5  Next available handle
+    MeshCount1     : Integer;   // ($SURFTAB1)   70  Number of mesh tabulations in first direction
+    MeshCount2     : Integer;   // ($SURFTAB2)   70  Number of mesh tabulations in second direction
+    SurfType       : Integer;   // ($SURFTYPE)   70  Surface type for PEDIT Smooth
+    SurfDensityM   : Integer;   // ($SURFU)      70  Surface density (for PEDIT Smooth) in M direction
+    SurfDensityN   : Integer;   // ($SURFV)      70  Surface density (for PEDIT Smooth) in N direction
   end;
 
   TDxfUserHeader = record
@@ -84,6 +134,10 @@ type
     EntLineTypeScale    : Double;  // (CELTSCALE)  Current entity linetype scale
     //     9 $XEDIT 290    1 // Controls whether the current drawing can be edited inplace when being referenced by another drawing.
     DispSilhMode        : Integer; // ($DISPSILH)  Controls the display of silhouette curves of body objects in
+
+    Elev                : Double;  // ($ELEVATION) 40   Current elevation set by ELEV command
+    PaperElev           : Double;  // ($PELEVATION) 40  Current paper space elevation
+    Thickness           : Double;  // ($THICKNESS) 40   Current thickness set by ELEV command
   end;
 
   TDxfDimensions = record
@@ -360,6 +414,7 @@ type
     Ucs  : TDxfSpacingHeader;
     PUcs : TDxfSpacingHeader; // Paper space
     User : TDxfUserHeader;
+    Time : TDxfTimeHeader;
   end;
 
   { TDxfTable }
