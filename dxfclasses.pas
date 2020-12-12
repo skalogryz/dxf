@@ -104,6 +104,78 @@ type
     SurfType       : Integer;   // ($SURFTYPE)   70  Surface type for PEDIT Smooth
     SurfDensityM   : Integer;   // ($SURFU)      70  Surface density (for PEDIT Smooth) in M direction
     SurfDensityN   : Integer;   // ($SURFV)      70  Surface density (for PEDIT Smooth) in N direction
+
+    // ($WORLDVIEW      )   70  // 1 = Set UCS to WCS during DVIEW/VPOINT 0 = Don't change UCS
+    // ($SHADEDGE       )   70     0 = Faces shaded, edges not highlighted
+    //                             1 = Faces shaded, edges highlighted in black
+    //                             2 = Faces not filled, edges in entity color
+    //                             3 = Faces in entity color, edges in black
+    // ($SHADEDIF       )   70  Percent ambient/diffuse light; range 1-100; default 70
+    // ($TILEMODE       )   70  1 for previous release compatibility mode; 0 otherwise
+    // ($MAXACTVP       )   70  Sets maximum number of viewports to be regenerated
+    // ($PINSBASE       )   10  Paper space insertion base point
+    // ($PLIMCHECK      )   70  Limits checking in paper space when nonzero
+    // ($PEXTMIN        )   10  Minimum X, Y, and Z extents for paper space
+    // ($PEXTMAX        )   10  Maximum X, Y, and Z extents for paper space
+    // ($PLIMMIN        )   10  Minimum X and Y limits in paper space
+    // ($PLIMMAX        )   10  Maximum X and Y limits in paper space
+    // ($UNITMODE       )   70  Low bit set = Display fractions, feet-and-inches, and surveyor's angles in input format
+    // ($VISRETAIN      )   70  0 = Don't retain xref-dependent visibility settings
+    //                          1 = Retain xref-dependent visibility settings
+    // ($PLINEGEN       )   70 Governs the generation of linetype patterns around the vertices of a 2D polyline:
+    //                         1 = Linetype is generated in a continuous pattern around vertices of the polyline
+    //                         0 = Each segment of the polyline starts and ends with a dash
+    // ($PSLTSCALE      )   70  Controls paper space linetype scaling:
+    //                           1 = No special linetype scaling
+    //                           0 = Viewport scaling governs linetype scaling
+    // ($TREEDEPTH      )   70  Specifies the maximum depth of the spatial index
+    // ($CMLSTYLE       )    2  Current multiline style name
+    // ($CMLJUST        )   70  Current multiline justification: 0 = Top; 1 = Middle; 2 = Bottom
+    // ($CMLSCALE       )   40  Current multiline scale
+    // ($PROXYGRAPHICS  )   70  Controls the saving of proxy object images
+    // ($MEASUREMENT    )   70  Sets drawing units: 0 = English; 1 = Metric
+    // ($CELWEIGHT      )  370  Lineweight of new objects
+    // ($ENDCAPS        )  280  Lineweight endcaps setting for new objects: 0 = none; 1 = round; 2 = angle; 3 = square
+    // ($JOINSTYLE      )  280  Lineweight joint setting for new objects:
+    //                          0=none; 1= round; 2 = angle; 3 = flat
+    // ($LWDISPLAY      )  290  Controls the display of lineweights on the Model or Layout tab:
+    //                          0 = Lineweight is not displayed
+    //                          1 = Lineweight is displayed
+    // ($INSUNITS       )   70  Default drawing units for AutoCAD DesignCenter blocks:
+    //                          0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
+    //                          5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
+    //                          9 = Mils; 10 = Yards; 11 = Angstroms; 12 = Nanometers;
+    //                          13 = Microns; 14 = Decimeters; 15 = Decameters;
+    //                          16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
+    //                          19 = Light years; 20 = Parsecs
+    // ($HYPERLINKBASE  )    1  Path for all relative hyperlinks in the drawing. If null, the drawing path is used
+    // ($STYLESHEET     )    1 - NOOO
+    // ($XEDIT          )  290 Controls whether the current drawing can be edited inplace when being referenced by another drawing.
+    //                         0 = Can't use in-place reference editing
+    //                         1 = Can use in-place reference editing
+    // ($CEPSNTYPE      )  380 Plot style type of new objects:
+    //                         0 = Plot style by layer
+    //                         1 = Plot style by block
+    //                         2 = Plot style by dictionary default
+    //                         3 = Plot style by object ID/handle
+    // ($PSTYLEMODE     )  290  Indicates whether the current drawing is in a Color-Dependent or Named Plot Style mode:
+    //                          0 = Uses named plot style tables in the current drawing
+    //                          1 = Uses color-dependent plot style tables in the current drawing
+    // ($FINGERPRINTGUID)    2   Set at creation time, uniquely identifies a particular drawing
+    // ($VERSIONGUID    )    2  Uniquely identifies a particular version of a drawing. Updated when the drawing is modified
+    // ($EXTNAMES       )  290  Controls symbol table naming:
+    //                          0 = Release 14 compatibility. Limits names to 31 characters
+    //                              in length. Names can include the letters A to Z, the numerals
+    //                              0 to 9, and the special characters dollar sign ($), underscore
+    //                              (_), and hyphen (-).
+    //                          1 = AutoCAD 2000. Names can be up to 255 characters in
+    //                              length, and can include the letters A to Z, the numerals 0
+    //                              to 9, spaces, and any special characters not used for other
+    //                              purposes by Microsoft Windows and AutoCAD
+    // ($PSVPSCALE      )   40   View scale factor for new viewports:
+    //                           0 = Scaled to fit
+    //                           >0 = Scale factor (a positive real value)
+    // ($OLESTARTUP     )  290 - NOO
   end;
 
   TDxfUserHeader = record
