@@ -428,7 +428,7 @@ begin
   WriteHeaderVarFlt(w, vTDUSRTIMER   ,header.Time.ElasedTime      );
   WriteHeaderVarInt(w, vUSRTIMER     ,header.Time.isTimerOn , CB_VARINT);
 
-  WriteHeaderVarFlt(w, vANGBASE      ,header.base.AngleBase      );
+  WriteHeaderVarFlt(w, vANGBASE      ,header.base.AngleBase      , 50 );
   WriteHeaderVarInt(w, vANGDIR       ,header.base.isClockWise    , CB_VARINT);
 
   WriteHeaderVarInt(w, vPDMODE       ,header.base.PtDispMode     , CB_VARINT);
