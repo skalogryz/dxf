@@ -9,6 +9,7 @@ type
   TDxfPoint = record
     x,y,z: double;
   end;
+  TDxfPoint2D = TDxfPoint;
 
 // todo: move it to dxf parseutils
   TDxfSpacingHeader = record
@@ -139,9 +140,6 @@ type
                                 //                           1 = No special linetype scaling
                                 //                           0 = Viewport scaling governs linetype scaling
     SpaceTreeDepth   : Integer; // ($TREEDEPTH      )   70  Specifies the maximum depth of the spatial index
-    // // ($CMLSTYLE       )    2  Current multiline style name
-    // // ($CMLJUST        )   70  Current multiline justification: 0 = Top; 1 = Middle; 2 = Bottom
-    // // ($CMLSCALE       )   40  Current multiline scale
     isProxyImageSave : Integer; // ($PROXYGRAPHICS  )   70  Controls the saving of proxy object images
     MeasureUnits     : Integer; // ($MEASUREMENT    )   70  Sets drawing units: 0 = English; 1 = Metric
     NewObjLineWeight : Integer; // ($CELWEIGHT      )  370  Lineweight of new objects
@@ -173,7 +171,6 @@ type
                                 //                          1 = Uses color-dependent plot style tables in the current drawing
     FingerPrintGuid  : string;  // ($FINGERPRINTGUID)    2   Set at creation time, uniquely identifies a particular drawing
     VersionGuild     : string;  // ($VERSIONGUID    )    2  Uniquely identifies a particular version of a drawing. Updated when the drawing is modified
-    //$EXTNAMES
     ViewPortScale    : double; // ($PSVPSCALE      )   40   View scale factor for new viewports:
     //                           0 = Scaled to fit
     //                           >0 = Scale factor (a positive real value)
@@ -487,22 +484,236 @@ type
     Time : TDxfTimeHeader;
   end;
 
+  { TDxfTableEntry }
+
+  TDxfTableEntry = class(TObject)
+  public
+    EntityType  : string;
+    Handle      : string;
+    Owner       : string;
+    SubClass    : string;
+  end;
+
   { TDxfTable }
 
   TDxfTable = class(TObject)
   private
     fItems: TList;
-    function GetObject(i: integer): TObject;
+    function GetObject(i: integer): TDxfTableEntry;
     function GetCount: Integer;
   public
-    Name : string;
+    Name   : string;
     Handle : string;
+    Owner  : string;
+    SubClass : string;
+    MaxNumber : integer;
     constructor Create;
     destructor Destroy; override;
-    function AddItem(obj: TObject): Integer;
+    function AddItem(obj: TDxfTableEntry): Integer;
     procedure Clear;
-    property Item[i: integer]: TObject read GetObject;
+    property Entry[i: integer]: TDxfTableEntry read GetObject;
     property Count: Integer read GetCount;
+  end;
+
+  TDxfAppIdEntry = class(TDxfTableEntry)
+  public
+    SubClass2 : string;
+    AppData   : string;
+    Flags     : integer;
+  end;
+
+  TDxfBlockRecordEntry = class(TDxfTableEntry)
+  public
+    SubClass2    : string;
+    BlockName    : string;
+    LayoutId     : string;
+    InsertUnit   : Integer;
+    isExplodable : Integer; // bool
+    isScalable   : Integer; // bool
+    // optional fields:
+    PreviewBin   : string;
+    XDataApp     : string;
+    //todo: 1002 .. [1070 1070] 1002
+  end;
+
+  TDxfDimStyleEntry = class(TDxfTableEntry)
+    SubClass2    : string;
+    StyleName    : string; // 2
+    Flags        : Integer; //
+    Dim          : TDxfDimensions;
+  end;
+
+  TDxfLayerEntry = class(TDxfTableEntry)
+    SubClass2   : string;
+    LayerName   : string;
+    Flags       : Integer;
+    ColorNum    : Integer;
+    LineType    : string; // Line Type Name
+    isPlotting  : Integer;
+    Lineweight  : Integer;
+    PlotStyleID : string;
+    MatObjID    : string;
+  end;
+
+  TDxfLTypeEntry = class(TDxfTableEntry)
+    SubClass2   : string;
+    LineType    : string;    // Linetype name
+    Flags       : Integer;
+    Descr       : string;    // Descriptive text for linetype
+    AlignCode   : Integer;   // Alignment code; value is always 65, the ASCII code for A
+    LineTypeElems : Integer; // The number of linetype elements
+    TotalPatLen   : Double;  // Total pattern length
+    Len           : Double;  // Dash, dot or space length (one entry per element)
+    Flags2        : Integer; // Complex linetype element type (one per element). Default is 0 (no embedded shape/text)
+                             // The following codes are bit values:
+                             // 1 = If set, code 50 specifies an absolute rotation; if not set, code 50 specifies a relative rotation
+                             // 2 = Embedded element is a text string
+                             // 4 = Embedded element is a shape
+    ShapeNum      : Integer; // Shape number (one per element) if code 74 specifies an embedded shape
+                             // If code 74 specifies an embedded text string, this value is set to 0
+                             // If code 74 is set to 0, code 75 is omitted
+    StyleObjId    : string;  // Pointer to STYLE object (one per element if code 74 > 0)
+    ScaleVal      : array of Double;  // S = Scale value (optional); multiple entries can exist
+    RotateVal     : array of Double;  // R = (relative) or A = (absolute) rotation value in radians of embedded shape or text; one per
+                             // element if code 74 specifies an embedded shape or text string
+    XOfs          : array of Double;  // X = X offset value (optional); multiple entries can exist
+    YOfs          : array of Double;  // Y = Y offset value (optional); multiple entries can exist
+    TextStr       : string;  // Text string (one per element if code 74 =
+  end;
+
+  TDxfStyleEntry = class(TDxfTableEntry)
+    SubClass2   : string;
+    StyleName   : string;
+    Flags       : Integer; // Standard Flags. see STYLE_FLAG_* constants
+    FixedHeight : Double;  // Fixed text height; 0 if not fixed
+    WidthFactor : Double;  // Width Factor
+    Angle       : Double;  // Oblique angle
+    TextFlags   : Integer; // Text generation flags. see STYLE_FLAGTEXT_* constants
+    LastHeight  : Double;  // Last height used
+    FontName    : string;  // Primary font file name
+    BigFontName : string;  // Bigfont file name; blank if none
+    FullFont    : string;  // A long value which contains a truetype font’s pitch and family, charset, and italic and bold flags
+  end;
+
+
+  {
+   Each 71/13,23,33 pair defines the UCS origin for a particular orthographic
+   type relative to this UCS. For example, if the following pair is present, then
+   invoking the UCS/LEFT command when UCSBASE is set to this UCS will cause
+   the new UCS origin to become (1,2,3).
+     71: 5
+     13: 1.0
+     23: 2.0
+     33: 3.0
+   If this pair were not present, then invoking the UCS/LEFT command would
+   cause the new UCS origin to be set to this UCS's origin point.
+  }
+
+  TDxfUCSEntry = class(TDxfTableEntry)
+    SubClass2   : string;     // 100
+    UCSName     : string;     //   2
+    Flags       : Integer;    //  70 Standard Flags. see UCS_FLAG_* constants
+    Origin      : TDxfPoint;  // _10 Origin (in WCS)
+    XDir        : TDxfPoint;  // _11 X-axis direction (in WCS)
+    YDir        : TDxfPoint;  // _12 Y-axis direction (in WCS)
+    Zero        : Integer;    //  79 Always Zero
+    Elev        : Double;     // 146 Elevation
+    BaseUCS     : string;     // 346 ID/handle of base UCS if this is an orthographic. This code is not present if the 79 code is 0. If
+                              //     this code is not present and 79 code is non-zero, then base UCS is assumed to be WORLD
+    OrthType    : Integer;    //  71 Orthographic type (optional; always appears in pairs with the 13, 23, 33 codes):
+                              //     see UCS_ORTHO_* constants
+    UCSRelOfs   : TDxfPoint;  // _13 Origin for this orthographic type relative to this UCS
+  end;
+
+  TDxfViewEntry = class(TDxfTableEntry)
+    SubClass2   : string;     // 100
+    ViewName    : string;     //   2
+    Flags       : Integer;    //  70 Standard Flags. see VIEW_FLAG_* constants
+    Height      : Double;     //  40 View height (in DCS)
+    CenterPoint : TDxfPoint;  // _10 View center point (in DCS) 2D
+    Width       : Double;     //  41 View width (in DCS)
+    ViewDir     : TDxfPoint;  // _11 View direction from target (in WCS) 3D
+    TargetPoint : TDxfPoint;  // _12 Target point (in WCS) APP: 3D point
+    LensLen     : Double;     //  42 Lens length
+    FontClipOfs : Double;     //  43 Front clipping plane (offset from target point)
+    BackClipOfs : Double;     //  44 Back clipping plane (offset from target point)
+    TwistAngle  : Double;     //  50 Twist angle
+    ViewMode    : Integer;    //  71 View mode (see VIEWMODE system variable)
+    RenderMode  : Integer;    // 281 Render mode. see RENDERMODE_* constants
+                              //     All rendering modes other than 2D Optimized engage the new 3D graphics pipeline. These
+                              //     values directly correspond to the SHADEMODE command and the AcDbAbstractViewTableRecord::
+                              //     RenderMode enum
+    isUcsAssoc  : Integer;    //  72 1 if there is a UCS associated to this view; 0 otherwise
+    isCameraPlot: INteger;    //  73 1 if the camera is plottable
+    BackObjId   : string;     // 332 Soft-pointer ID/handle to background object (optional)
+    LiveSectId  : string;     // 334 Soft-pointer ID/handle to live section object (optional)
+    StyleId     : string;     // 348 Hard-pointer ID/handle to visual style object (optional)
+    OwnerId     : string;     // 361 Sun hard ownership ID
+
+    // The following codes appear only if code 72 is set to 1. They define the UCS
+    // that is associated to this view. This UCS will become the current UCS whenever
+    // this view is restored (if code 72 is 0, the UCS is unchanged).
+    UCSOrig   : TDxfPoint;    // 110 UCS origin (appears only if code 72 is set to 1) - 3D-Point
+    UCSXAxis  : TDxfPoint;    // 111 UCS X-axis (appears only if code 72 is set to 1) - 3D-Point
+    UCSYAxis  : TDxfPoint;    // 112 UCS Y-axis (appears only if code 72 is set to 1) - 3D-Point
+    OrthType  : Integer;      //  79 Orthographic type of UCS (appears only if code 72 is set to 1):
+    UCSElev   : Double;       // 146 UCS elevation (appears only if code 72 is set to 1)
+    UCSID     : string;       // 345 ID/handle of AcDbUCSTableRecord if UCS is a named UCS.
+                              //     If not present, then UCS is unnamed (appears only if code 72 is set to 1)
+    UCSBaseID : string;       // 346 ID/handle of AcDbUCSTableRecord of base UCS if UCS is orthographic (79 code is nonzero).
+                              //     If not present and 79 code is non-zero, then base UCS is taken to be WORLD (appears
+                              //     only if code 72 is set to 1)
+  end;
+
+
+  TDxfVPortEntry = class(TDxfTableEntry)
+    SubClass2     : string;       // 100
+    ViewName      : string;       //   2
+    Flags         : Integer;      //  70 Standard Flags. see VIEW_FLAG_* constants
+    LeftLow       : TDxfPoint2d;  // _10 Lower-left corner of viewport   2d-point
+    UpRight       : TDxfPoint2d;  // _11 Upper-right corner of viewport  2d-point
+    ViewCenter    : TDxfPoint2d;  // _12 View center point (in DCS)      2d-point
+    SnapBase      : TDxfPoint2d;  // _13 Snap base point (in DCS)        2d-point
+    SnapSpace     : TDxfPoint2d;  // _14 Snap spacing X and Y            2d-point
+    GridSpace     : TDxfPoint2d;  // _15 Grid spacing X and Y            2d-point
+    ViewDir       : TDxfPoint;    // _16 View direction from target point (in WCS) 3d-point
+    ViewTarget    : TDxfPoint;    // _17 View target point (in WCS) 3d-point
+    LensLen       : Double;       //  42 Lens length
+    FrontClipOfs  : Double;       //  43 Front clipping plane (offset from target point)
+    BackClipOfs   : Double;       //  44 Back clipping plane (offset from target point)
+    Height        : Double;       //  45 View height
+    RotateAngle   : Double;       //  50 Snap rotation angle
+    TwistAngle    : Double;       //  51 View twist angle
+    CircleSides   : Integer;      //  72 Circle sides
+    FrozeLayerId  : string;       // 331
+                                  //  or Soft or hard-pointer ID/handle to frozen layer objects; repeats for each frozen layers
+                                  // 441
+    PerspFlag     : Integer;      //  70 Bit flags and perspective mode
+    PlotStyle     : string;       //   1 Plot style sheet
+    RenderMode    : Integer;      // 281 Render mode. See RENDERMODE_* constants
+    ViewMode      : Integer;      //  71 View mode (see VIEWMODE system variable)
+    UCSICON       : Integer;      //  74 UCSICON setting
+    UCSOrigin     : TDxfPoint;    //_110 UCS origin
+    UCSXAxis      : TDxfPoint;    //_111 UCS X-axis
+    UCSYAxis      : TDxfPoint;    //_112 UCS Y-axis
+    UCSId         : string;       // 345 ID/handle of AcDbUCSTableRecord if UCS is a named UCS. If not present, then UCS is unnamed
+    UCSBaseId     : string;       // 346 ID/handle of AcDbUCSTableRecord of base UCS if UCS is orthographic (79 code is non-zero).
+                                  //     If not present and 79 code is non-zero, then base UCS is taken to be WORLD
+
+    OrthType      : Integer;      //  79 Orthographic type of UCS. See UCS_ORTHO_* const
+    Elevation     : Double;       // 146 Elevation
+    PlotShade     : Integer;      // 170 Shade plot setting
+    GridLines     : Integer;      //  61 Major grid lines
+    BackObjId     : string;       // 332 Soft-pointer ID/handle to background object (optional)
+    ShadePlotId   : string;       // 333 Soft-pointer ID/handle to shade plot object (optional)
+    VisualStyleId : string;       // 348 Hard-pointer ID/handle to visual style object (optional)
+    isDefLight    : Integer;      // 292 Default Lighting On flag
+    DefLightType  : integer;      // 282 Default Lighting type. See LIGHT_* constants
+    Brightness    : Double;       // 141 Brightness
+    Contract      : Double;       // 142 Contrast
+    Color1        : Integer;      // 63, 421, 431 Ambient color (only output when non-black)
+    Color2        : Integer;
+    Color3        : Integer;
   end;
 
   // todo:
@@ -792,10 +1003,10 @@ begin
   inherited Destroy;
 end;
 
-function TDxfTable.GetObject(i: integer): TObject;
+function TDxfTable.GetObject(i: integer): TDxfTableEntry;
 begin
   if (i<0) or (i>=fItems.Count) then Result := nil
-  else Result := TObject(FItems[i]);
+  else Result := TDxfTableEntry(FItems[i]);
 end;
 
 function TDxfTable.GetCount: Integer;
@@ -803,7 +1014,7 @@ begin
   Result := FItems.Count;
 end;
 
-function TDxfTable.AddItem(obj: TObject): Integer;
+function TDxfTable.AddItem(obj: TDxfTableEntry): Integer;
 begin
   if not Assigned(obj) then begin
     Result := -1;
