@@ -513,6 +513,19 @@ const
   DEF_LINESCALE = 1.0; // entity 48
   DEF_HIDDEN    = 0;   // entity 60
 
+const
+  ACAD_VER_R10  = 'AC1006'; // Release 10 (1988)
+  ACAD_VER_R11  = 'AC1009'; // Release 11 (1990)
+  ACAD_VER_R12  = 'AC1009'; // Release 12 (1992)
+  ACAD_VER_R13  = 'AC1012'; // Release 13 (1994)
+  ACAD_VER_R14  = 'AC1014'; // Release 14 (1997)
+  ACAD_VER_2000 = 'AC1015'; // AutoCAD 2000
+  ACAD_VER_2004 = 'AC1018'; // AutoCAD 2004
+  ACAD_VER_2007 = 'AC1021'; // AutoCAD 2007
+  ACAD_VER_2010 = 'AC1024'; // AutoCAD 2010
+  ACAD_VER_2013 = 'AC1027'; // AutoCAD 2013
+  ACAD_VER_2018 = 'AC1032'; // AutoCAD 2018
+
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;
