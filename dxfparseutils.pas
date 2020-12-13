@@ -298,13 +298,18 @@ begin
       ;
     'C':
       if v = vCLAYER then hdr.Sel.Layer := ConsumeStr(p, CB_LAYERNAME)
-      else if v = vCELTYPE then hdr.Sel.EntLineType := ConsumeStr(p, 6)
-      else if v = vCECOLOR then hdr.Sel.EntColor := ConsumeInt(p, 62)
+      else if v = vCELTYPE   then hdr.Sel.EntLineType := ConsumeStr(p, 6)
+      else if v = vCECOLOR   then hdr.Sel.EntColor := ConsumeInt(p, 62)
       else if v = vCELTSCALE then hdr.Sel.EntLineTypeScale := ConsumeFlt(p, CB_VARFLOAT)
-      else if v = vCHAMFERA then hdr.Base.ChamferDist1 := ConsumeFlt(p, CB_VARFLOAT)
-      else if v = vCHAMFERB then hdr.Base.ChamferDist2 := ConsumeFlt(p, CB_VARFLOAT)
-      else if v = vCHAMFERC then hdr.Base.ChamferLen   := ConsumeFlt(p, CB_VARFLOAT)
-      else if v = vCHAMFERD then hdr.Base.ChamferAngle := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vCHAMFERA  then hdr.Base.ChamferDist1 := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vCHAMFERB  then hdr.Base.ChamferDist2 := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vCHAMFERC  then hdr.Base.ChamferLen   := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vCHAMFERD  then hdr.Base.ChamferAngle := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vCELWEIGHT then hdr.base.NewObjLineWeight := ConsumeInt (p, 370)
+      else if v = vCEPSNTYPE then hdr.base.PlotStype        := ConsumeInt (p, 380)
+      else if v = vCMLSTYLE  then hdr.Sel.MultiLineStyle    := ConsumeStr (p, 2)
+      else if v = vCMLJUST   then hdr.Sel.MultiLineJust     := ConsumeInt (p, CB_VARINT)
+      else if v = vCMLSCALE  then hdr.Sel.MultiLineScale    := ConsumeFlt (p, 40)
       ;
     'D':
       if v = vDWGCODEPAGE then hdr.base.CodePage := ConsumeStr(p, 3)
@@ -380,26 +385,39 @@ begin
       if v = vEXTMIN then ParsePoint(p, hdr.Base.ExtLowLeft)
       else if v = vEXTMAX then ParsePoint(p, hdr.Base.ExtUpRight)
       else if v = vELEVATION then hdr.Sel.Elev := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vEXTNAMES  then hdr.acad.isExtNames  := ConsumeInt(p, 290)
+      else if v = vENDCAPS   then hdr.base.LineEndCaps := ConsumeInt(p, 280)
       ;
     'F':
       if v = vFILLMODE then hdr.Base.isFill := ConsumeInt(p, CB_VARINT)
       else if v = vFILLETRAD then hdr.Base.FilletRadius := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vFINGERPRINTGUID then hdr.base.FingerPrintGuid := ConsumeStr(p ,2)
       ;
     'H':
-      if v = vHANDSEED then hdr.Base.NextHandle := ConsumeStr(p, 5);
+      if v = vHANDSEED then hdr.Base.NextHandle := ConsumeStr(p, 5)
+      else if v = vHYPERLINKBASE   then hdr.base.RelHyperLink     := ConsumeStr(p,1)
+      ;
     'I':
-      if v = vINSBASE then ParsePoint(p, hdr.Base.InsPoint);
+      if v = vINSBASE then ParsePoint(p, hdr.Base.InsPoint)
+      else if v = vINSUNITS then hdr.base.DefaultUnits := ConsumeInt(p,CB_VARINT)
+      ;
+    'J':
+      if v = vJOINSTYLE then hdr.base.LineJointStyle := ConsumeInt(p,280)
+      ;
     'L':
       if v = vLIMMIN then ParsePoint(p, hdr.Base.LimLowLeft)
-      else if v = vLIMMAX then ParsePoint(p, hdr.Base.LimUpRight)
-      else if v = vLTSCALE then hdr.Base.LineTypeScale := ConsumeFlt(p, CB_VARFLOAT)
-      else if v = vLUNITS   then hdr.Base.DistFormat := ConsumeInt(p, CB_VARINT)
-      else if v = vLUPREC   then hdr.Base.DistPrec   := ConsumeInt(p, CB_VARINT)
-      else if v = vLIMCHECK then hdr.Base.isLimCheck := ConsumeInt(p, CB_VARINT)
+      else if v = vLIMMAX    then ParsePoint(p, hdr.Base.LimUpRight)
+      else if v = vLTSCALE   then hdr.Base.LineTypeScale := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vLUNITS    then hdr.Base.DistFormat := ConsumeInt(p, CB_VARINT)
+      else if v = vLUPREC    then hdr.Base.DistPrec   := ConsumeInt(p, CB_VARINT)
+      else if v = vLIMCHECK  then hdr.Base.isLimCheck := ConsumeInt(p, CB_VARINT)
+      else if v = vLWDISPLAY then hdr.base.isLineShow := ConsumeInt(p,290)
       ;
     'M':
       if v = vMIRRTEXT then hdr.Base.isMirrText := ConsumeInt(p, CB_VARINT)
-      else if v = vMENU then hdr.Base.MenuName := ConsumeStr(p, CB_VARVALUE)
+      else if v = vMENU        then hdr.Base.MenuName := ConsumeStr(p, CB_VARVALUE)
+      else if v = vMEASUREMENT then hdr.base.MeasureUnits := ConsumeInt(p,CB_VARINT)
+      else if v = vMAXACTVP    then hdr.Base.MaxViewPorts := ConsumeInt(p,CB_VARINT)
       ;
     'O':
       if v = vORTHOMODE then hdr.Base.isOrtho := ConsumeInt(p, CB_VARINT);
@@ -421,6 +439,17 @@ begin
       else if v = vPDMODE        then hdr.Base.PtDispMode   := ConsumeInt(p, CB_VARINT)
       else if v = vPDSIZE        then hdr.Base.PtDispSize   := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vPLINEWID      then hdr.Base.DefPolyWidth := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vPSVPSCALE       then hdr.base.ViewPortScale    := ConsumeFlt(p,40)
+      else if v = vPSTYLEMODE      then hdr.base.isColorDepmode   := ConsumeInt(p,290)
+      else if v = vPROXYGRAPHICS   then hdr.base.isProxyImageSave := ConsumeInt(p,CB_VARINT)
+      else if v = vPLINEGEN        then hdr.Base.LineTypePatt     := ConsumeInt(p,CB_VARINT)
+      else if v = vPSLTSCALE       then hdr.Base.PaperLineScaling := ConsumeInt(p,CB_VARINT)
+      else if v = vPINSBASE        then ParsePoint(p, hdr.Base.PaperInsPoint)
+      else if v = vPLIMCHECK       then hdr.Base.isPaperLimCheck := ConsumeInt(p,CB_VARINT)
+      else if v = vPEXTMIN         then ParsePoint(p, hdr.Base.PaperExtLowLeft)
+      else if v = vPEXTMAX         then ParsePoint(p, hdr.Base.PaperExtUpRight)
+      else if v = vPLIMMIN         then ParsePoint(p, hdr.Base.PaperLimLowLeft)
+      else if v = vPLIMMAX         then ParsePoint(p, hdr.Base.PaperLimUpRight)
       ;
     'Q':
       if v = vQTEXTMODE then hdr.Base.isQText := ConsumeInt(p, CB_VARINT);
@@ -436,6 +465,8 @@ begin
       else if v = vSURFTYPE   then hdr.Base.SurfType       := Consumeint(p, CB_VARINT)
       else if v = vSURFU      then hdr.Base.SurfDensityM   := Consumeint(p, CB_VARINT)
       else if v = vSURFV      then hdr.Base.SurfDensityN   := Consumeint(p, CB_VARINT)
+      else if v = vSHADEDGE   then hdr.Base.ShadeEdge    := ConsumeInt(p,CB_VARINT)
+      else if v = vSHADEDIF   then hdr.Base.ShadeDiffuse := ConsumeInt(p,CB_VARINT)
       ;
     'T':
       if v = vTEXTSIZE then hdr.Base.TextHeight := ConsumeFlt(p, CB_VARFLOAT)
@@ -461,6 +492,8 @@ begin
       else if v = vTDUUPDATE    then hdr.Time.UpdateTimeUniv  := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vTDINDWG      then hdr.Time.TotalTime       := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vTDUSRTIMER   then hdr.Time.ElasedTime      := ConsumeFlt(p, CB_VARFLOAT)
+      else if v = vTREEDEPTH    then hdr.Base.SpaceTreeDepth := ConsumeInt(p,CB_VARINT)
+      else if v = vTILEMODE     then hdr.Base.isTileMode := ConsumeInt(p,CB_VARINT)
       ;
     'U':
       if v = vUSERI1 then hdr.User.I1 := ConsumeInt(p, CB_VARINT)
@@ -474,6 +507,17 @@ begin
       else if v = vUSERR4 then hdr.User.R4 := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vUSERR5 then hdr.User.R5 := ConsumeFlt(p, CB_VARFLOAT)
       else if v = vUSRTIMER then hdr.Time.isTimerOn := ConsumeInt(p, CB_VARINT)
+      else if v = vUNITMODE then hdr.Base.UnitMode := ConsumeInt(p,CB_VARINT)
+      ;
+    'V':
+      if v = vVERSIONGUID then hdr.base.VersionGuild := ConsumeStr(p,2)
+      else if v = vVISRETAIN then hdr.Base.isRetainXRefVis := ConsumeInt(p,CB_VARINT)
+      ;
+    'W':
+      if v = vWORLDVIEW then hdr.Base.isWorldView := ConsumeInt(p,CB_VARINT)
+      ;
+    'X':
+      if v = vXEDIT then hdr.base.isInPlaceEditin := ConsumeInt(p, 290)
       ;
   end;
 end;
