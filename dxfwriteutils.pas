@@ -458,6 +458,41 @@ begin
   WriteHeaderVarFlt(w, vUSERR4       ,header.User.R4, CB_VARFLOAT);
   WriteHeaderVarFlt(w, vUSERR5       ,header.User.R5, CB_VARFLOAT);
 
+  WriteHeaderVarInt(w, vWORLDVIEW       ,header.Base.isWorldView      ,CB_VARINT);
+  WriteHeaderVarInt(w, vSHADEDGE        ,header.Base.ShadeEdge        ,CB_VARINT);
+  WriteHeaderVarInt(w, vSHADEDIF        ,header.Base.ShadeDiffuse     ,CB_VARINT);
+  WriteHeaderVarInt(w, vTILEMODE        ,header.Base.isTileMode       ,CB_VARINT);
+  WriteHeaderVarInt(w, vMAXACTVP        ,header.Base.MaxViewPorts     ,CB_VARINT);
+  WriteHeaderVarPnt(w, vPINSBASE        ,header.Base.PaperInsPoint);
+  WriteHeaderVarInt(w, vPLIMCHECK       ,header.Base.isPaperLimCheck  ,CB_VARINT);
+  WriteHeaderVarPnt(w, vPEXTMIN         ,header.Base.PaperExtLowLeft);
+  WriteHeaderVarPnt(w, vPEXTMAX         ,header.Base.PaperExtUpRight);
+  WriteHeaderVarP2d(w, vPLIMMIN         ,header.Base.PaperLimLowLeft);
+  WriteHeaderVarP2d(w, vPLIMMAX         ,header.Base.PaperLimUpRight);
+  WriteHeaderVarInt(w, vUNITMODE        ,header.Base.UnitMode         ,CB_VARINT);
+  WriteHeaderVarInt(w, vVISRETAIN       ,header.Base.isRetainXRefVis  ,CB_VARINT);
+  WriteHeaderVarInt(w, vPLINEGEN        ,header.Base.LineTypePatt     ,CB_VARINT);
+  WriteHeaderVarInt(w, vPSLTSCALE       ,header.Base.PaperLineScaling ,CB_VARINT);
+  WriteHeaderVarInt(w, vTREEDEPTH       ,header.Base.SpaceTreeDepth   ,CB_VARINT);
+  WriteHeaderVarStr(w, vCMLSTYLE        ,header.Sel.MultiLineStyle    ,2);
+  WriteHeaderVarInt(w, vCMLJUST         ,header.Sel.MultiLineJust     ,CB_VARINT);
+  WriteHeaderVarFlt(w, vCMLSCALE        ,header.Sel.MultiLineScale    ,40);
+  WriteHeaderVarInt(w, vPROXYGRAPHICS   ,header.base.isProxyImageSave ,CB_VARINT);
+  WriteHeaderVarInt(w, vMEASUREMENT     ,header.base.MeasureUnits     ,CB_VARINT);
+  WriteHeaderVarInt(w, vCELWEIGHT       ,header.base.NewObjLineWeight ,370);
+  WriteHeaderVarInt(w, vENDCAPS         ,header.base.LineEndCaps      ,280);
+  WriteHeaderVarInt(w, vJOINSTYLE       ,header.base.LineJointStyle   ,280);
+  WriteHeaderVarInt(w, vLWDISPLAY       ,header.base.isLineShow       ,290);
+  WriteHeaderVarInt(w, vINSUNITS        ,header.base.DefaultUnits     ,CB_VARINT);
+  WriteHeaderVarStr(w, vHYPERLINKBASE   ,header.base.RelHyperLink     ,1);
+  WriteHeaderVarInt(w, vXEDIT           ,header.base.isInPlaceEditin  ,290);
+  WriteHeaderVarInt(w, vCEPSNTYPE       ,header.base.PlotStype        ,380);
+  WriteHeaderVarInt(w, vPSTYLEMODE      ,header.base.isColorDepmode   ,290);
+  WriteHeaderVarStr(w, vFINGERPRINTGUID ,header.base.FingerPrintGuid  ,2);
+  WriteHeaderVarStr(w, vVERSIONGUID     ,header.base.VersionGuild     ,2);
+  WriteHeaderVarInt(w, vEXTNAMES        ,header.acad.isExtNames       ,290);
+  WriteHeaderVarFlt(w, vPSVPSCALE       ,header.base.ViewPortScale    ,40);
+
 end;
 
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
