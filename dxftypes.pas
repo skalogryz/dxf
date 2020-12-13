@@ -71,6 +71,9 @@ const
   CB_VARINT    = 70;
   CB_VARFLOAT  = 40;
 
+  // for table
+  CB_DIMHANDLE  = 105;
+
 const
   NAME_OBJECTS  = 'OBJECTS';
   NAME_ENTITIES = 'ENTITIES';
