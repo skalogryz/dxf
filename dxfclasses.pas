@@ -515,6 +515,10 @@ type
     Owner  : string;
     SubClass : string;
     MaxNumber : integer;
+    // dimstyle table headers:
+    SubClass2 : string;
+    IntVal2   : Integer;
+    Owner2    : string;
     constructor Create;
     destructor Destroy; override;
     function AddItem(obj: TDxfTableEntry): Integer;
