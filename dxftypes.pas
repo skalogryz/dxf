@@ -26,6 +26,7 @@ const
 
   CB_SUBCLASS     = 100;
   CB_APPDEFNAME   = 102;
+  CB_GROUPSTART   = 102;
 
   CB_X            = 10;
   CB_Y            = 20;
@@ -520,6 +521,41 @@ const
   TE_VIEW         = 'VIEW';
   TE_VPORT        = 'VPORT';
 
+  // Object Types
+  OT_ACAD_PROXY_OBJECT   = 'ACAD_PROXY_OBJECT';
+  OT_ACDBDICTIONARYWDFLT = 'ACDBDICTIONARYWDFLT';
+  OT_ACDBPLACEHOLDER     = 'ACDBPLACEHOLDER';
+  OT_DATATABLE           = 'DATATABLE';
+  OT_DICTIONARY          = 'DICTIONARY';
+  OT_DICTIONARYVAR       = 'DICTIONARYVAR';
+  OT_DIMASSOC            = 'DIMASSOC';
+  OT_FIELD               = 'FIELD';
+  OT_GEODATA             = 'GEODATA';
+  OT_GROUP               = 'GROUP';
+  OT_IDBUFFER            = 'IDBUFFER';
+  OT_IMAGEDEF            = 'IMAGEDEF';
+  OT_IMAGEDEF_REACTOR    = 'IMAGEDEF_REACTOR';
+  OT_LAYER_INDEX         = 'LAYER_INDEX';
+  OT_LAYER_FILTER        = 'LAYER_FILTER';
+  OT_LAYOUT              = 'LAYOUT';
+  OT_LIGHTLIST           = 'LIGHTLIST';
+  OT_MATERIAL            = 'MATERIAL';
+  OT_MLINESTYLE          = 'MLINESTYLE';
+  OT_OBJECT_PTR          = 'OBJECT_PTR';
+  OT_PLOTSETTINGS        = 'PLOTSETTINGS';
+  OT_RASTERVARIABLES     = 'RASTERVARIABLES';
+  OT_RENDER              = 'RENDER';
+  OT_SECTION             = 'SECTION';
+  OT_SPATIAL_INDEX       = 'SPATIAL_INDEX';
+  OT_SPATIAL_FILTER      = 'SPATIAL_FILTER';
+  OT_SORTENTSTABLE       = 'SORTENTSTABLE';
+  OT_TABLESTYLE          = 'TABLESTYLE';
+  OT_UNDERLAYDEFINITION  = 'UNDERLAYDEFINITION';
+  OT_VISUALSTYLE         = 'VISUALSTYLE';
+  OT_VBA_PROJECT         = 'VBA_PROJECT';
+  OT_WIPEOUTVARIABLES    = 'WIPEOUTVARIABLES';
+  OT_XRECORD             = 'XRECORD';
+
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
 
@@ -540,6 +576,9 @@ const
   ACAD_VER_2010 = 'AC1024'; // AutoCAD 2010
   ACAD_VER_2013 = 'AC1027'; // AutoCAD 2013
   ACAD_VER_2018 = 'AC1032'; // AutoCAD 2018
+
+  GROUPLIST_REACTORS    = '{ACAD_REACTORS';
+  GROUPLIST_XDICTIONARY = '{ACAD_XDICTIONARY';
 
 implementation
 

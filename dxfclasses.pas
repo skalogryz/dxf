@@ -768,16 +768,32 @@ type
   end;
 
   // todo:
+  TDxfValueType = (dvtStr, dvtInt, dvtInt64, dvtFloat);
+
   TDxfValue = class
+    cg      : Integer;
+    valType : TDxfValueType;
     s   : string;
     i   : integer;
     i64 : int64;
     f   : double;
   end;
 
+  { TDxfValuesList }
+
   TDxfValuesList = class
-    count     : integer;
-    vales     : array of TDxfValue;
+  protected
+    function AllocVal(codeGroup: Integer; avalType: TDxfValueType): TDxfValue;
+  public
+    values     : TList;
+    Name       : string;
+    constructor Create;
+    destructor Destroy; override;
+    function AddStr(const codeGroup: Integer; const s: string): TDxfValue;
+    function AddInt(const codeGroup: Integer; const v: Integer): TDxfValue;
+    function AddInt64(const codeGroup: Integer; const v: Int64): TDxfValue;
+    function AddFloat(const codeGroup: Integer; const f: double): TDxfValue;
+    function Count: Integer;
   end;
 
   { TDxfEntity }
@@ -938,6 +954,134 @@ type
     procedure AddEntity(ent: TDxfEntity);
   end;
 
+  { TDxfObject }
+
+  TDxfObject = class(TObject)
+    ObjectType  : string; //  0 Object type
+    Handle      : string; //  5 Handle
+
+    AppCodes    : TDxfValuesList; // 102 Start of application-defined group "{application_name" (optional)
+                                  // application- Codes and values within the 102 groups are application defined (optional)
+                                  // defined codes
+                                  // 102 End of group, “}” (optional)
+    Reactors    : TDxfValuesList; // 102 "{ACAD_REACTORS" indicates the start of the AutoCAD persistent reactors group. This group
+                                  // exists only if persistent reactors have been attached to this object (optional)
+                                  // 330 Soft-pointer ID/handle to owner dictionary (optional)
+                                  // 102 End of group, “}” (optional)
+    XDict       : TDxfValuesList; // 102 "{ACAD_XDICTIONARY" indicates the start of an extension dictionary group. This group exists
+                                  // only if persistent reactors have been attached to this object (optional)
+                                  // 360 Hard-owner ID/handle to owner dictionary (optional)
+                                  // 102 End of group, "}" (optional)
+    Owner       : string;         // 330 Soft-pointer ID/handle to owner object
+
+    destructor Destroy; override;
+  end;
+
+  TDxfAcadProxyObject = class(TDxfObject)
+    SubClass2 : string;   // 100 DXF: Subclass marker (AcDbProxyObject)
+    ClassId   : Integer;  // 90 DXF: Proxy object class ID (always 499)
+    AppClassId : integer; // 91 DXF: Application object's class ID. Class IDs are based on the order of the class in the CLASSES
+                          // section. The first class is given the ID of 500, the next is 501, and so on
+    BitSize    : Integer; // 93 DXF: Size of object data in bits
+    Binary     : string;  // 310 DXF: Binary object data (multiple entries can appear) (optional)
+    ObjectId   : string;  // 330    DXF: An object ID (multiple entries can appear) (optional)
+                          // or 340
+                          // or 350
+                          // or 360
+    _94        : Integer; // 94 DXF: 0 (indicates end of object ID section)
+
+    DrawFmt    : Integer; // 95 DXF: Object drawing format when it becomes a proxy (a 32-bit unsigned integer):
+                          // Low word is AcDbDwgVersion
+                          // High word is MaintenanceReleaseVersion
+    CustomFmt  : integer; // 70 DXF: Original custom object data format:
+                          // 0 = DWG format
+                          // 1 = DXF format
+                          // The 92 field is not used for AcDbProxyObject. Objects of this class never have graphics.
+  end;
+
+  //ACDBDICTIONARYWDFLT
+
+  { TDxfDictionary}
+  //
+  // DICTIONARY
+  //
+  // AutoCAD® maintains items such as mline styles and group definitions as
+  // objects in dictionaries. The following sections describe the AutoCAD object
+  // group codes maintained in dictionaries; however, other applications are free
+  // to create and use their own dictionaries as they see fit. The prefix "ACAD_" is
+  // reserved for use by AutoCAD applications.
+
+  TDxfDictionaryEntry = class(TObject)
+    EntryName   : string;  // 3 Entry name (one for each entry) (optional)
+    Owner       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
+  end;
+
+  TDxfDictionary = class(TDxfObject)
+    SubClass2   : string;  // 100 Subclass marker (AcDbDictionary)
+    isHardOwner : Integer; // 280 Hard-owner flag. If set to 1, indicates that elements of the dictionary are to be treated as hardowned
+    CloneFlag   : Integer; // 281 Duplicate record cloning flag (determines how to merge duplicate entries):
+                           // 0 = Not applicable
+                           // 1 = Keep existing
+                           // 2 = Use clone
+                           // 3 = <xref>$0$<name>
+                           // 4 = $0$<name>
+                           // 5 = Unmangle name
+    // 3 and 350, see at TDxfDictionaryEntry
+    Entries     : TList;
+    constructor Create;
+    destructor Destroy; override;
+    function AddEntry: TDxfDictionaryEntry;
+    procedure Clear;
+  end;
+
+  //DIMASSOC
+  //LAYOUT
+  //MLINESTYLE
+  //ACDBPLACEHOLDER
+  //TABLESTYLE
+
+  { TDxfDictionaryVar }
+
+  // DICTIONARYVAR objects are used by AutoCAD as a means to store named
+  // values in the database for setvar/getvar purposes without the need to add
+  // entries to the DXF™ HEADER section. System variables that are stored as
+  // DICTIONARYVAR objects are the following: DEFAULTVIEWCATEGORY,
+  // DIMADEC, DIMASSOC, DIMDSEP, DRAWORDERCTL, FIELDEVAL, HALOGAP,
+  // HIDETEXT, INDEXCTL, INDEXCTL, INTERSECTIONCOLOR,
+  // INTERSECTIONDISPLAY, MSOLESCALE, OBSCOLOR, OBSLTYPE, OLEFRAME,
+  // PROJECTNAME, SORTENTS, UPDATETHUMBNAIL, XCLIPFRAME, and
+  // XCLIPFRAME.
+  TDxfDictionaryVar = class(TDxfObject)
+    SubClass2 : string;  // 100 Subclass marker (DictionaryVariables)
+    SchemaNum : integer; // 280 Object schema number (currently set to 0)
+    Value     : integer; // 1 Value of variable
+  end;
+
+
+  { TDxfXRecord }
+
+  // Xrecord objects are used to store and manage arbitrary data. They are composed
+  // of DXF group codes with “normal object” groups (that is, non-xdata group
+  // codes), ranging from 1 through 369 for supported ranges. This object is similar
+  // in concept to xdata but is not limited by size or order.
+  //
+  // Xrecord objects are designed to work in such a way as to not offend releases
+  // R13c0 through R13c3. However, if read into a pre-R13c4 version of AutoCAD®,
+  // xrecord objects disappear
+  TDxfXRecord = class(TDxfObject)
+  public
+    SubClass2  : string;  // 100 Subclass marker (AcDbXrecord)
+    isCloning  : Integer; // 280 Duplicate record cloning flag (determines how to merge duplicate entries):
+                          //     0 = Not applicable
+                          //     1 = Keep existing
+                          //     2 = Use clone
+                          //     3 = <xref>$0$<name>
+                          //     4 = $0$<name>
+                          //     5 = Unmangle name
+    // todo:
+    // 1-369 (except 5 and 105)  These values can be used by an application in any way
+  end;
+
   { TDxfFile }
 
   TDxfFile = class(TObject)
@@ -947,12 +1091,14 @@ type
     tables   : TList;
     entities : TList; // of TDxfEntitie
     blocks   : TList; // of TDxfFileBlock
+    objects  : TList; // of TDxfObject
     constructor Create;
     destructor Destroy; override;
     function AddTable: TDxfTable;
     procedure AddEntity(ent: TDxfEntity);
     function AddBlock: TDxfFileBlock;
     function AddClass: TDxfClass;
+    procedure AddObject(obj: TDxfObject);
     procedure Clear;
   end;
 
@@ -991,6 +1137,101 @@ begin
   Result:= isSameDbl(a.x,b.x, epsilon)
     and isSameDbl(a.y,b.y, epsilon)
     and isSameDbl(a.z,b.z, epsilon);
+end;
+
+{ TDxfObject }
+
+destructor TDxfObject.Destroy;
+begin
+  Reactors.Free;
+  XDict.Free;
+  AppCodes.Free;
+  inherited Destroy;
+end;
+
+{ TDxfValuesList }
+
+function TDxfValuesList.AllocVal(codeGroup: Integer; avalType: TDxfValueType
+  ): TDxfValue;
+begin
+  Result := TDxfValue.Create;
+  Result.cg := codeGroup;
+  Result.valType := avalType;
+  values.Add(Result);
+end;
+
+constructor TDxfValuesList.Create;
+begin
+  inherited Create;
+  values := TList.Create;
+end;
+
+destructor TDxfValuesList.Destroy;
+begin
+  values.Free;
+  inherited Destroy;
+end;
+
+function TDxfValuesList.AddStr(const codeGroup: Integer; const s: string
+  ): TDxfValue;
+begin
+  Result := AllocVal(codegroup, dvtStr);
+  Result.s := s;
+end;
+
+function TDxfValuesList.AddInt(const codeGroup: Integer; const v: Integer
+  ): TDxfValue;
+begin
+  Result := AllocVal(codegroup, dvtInt);
+  Result.i := v;
+end;
+
+function TDxfValuesList.AddInt64(const codeGroup: Integer; const v: Int64
+  ): TDxfValue;
+begin
+  Result := AllocVal(codegroup, dvtInt64);
+  Result.i64 := v;
+end;
+
+function TDxfValuesList.AddFloat(const codeGroup: Integer; const f: double): TDxfValue;
+begin
+  Result := AllocVal(codegroup, dvtFloat);
+  Result.f := f;
+end;
+
+function TDxfValuesList.Count: Integer;
+begin
+  Result := values.Count;
+end;
+
+{ TDxfDictionary }
+
+function TDxfDictionary.AddEntry: TDxfDictionaryEntry;
+begin
+  Result := TDxfDictionaryEntry.Create;
+  Entries.Add(Result);
+end;
+
+procedure TDxfDictionary.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to Entries.Count-1 do
+    TObject(Entries[i]).Free;
+  Entries.Clear;
+end;
+
+constructor TDxfDictionary.Create;
+begin
+  inherited Create;
+  Entries := TList.Create;
+end;
+
+destructor TDxfDictionary.Destroy;
+begin
+  Clear;
+  Entries.Free;
+  inherited Destroy;
 end;
 
 { TDxfVPortEntry }
@@ -1164,12 +1405,15 @@ begin
   blocks := TList.Create;
   entities := TList.Create;
   classes := TList.Create;
+  objects := TList.Create;
 end;
 
 destructor TDxfFile.Destroy;
 var
   i : integer;
 begin
+  for i:=0 to objects.Count-1 do
+    TObject(objects[i]).Free;
   for i:=0 to entities.Count-1 do
     TObject(entities[i]).Free;
   entities.Free;
@@ -1181,6 +1425,7 @@ begin
   classes.Free;
   tables.Free;
   header.Free;
+  objects.Free;
   inherited;
 end;
 
@@ -1206,6 +1451,12 @@ function TDxfFile.AddClass: TDxfClass;
 begin
   Result:=TDxfClass.Create;
   classes.Add(Result);
+end;
+
+procedure TDxfFile.AddObject(obj: TDxfObject);
+begin
+  if not Assigned(obj) then Exit;
+  objects.Add(obj);
 end;
 
 procedure TDxfFile.Clear;
