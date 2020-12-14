@@ -896,8 +896,19 @@ begin
 end;
 
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
+var
+  id    : string;
+  owner : string;
 begin
   ParseObject(p, obj);
+  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  obj.isHardOwner := ConsumeInt(p, 280);
+  obj.CloneFlag := ConsumeInt(p, 281);
+  while p.scanner.CodeGroup = CB_DICT_ENTRYNAME do begin
+    id := ConsumeStr(p, CB_DICT_ENTRYNAME);
+    owner := ConsumeStr(p, CB_DICT_ENTRYOWNER);
+    obj.AddEntry(id, owner);
+  end;
 end;
 
 procedure AssignList(obj: TDxfObject; l :TDxfValuesList);
