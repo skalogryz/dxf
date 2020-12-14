@@ -999,7 +999,37 @@ type
                           // The 92 field is not used for AcDbProxyObject. Objects of this class never have graphics.
   end;
 
+
+
+  TDxfDictionaryEntry = class(TObject)
+    EntryName   : string;  // 3 Entry name (one for each entry) (optional)
+    Owner       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
+  end;
+
+  { TDxfAcDbDictionaryWDFLT }
+  //
   //ACDBDICTIONARYWDFLT
+  //
+  TDxfAcDbDictionaryWDFLT = class(TDxfObject)
+    SubClass2   : string;  // 100 Subclass marker (AcDbDictionary)
+    CloningFlag : Integer; // 281 Duplicate record cloning flag (determines how to merge duplicate entries):
+                           // 0 = Not applicable
+                           // 1 = Keep existing
+                           // 2 = Use clone
+                           // 3 = <xref>$0$<name>
+                           // 4 = $0$<name>
+                           // 5 = Unmangle name
+    Entries     : TList;   // (3, 350)
+
+    SubClass3   : string;  // 100 Subclass marker (AcDbDictionaryWithDefault)
+    ObjectID    : string;  // 340 Hard pointer to default object ID/handle (currently only used for plot
+                           // style dictionary's default entry, named “Normal”)
+    constructor Create;
+    destructor Destroy; override;
+    function AddEntry: TDxfDictionaryEntry; overload;
+    function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
+    procedure Clear;
+  end;
 
   { TDxfDictionary}
   //
@@ -1011,10 +1041,6 @@ type
   // to create and use their own dictionaries as they see fit. The prefix "ACAD_" is
   // reserved for use by AutoCAD applications.
 
-  TDxfDictionaryEntry = class(TObject)
-    EntryName   : string;  // 3 Entry name (one for each entry) (optional)
-    Owner       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
-  end;
 
   TDxfDictionary = class(TDxfObject)
     SubClass2   : string;  // 100 Subclass marker (AcDbDictionary)
@@ -1138,6 +1164,44 @@ begin
   Result:= isSameDbl(a.x,b.x, epsilon)
     and isSameDbl(a.y,b.y, epsilon)
     and isSameDbl(a.z,b.z, epsilon);
+end;
+
+{ TDxfAcDbDictionaryWDFLT }
+
+constructor TDxfAcDbDictionaryWDFLT.Create;
+begin
+  inherited Create;
+  Entries := TList.Create;
+end;
+
+destructor TDxfAcDbDictionaryWDFLT.Destroy;
+begin
+  Clear;
+  Entries.Free;
+  inherited Destroy;
+end;
+
+function TDxfAcDbDictionaryWDFLT.AddEntry: TDxfDictionaryEntry;
+begin
+  Result := TDxfDictionaryEntry.Create;
+  Entries.Add(Result);
+end;
+
+function TDxfAcDbDictionaryWDFLT.AddEntry(const aid, aowner: string
+  ): TDxfDictionaryEntry;
+begin
+  Result := AddEntry();
+  Result.EntryName := aid;
+  Result.Owner := AOwner;
+end;
+
+procedure TDxfAcDbDictionaryWDFLT.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to Entries.Count-1 do
+    TObject(Entries[i]).Free;
+  Entries.Clear;
 end;
 
 { TDxfObject }
