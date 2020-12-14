@@ -57,6 +57,7 @@ procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
 
 procedure Write102Values(w: TDxfWriter; vl: TDxfValuesList);
 procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
+procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 
@@ -332,6 +333,23 @@ begin
   w.WriteStr(CB_OWNERHANDLE, obj.Owner);
 end;
 
+procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
+var
+  i   : integer;
+  de  : TDxfDictionaryEntry;
+begin
+  WriteObject(w, obj);
+  w.WriteStr(CB_SUBCLASS, obj.SubClass2);
+  w.WriteInt(281, obj.CloneFlag);
+  for i := 0 to obj.Entries.Count-1 do begin
+    de := TDxfDictionaryEntry(obj.Entries[i]);
+    w.WriteStr(CB_DICT_ENTRYNAME,  de.EntryName);
+    w.WriteStr(CB_DICT_ENTRYOWNER, de.Owner);
+  end;
+  w.WriteStr(CB_SUBCLASS, obj.SubClass3);
+  w.WriteStr(340, obj.DefaultID);
+end;
+
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 var
   de : TDxfDictionaryEntry;
@@ -351,7 +369,9 @@ end;
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 begin
   if not Assigned(w) or not Assigned(obj) then Exit;
-  if obj is TDxfDictionary then WriteDictionary(w, TDxfDictionary(obj));
+  if obj is TDxfDictionary then WriteDictionary(w, TDxfDictionary(obj))
+  else if obj is TDxfAcDbDictionaryWDFLT then WriteAcDbDictionaryWDFLT(w, TDxfAcDbDictionaryWDFLT(obj))
+  ;
 end;
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
