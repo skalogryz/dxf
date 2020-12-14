@@ -120,6 +120,7 @@ type
     prBlockEnd,   //
     prEntityAttr,
     prEntityStart,
+    prObjStart,
     prObjAttr,
     prComment
   );
@@ -136,6 +137,7 @@ type
     function ParseTables(t: TDxfScanner; var newmode: integer): TDxfParseToken;
     function ParseBlocks(t: TDxfScanner; var newmode: integer): TDxfParseToken;
     function ParseEntities(t: TDxfScanner; var newmode: integer): TDxfParseToken;
+    function ParseObjects(t: TDxfScanner; var newmode: integer): TDxfParseToken;
     function DoNext: TDxfParseToken;
     procedure SetError(const msg: string);
   public
@@ -542,6 +544,17 @@ begin
   end;
 end;
 
+function TDxfParser.ParseObjects(t: TDxfScanner; var newmode: integer
+  ): TDxfParseToken;
+begin
+  if (t.CodeGroup = 0) then begin
+    EntityType := t.ValStr;
+    Result := prObjStart;
+  end else begin
+    Result := prObjAttr;
+  end;
+end;
+
 function TDxfParser.DoNext: TDxfParseToken;
 var
   //mode    : integer; // 0 - core, 1 - header
@@ -588,7 +601,7 @@ begin
       MODE_ENTITIES, MODE_ENTITIESINBLOCK:
         Result := ParseEntities(t, mode);
       MODE_OBJECTS:
-        Result := prObjAttr;
+        Result := ParseObjects(t, mode);
       MODE_TABLES:
         Result := ParseTables(t, mode);
     end;
