@@ -329,6 +329,14 @@ type
                                  //                0 = Moves the dimension line with dimension text
                                  //                1 = Adds a leader when dimension text is moved
                                  //                2 = Allows text to be moved freely without a leader
+
+    UnitFrac          : Integer; // DIMFRAC
+    ArrowBlockId      : string;  // ($DIMBLK1)     First arrow block name
+    ArrowBlockId1     : string;  // ($DIMBLK1)     First arrow block name
+    ArrowBlockId2     : string;  // ($DIMBLK2)     Second arrow block name
+    // oboslete
+    __Units: Integer;          // ($DIMUNIT)    Sets units for all dimension types except Angular:
+    __TextArrowPlace: Integer; // ($DIMFIT)    Controls dimension text and arrow placement when space
   end;
 
   (*
@@ -532,13 +540,14 @@ type
     isScalable   : Integer; // bool
     // optional fields:
     PreviewBin   : string;
-    XDataApp     : string;
+    XDataApp     : string; // 1001
+    // 1000
     //todo: 1002 .. [1070 1070] 1002
   end;
 
   TDxfDimStyleEntry = class(TDxfTableEntry)
     SubClass2    : string;
-    StyleName    : string; // 2
+    //StyleName    : string; // 2 (StyleName is in Dim)
     Flags        : Integer; //
     Dim          : TDxfDimensions;
   end;
@@ -898,7 +907,7 @@ type
     blocks   : TList; // of TDxfFileBlock
     constructor Create;
     destructor Destroy; override;
-    function AddTable(const TableName: string): TDxfTable;
+    function AddTable: TDxfTable;
     procedure AddEntity(ent: TDxfEntity);
     function AddBlock: TDxfFileBlock;
     function AddClass: TDxfClass;
@@ -1062,10 +1071,9 @@ begin
   inherited;
 end;
 
-function TDxfFile.AddTable(const TableName: string): TDxfTable;
+function TDxfFile.AddTable: TDxfTable;
 begin
   Result := TDxfTable.Create;
-  Result.Name := TableName;
   tables.Add(Result);
 end;
 

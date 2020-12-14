@@ -143,10 +143,6 @@ type
     scanner   : TDxfScanner;
     secName   : string;
     varName   : string;
-    tableName : string;
-    tableEntryType : string;
-    tableEntryHandle : string;
-    tableHandle  : string;
     Comment      : string;
     ErrStr       : string;
 
@@ -507,22 +503,13 @@ function TDxfParser.ParseTables(t: TDxfScanner; var newmode: integer): TDxfParse
 begin
   if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_TABLE) then begin
     Result := prTableStart;
-    tableName := '';
-    tableEntryType := '';
-    ConsumeCodeBlock(t, CB_NAME, tableName);
-    ConsumeCodeBlock(t, CB_HANDLE, tableHandle);
   end else if (t.CodeGroup = CB_CONTROL) and (t.valStr = NAME_ENDTAB) then begin
     Result := prTableEnd;
-    tableName := '';
   end else if (t.codeGroup = CB_CONTROL) then begin
-    tableEntryType := t.ValStr;
     Result := prTableEntry;
-    tableEntryHandle := '';
-    if tableEntryType <> NAME_DIMSTYLE then
-      ConsumeCodeBlock(t, CB_HANDLE, tableEntryHandle);
   end else begin
-    if tableEntryType<>'' then Result := prTableEntryAttr
-    else Result := prTableAttr;
+    //Result := prTableEntryAttr;
+    Result := prTableAttr;
   end;
 end;
 

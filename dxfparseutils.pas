@@ -29,6 +29,19 @@ function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / Entity
 
 procedure ParseVariable(P: TDxfParser; hdr: TDxfHeader);
 
+function ParseTableEntryFromType(p: TDxfParser; const tp: string): TDxfTableEntry;
+procedure ParseAppId(p: TDxfParser; e: TDxfAppIdEntry);
+procedure ParseBlockRecord(p: TDxfParser; e: TDxfBlockRecordEntry);
+procedure ParseDimStyle(p: TDxfParser; e: TDxfDimStyleEntry);
+procedure ParseLayerTableEntry(p: TDxfParser; e: TDxfLayerEntry);
+procedure ParseLType(p: TDxfParser; e: TDxfLTypeEntry);
+procedure ParseStyleTableEntry(p: TDxfParser; e: TDxfStyleEntry);
+procedure ParseUCSTableEntry(p: TDxfParser; e: TDxfUCSEntry);
+procedure ParseView(p: TDxfParser; e: TDxfViewEntry);
+procedure ParseVPort(p: TDxfParser; e: TDxfVPortEntry);
+procedure ParseTableEntry(P: TDxfParser; e: TDxfTableEntry);
+procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
+
 procedure ReadFile(const fn: string; dst: TDxfFile);
 procedure ReadFile(const st: TStream; dst: TDxfFile);
 procedure ReadFile(p: TDxfParser; dst: TDxfFile);
@@ -522,6 +535,333 @@ begin
   end;
 end;
 
+procedure ParseTableEntry(p: TDxfParser; e: TDxfTableEntry);
+begin
+  //e.EntityType := ConsumeStr(p, CB_CONTROL);
+  e.Handle := ConsumeStr(p, CB_HANDLE);    // it's either OR, never together
+  e.Handle := ConsumeStr(p, CB_DIMHANDLE);
+  e.Owner := ConsumeStr(p, CB_OWNERHANDLE);
+  e.SubClass := ConsumeStr(p, CB_SUBCLASS);
+end;
+
+procedure ParseAppId(p: TDxfParser; e: TDxfAppIdEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  e.AppData := ConsumeStr(p, CB_NAME);
+  e.Flags := ConsumeInt(p, CB_VARINT);
+end;
+
+procedure ParseBlockRecord(p: TDxfParser; e: TDxfBlockRecordEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  e.BlockName := ConsumeStr(p, CB_NAME);
+  e.LayoutId := ConsumeStr(p, 340);
+  e.InsertUnit := ConsumeInt(p, CB_VARINT);
+  e.isExplodable := ConsumeInt(p, 280);
+  e.isScalable   := ConsumeInt(p, 281);
+  e.PreviewBin := ConsumeStr(p, 310);
+  e.XDataApp := ConsumeStr(p, 1001);
+end;
+
+procedure ParseDimStyle(p: TDxfParser; e: TDxfDimStyleEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  e.Dim.StyleName := ConsumeStr(p, CB_NAME);
+  e.Flags := ConsumeInt(p, CB_VARINT);
+  e.Dim.Suffix            := ConsumeStr(p,   3); //   3 DIMPOST
+  e.Dim.AltSuffix         := ConsumeStr(p,   4); //   4 DIMAPOST
+  e.Dim.ArrowBlock        := ConsumeStr(p,   5); //   5 DIMBLK (obsolete, now object ID)
+  e.Dim.ArrowBlock1       := ConsumeStr(p,   6); //   6 DIMBLK1 (obsolete, now object ID)
+  e.Dim.ArrowBlock2       := ConsumeStr(p,   7); //   7 DIMBLK2 (obsolete, now object ID)
+  e.Dim.Scale             := ConsumeFlt(p,  40); //  40 DIMSCALE
+  e.Dim.ArrowSize         := ConsumeFlt(p,  41); //  41 DIMASZ
+  e.Dim.ExtLineOfs        := ConsumeFlt(p,  42); //  42 DIMEXO
+  e.Dim.DimLineInc        := ConsumeFlt(p,  43); //  43 DIMDLI
+  e.Dim.ExtLineExt        := ConsumeFlt(p,  44); //  44 DIMEXE
+  e.Dim.RoundVal          := ConsumeFlt(p,  45); //  45 DIMRND
+  e.Dim.DimLineExt        := ConsumeFlt(p,  46); //  46 DIMDLE
+  e.Dim.PlusToler         := ConsumeFlt(p,  47); //  47 DIMTP
+  e.Dim.MinusToler        := ConsumeFlt(p,  48); //  48 DIMTM
+  e.Dim.TextHeight        := ConsumeFlt(p, 140); // 140 DIMTXT
+  e.Dim.CenterSize        := ConsumeFlt(p, 141); // 141 DIMCEN
+  e.Dim.TickSize          := ConsumeFlt(p, 142); // 142 DIMTSZ
+  e.Dim.AltScale          := ConsumeFlt(p, 143); // 143 DIMALTF
+  e.Dim.LinearScale       := ConsumeFlt(p, 144); // 144 DIMLFAC
+  e.Dim.TextVertPos       := ConsumeFlt(p, 145); // 145 DIMTVP
+  e.Dim.DispTolerance     := ConsumeFlt(p, 146); // 146 DIMTFAC
+  e.Dim.LineGap           := ConsumeFlt(p, 147); // 147 DIMGAP
+  e.Dim.RoundValAlt       := ConsumeFlt(p, 148); // 148 DIMALTRND
+  e.Dim.Tolerance         := ConsumeInt(p,  71); //  71 DIMTOL
+  e.Dim.Limits            := ConsumeInt(p,  72); //  72 DIMLIM
+  e.Dim.isTextIns         := ConsumeInt(p,  73); //  73 DIMTIH
+  e.Dim.isTextOut         := ConsumeInt(p,  74); //  74 DIMTOH
+  e.Dim.isSupExt1         := ConsumeInt(p,  75); //  75 DIMSE1
+  e.Dim.isSupExt2         := ConsumeInt(p,  76); //  76 DIMSE2
+  e.Dim.isTextAbove       := ConsumeInt(p,  77); //  77 DIMTAD
+  e.Dim.SupZeros          := ConsumeInt(p,  78); //  78 DIMZIN
+  e.Dim.ZeroSupAngUnit    := ConsumeInt(p,  79); //  79 DIMAZIN
+  e.Dim.isUseAltUnit      := ConsumeInt(p, 170); // 170 DIMALT
+  e.Dim.AltDec            := ConsumeInt(p, 171); // 171 DIMALTD
+  e.Dim.isTextOutExt      := ConsumeInt(p, 172); // 172 DIMTOFL
+  e.Dim.isUseSepArrow     := ConsumeInt(p, 173); // 173 DIMSAH
+  e.Dim.isForceTextIns    := ConsumeInt(p, 174); // 174 DIMTIX
+  e.Dim.isSuppOutExt      := ConsumeInt(p, 175); // 175 DIMSOXD
+  e.Dim.LineColor         := ConsumeInt(p, 176); // 176 DIMCLRD
+  e.Dim.ExtLineColor      := ConsumeInt(p, 177); // 177 DIMCLRE
+  e.Dim.TextColor         := ConsumeInt(p, 178); // 178 DIMCLRT
+  e.Dim.AngleDecPlaces    := ConsumeInt(p, 179); // 179 DIMADEC
+  e.Dim.__Units           := ConsumeInt(p, 270); // 270 DIMUNIT (obsolete, now use DIMLUNIT AND DIMFRAC)
+  e.Dim.DecPlacesPrim     := ConsumeInt(p, 271); // 271 DIMDEC
+  e.Dim.DecPlacesOther    := ConsumeInt(p, 272); // 272 DIMTDEC
+  e.Dim.UnitsFormat       := ConsumeInt(p, 273); // 273 DIMALTU
+  e.Dim.DecPlacesAltUnit  := ConsumeInt(p, 274); // 274 DIMALTTD
+  e.Dim.AngleFormat       := ConsumeInt(p, 275); // 275 DIMAUNIT
+  e.Dim.UnitFrac          := ConsumeInt(p, 276); // 276 DIMFRAC
+  e.Dim.Units             := ConsumeInt(p, 277); // 277 DIMLUNIT
+  e.Dim.DecSeparator      := ConsumeInt(p, 278); // 278 DIMDSEP
+  e.Dim.TextMove          := ConsumeInt(p, 279); // 279 DIMTMOVE
+  e.Dim.HorzTextJust      := ConsumeInt(p, 280); // 280 DIMJUST
+  e.Dim.isSuppLine1       := ConsumeInt(p, 281); // 281 DIMSD1
+  e.Dim.isSuppLine2       := ConsumeInt(p, 282); // 282 DIMSD2
+  e.Dim.VertJustTol       := ConsumeInt(p, 283); // 283 DIMTOLJ
+  e.Dim.ZeroSupTol        := ConsumeInt(p, 284); // 284 DIMTZIN
+  e.Dim.ZeroSupAltUnitTol := ConsumeInt(p, 285); // 285 DIMALTZ
+  e.Dim.ZeroSupAltTol     := ConsumeInt(p, 286); // 286 DIMALTTZ
+  e.Dim.__TextArrowPlace  := ConsumeInt(p, 287); // 287 DIMFIT (obsolete, now use DIMATFIT and DIMTMOVE)
+  e.Dim.isEditCursorText  := ConsumeInt(p, 288); // 288 DIMUPT
+  e.Dim.TextArrowPlace    := ConsumeInt(p, 289); // 289 DIMATFIT
+  e.Dim.TextStyle         := ConsumeStr(p, 340); // 340 DIMTXSTY (handle of referenced STYLE)
+  e.Dim.ArrowBlockLead    := ConsumeStr(p, 341); // 341 DIMLDRBLK (handle of referenced BLOCK)
+  e.Dim.ArrowBlockId      := ConsumeStr(p, 342); // DIMBLK (handle of referenced BLOCK)
+  e.Dim.ArrowBlockId1     := ConsumeStr(p, 343); // DIMBLK1 (handle of referenced BLOCK)
+  e.Dim.ArrowBlockId2     := ConsumeStr(p, 344); // DIMBLK2 (handle of referenced BLOCK)
+  e.Dim.LineWeight        := ConsumeInt(p, 371); // DIMLWD (lineweight enum value)
+  e.Dim.LineWeightExt     := ConsumeInt(p, 372); // DIMLWE (lineweight enum value)
+end;
+
+procedure ParseLayerTableEntry(p: TDxfParser; e: TDxfLayerEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2   := ConsumeStr(p, 100);
+  e.LayerName   := ConsumeStr(p,   2);
+  e.Flags       := ConsumeInt(p,  70);
+  e.ColorNum    := ConsumeInt(p,  62);
+  e.LineType    := ConsumeStr(p,   6);
+  e.isPlotting  := ConsumeInt(p, 290);
+  e.Lineweight  := ConsumeInt(p, 370);
+  e.PlotStyleID := ConsumeStr(p, 390);
+  e.MatObjID    := ConsumeStr(p, 347);
+end;
+
+procedure ParseLType(p: TDxfParser; e: TDxfLTypeEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2     := ConsumeStr(p, 100);
+  e.LineType      := ConsumeStr(p,   2);
+  e.Flags         := ConsumeInt(p,  70);
+  e.Descr         := ConsumeStr(p,   1);
+  e.AlignCode     := ConsumeInt(p,  72);
+  e.LineTypeElems := ConsumeInt(p,  73);
+  e.TotalPatLen   := ConsumeFlt(p,  40);
+  e.Len           := ConsumeFlt(p,  49);
+  e.Flags2        := ConsumeInt(p,  74);
+  e.ShapeNum      := ConsumeInt(p,  75);
+  e.StyleObjId    := ConsumeStr(p, 340);
+
+  SetLength(e.ScaleVal, 1);
+  SetLength(e.RotateVal, 1);
+  SetLength(e.XOfs, 1);
+  SetLength(e.YOfs, 1);
+
+  e.ScaleVal[0]  := ConsumeFlt(p, 46);
+  e.RotateVal[0] := ConsumeFlt(p, 50);
+  e.XOfs[0]      := ConsumeFlt(p, 44);
+  e.YOfs[0]      := ConsumeFlt(p, 45);
+  e.TextStr      := ConsumeStr(p,  9)
+end;
+
+procedure ParseStyleTableEntry(p: TDxfParser; e: TDxfStyleEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2     := ConsumeStr(p,  100);
+  e.StyleName     := ConsumeStr(p,    2);
+  e.Flags         := ConsumeInt(p,   70);
+  e.FixedHeight   := ConsumeFlt(p,   40);
+  e.WidthFactor   := ConsumeFlt(p,   41);
+  e.Angle         := ConsumeFlt(p,   50);
+  e.TextFlags     := ConsumeInt(p,   71);
+  e.LastHeight    := ConsumeFlt(p,   42);
+  e.FontName      := ConsumeStr(p,    3);
+  e.BigFontName   := ConsumeStr(p,    4);
+  e.FullFont      := ConsumeStr(p, 1071);
+end;
+
+procedure ParseUCSTableEntry(p: TDxfParser; e: TDxfUCSEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2   := ConsumeStr(p, 100);
+  e.UCSName     := ConsumeStr(p,   2);
+  e.Flags       := ConsumeInt(p,  70);
+  ParsePoint(p, e.Origin, 10);
+  ParsePoint(p, e.XDir,   11);
+  ParsePoint(p, e.YDir,   12);
+  e.Zero        := ConsumeInt(p,  79);
+  e.Elev        := ConsumeFlt(p, 146);
+  e.BaseUCS     := ConsumeStr(p, 346);
+  e.OrthType    := ConsumeInt(p,  71);
+  ParsePoint(p, e.UCSRelOfs, 13);
+end;
+
+procedure ParseView(p: TDxfParser; e: TDxfViewEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2   := ConsumeStr(p, 100);
+  e.ViewName    := ConsumeStr(p,   2);
+  e.Flags       := ConsumeInt(p,  70);
+  e.Height      := ConsumeFlt(p,  40);
+  ParsePoint(p, e.CenterPoint, 10);
+  e.Width       := ConsumeFlt(p,  41);
+  ParsePoint(p, e.ViewDir,     11);
+  ParsePoint(p, e.TargetPoint, 12);
+  e.LensLen     := ConsumeFlt(p,  42);
+  e.FontClipOfs := ConsumeFlt(p,  43);
+  e.BackClipOfs := ConsumeFlt(p,  44);
+  e.TwistAngle  := ConsumeFlt(p,  50);
+  e.ViewMode    := ConsumeInt(p,  71);
+  e.RenderMode  := ConsumeInt(p, 281);
+  e.isUcsAssoc  := ConsumeInt(p,  72);
+  e.isCameraPlot:= ConsumeInt(p,  73);
+  e.BackObjId   := ConsumeStr(p, 332);
+  e.LiveSectId  := ConsumeStr(p, 334);
+  e.StyleId     := ConsumeStr(p, 348);
+  e.OwnerId     := ConsumeStr(p, 361);
+  // The following codes appear only if code 72 is set to 1.
+  if e.isUcsAssoc <> 0 then begin
+    ParsePoint(p, e.UCSOrig  , 110);
+    ParsePoint(p, e.UCSXAxis , 111);
+    ParsePoint(p, e.UCSYAxis , 112);
+    e.OrthType    := ConsumeInt(p,  79);
+    e.UCSElev     := ConsumeFlt(p, 146);
+    e.UCSID       := ConsumeStr(p, 345);
+    e.UCSBaseID   := ConsumeStr(p, 346);
+  end;
+end;
+
+procedure ParseVPort(p: TDxfParser; e: TDxfVPortEntry);
+begin
+  ParseTableEntry(p, e);
+  e.SubClass2     := ConsumeStr(p, 100);
+  e.ViewName      := ConsumeStr(p,   2);
+  e.Flags         := ConsumeInt(p,  70);
+  ParsePoint(p, e.LeftLow    , 10);
+  ParsePoint(p, e.UpRight    , 11);
+  ParsePoint(p, e.ViewCenter , 12);
+  ParsePoint(p, e.SnapBase   , 13);
+  ParsePoint(p, e.SnapSpace  , 14);
+  ParsePoint(p, e.GridSpace  , 15);
+  ParsePoint(p, e.ViewDir    , 16);
+  ParsePoint(p, e.ViewTarget , 17);
+  e.LensLen       := ConsumeFlt(p,  42);
+  e.FrontClipOfs  := ConsumeFlt(p,  43);
+  e.BackClipOfs   := ConsumeFlt(p,  44);
+  e.Height        := ConsumeFlt(p,  45);
+  e.RotateAngle   := ConsumeFlt(p,  50);
+  e.TwistAngle    := ConsumeFlt(p,  51);
+  e.CircleSides   := ConsumeInt(p,  72);
+  e.FrozeLayerId  := ConsumeStr(p, 331);
+  e.FrozeLayerId  := ConsumeStr(p, 441);
+  e.PerspFlag     := ConsumeInt(p,  70);
+  e.PlotStyle     := ConsumeStr(p,   1);
+  e.RenderMode    := ConsumeInt(p, 281);
+  e.ViewMode      := ConsumeInt(p,  71);
+  e.UCSICON       := ConsumeInt(p,  74);
+  ParsePoint(p, e.UCSOrigin, 110);
+  ParsePoint(p, e.UCSXAxis , 111);
+  ParsePoint(p, e.UCSYAxis , 112);
+  e.UCSId         := ConsumeStr(p, 345);
+  e.UCSBaseId     := ConsumeStr(p, 346);
+  e.OrthType      := ConsumeInt(p,  79);
+  e.Elevation     := ConsumeFlt(p, 146);
+  e.PlotShade     := ConsumeInt(p, 170);
+  e.GridLines     := ConsumeInt(p,  61);
+  e.BackObjId     := ConsumeStr(p, 332);
+  e.ShadePlotId   := ConsumeStr(p, 333);
+  e.VisualStyleId := ConsumeStr(p, 348);
+  e.isDefLight    := ConsumeInt(p, 292);
+  e.DefLightType  := ConsumeInt(p, 282);
+  e.Brightness    := ConsumeFlt(p, 141);
+  e.Contract      := ConsumeFlt(p, 142);
+  e.Color1        := ConsumeInt(p,  63);
+  e.Color2        := ConsumeInt(p, 421);
+  e.Color3        := ConsumeInt(p, 431);
+
+end;
+
+function ParseTableEntryFromType(p: TDxfParser; const tp: string): TDxfTableEntry;
+var
+  nm : string;
+begin
+  Result := nil;
+  if tp='' then Exit;
+
+  nm := upcase(tp);
+  case nm[1] of
+    'A':
+      if nm = TE_APPID then begin
+        Result := TDxfAppIdEntry.Create;
+        ParseAppId(p, TDxfAppIdEntry(Result));
+      end;
+    'B':
+      if nm = TE_BLOCK_RECORD then begin
+        Result := TDxfBlockRecordEntry.Create;
+        ParseBlockRecord(p, TDxfBlockRecordEntry(Result));
+      end;
+    'D':
+      if nm = TE_DIMSTYLE then begin
+        Result := TDxfDimStyleEntry.Create;
+        ParseDimStyle(p, TDxfDimStyleEntry(Result));
+      end;
+    'L':
+      if nm = TE_LAYER then begin
+        Result := TDxfLayerEntry.Create;
+        ParseLayerTableEntry(p, TDxfLayerEntry(Result))
+      end else if nm = TE_LTYPE then begin
+        Result := TDxfLTypeEntry.Create;
+        ParseLType(p, TDxfLTypeEntry(Result))
+      end;
+    'S':
+      if nm = TE_STYLE then begin
+        Result := TDxfStyleEntry.Create;
+        ParseStyleTableEntry(p, TDxfStyleEntry(Result));
+      end;
+    'U':
+      if nm = TE_UCS then begin
+        Result := TDxfUCSEntry.Create;
+        ParseUCSTableEntry(p, TDxfUCSEntry(Result));
+      end;
+    'V':
+      if nm = TE_VIEW then begin
+        Result := TDxfViewEntry.Create;
+        ParseView(p, TDxfViewEntry(Result));
+      end else if nm = TE_VPORT then begin
+        Result := TDxfVPortEntry.Create;
+        ParseVPort(p, TDxfVPortEntry(Result));
+      end;
+  end;
+end;
+
+procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
+begin
+  tbl.Name := ConsumeStr(p, CB_NAME);
+  tbl.Handle := ConsumeStr(p, CB_HANDLE);
+  tbl.Owner := ConsumeStr(p, CB_OWNERHANDLE);
+  tbl.SubClass := ConsumeStr(p, CB_SUBCLASS);
+  tbl.MaxNumber := ConsumeInt(p, CB_VARINT);
+end;
+
 procedure ReadFile(const fn: string; dst: TDxfFile);
 var
   f : TFileStream;
@@ -555,6 +895,7 @@ var
   res  : TDxfParseToken;
   done : boolean;
   tbl  : TDxfTable;
+  te   : TDxfTableEntry;
   ent  : TDxfEntity;
 
   //ln, ofs: integer;
@@ -576,15 +917,18 @@ begin
         end;
 
         prTableStart: begin
-          tbl := dst.AddTable( p.tableName );
-          tbl.Handle := p.tableHandle;
+          tbl := dst.AddTable;
+          ParseTable(p, tbl)
         end;
 
-        prTableAttr: begin
-          case p.scanner.CodeGroup of
-            CB_NAME:   tbl.Name := p.tableName;
-            CB_HANDLE: tbl.Handle := p.tableHandle;
+        prTableEntry:
+          if Assigned(tbl) then begin
+            te  := ParseTableEntryFromType(p, tbl.Name);
+            tbl.AddItem(te);
           end;
+
+        prTableEnd: begin
+          tbl := nil;
         end;
 
         prBlockStart: begin
