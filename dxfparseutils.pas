@@ -931,6 +931,21 @@ begin
   end;
 end;
 
+procedure ParseTableStyle(p: TDxfParser; obj: TDxfTableStyle);
+begin
+  ParseObject(p, obj);
+  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  obj.VerNum  := ConsumeInt(p, 280);
+  obj.Descr   := ConsumeStr(p, 3);
+  obj.FlowDir := ConsumeInt(p, 70);
+  obj.Flags   := ConsumeInt(p, 71);
+  obj.HorzMargin   := ConsumeFlt(p, 40);
+  obj.VertMargin   := ConsumeFlt(p, 41);
+  obj.isTitleSupp  := ConsumeInt(p, 280);
+  obj.isColHeadSupp := ConsumeInt(p, 281);
+  //todo: cells!
+end;
+
 procedure ScannerToVarList(sc: TDxfScanner; dst: TDxfValuesList);
 begin
   case DxfDataType(sc.CodeGroup) of
@@ -1011,6 +1026,11 @@ begin
       if nm = OT_DICTIONARY then begin
         Result := TDxfDictionary.Create;
         ParseDictionary(p, TDxfDictionary(Result));
+      end;
+    'T':
+      if nm = OT_TABLESTYLE then begin
+        Result := TDxfTableStyle.Create;
+        ParseTableStyle(p, TDxfTableStyle(Result));
       end;
     'X':
       if nm = OT_XRECORD then begin
