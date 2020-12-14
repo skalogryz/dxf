@@ -55,6 +55,11 @@ procedure WriteTableHeader(w: TDxfWriter; tbl: TDxfTable);
 procedure WriteTable(w: TDxfWriter; tbl: TDxfTable);
 procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
 
+procedure Write102Values(w: TDxfWriter; vl: TDxfValuesList);
+procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
+procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
+procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
+
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
 procedure WriteFileAscii(const dst: TStream; src: TDxfFile);
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
@@ -298,6 +303,57 @@ begin
     WriteAnyEntity(w, TDxfEntity(lst[i]));
 end;
 
+procedure Write102Values(w: TDxfWriter; vl: TDxfValuesList);
+var
+  i : integer;
+  v : TDxfValue;
+begin
+  if not Assigned(w) or not Assigned(vl) or (vl.Count = 0) then Exit;
+  w.WriteStr(CB_GROUPSTART, vl.Name);
+  for i:=0 to vl.Count-1 do begin
+    v := TDxfValue(vl.values[i]);
+    case v.valType of
+      dvtStr: w.WriteStr(v.cg, v.s);
+      dvtInt: w.WriteInt(v.cg, v.i);
+      dvtInt64: w.WriteInt(v.cg, v.i64);
+      dvtFloat: w.WriteFloat(v.cg, v.f);
+    end;
+  end;
+  w.WriteStr(CB_GROUPSTART, '}');
+end;
+
+procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
+begin
+  WriteCtrl(w, obj.ObjectType);
+  w.WriteStr(CB_HANDLE, obj.Handle);
+  Write102Values(w, obj.AppCodes);
+  Write102Values(w, obj.Reactors);
+  Write102Values(w, obj.XDict);
+  w.WriteStr(CB_OWNERHANDLE, obj.Owner);
+end;
+
+procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
+var
+  de : TDxfDictionaryEntry;
+  i  : Integer;
+begin
+  WriteObject(w, obj);
+  w.WriteStr(CB_SUBCLASS, obj.SubClass2);
+  WriteOptInt( w, obj.isHardOwner, 0, 280);
+  w.WriteInt(281, obj.CloneFlag);
+  for i := 0 to obj.Entries.Count-1 do begin
+    de := TDxfDictionaryEntry(obj.Entries[i]);
+    w.WriteStr(CB_DICT_ENTRYNAME,  de.EntryName);
+    w.WriteStr(CB_DICT_ENTRYOWNER, de.Owner);
+  end;
+end;
+
+procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
+begin
+  if not Assigned(w) or not Assigned(obj) then Exit;
+  if obj is TDxfDictionary then WriteDictionary(w, TDxfDictionary(obj));
+end;
+
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
 var
   fs : TFileStream;
@@ -522,9 +578,10 @@ end;
 
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
 var
-  i  : integer;
-  fb : TDxfFileBlock;
-  cl : TDxfClass;
+  i   : integer;
+  fb  : TDxfFileBlock;
+  cl  : TDxfClass;
+  obj : TDxfObject;
 begin
   if not Assigned(w) or not Assigned(src) then Exit;
   WriteStartSection(w, NAME_HEADER);
@@ -556,6 +613,13 @@ begin
 
   WriteStartSection(w, NAME_ENTITIES);
   WriteEntityList(w, src.entities);
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
+
+  WriteStartSection(w, NAME_OBJECTS);
+  for i := 0 to src.objects.Count - 1 do begin
+    obj := TDxfObject(src.objects[i]);
+    WriteAnyObject(w, obj);
+  end;
   w.WriteStr(CB_CONTROL, NAME_ENDSEC);
 
   w.WriteStr(CB_CONTROL, NAME_EOF);
