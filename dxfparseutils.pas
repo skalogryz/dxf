@@ -42,6 +42,13 @@ procedure ParseVPort(p: TDxfParser; e: TDxfVPortEntry);
 procedure ParseTableEntry(P: TDxfParser; e: TDxfTableEntry);
 procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
 
+function ParseObjectEntryFromType(p: TDxfParser; const tp: string): TDxfObject;
+procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
+procedure ParseObject(p: TDxfParser; obj: TDxfObject);
+
+// used to parse a list of 102... anything ...102
+function ParseVarList(p: TDxfParser): TDxfValuesList;
+
 procedure ReadFile(const fn: string; dst: TDxfFile);
 procedure ReadFile(const st: TStream; dst: TDxfFile);
 procedure ReadFile(p: TDxfParser; dst: TDxfFile);
@@ -888,6 +895,93 @@ begin
   tbl.Owner2    := ConsumeStr(p, 340);
 end;
 
+procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
+begin
+  ParseObject(p, obj);
+end;
+
+procedure AssignList(obj: TDxfObject; l :TDxfValuesList);
+var
+  old : TDxfValuesList;
+begin
+  if not assigned(obj) or not assigned(l) then Exit;
+  old := nil;
+  if l.Name = GROUPLIST_REACTORS  then begin
+    old := obj.Reactors;
+    obj.Reactors := l;
+  end else if l.Name = GROUPLIST_XDICTIONARY then begin
+    old := obj.XDict;
+    obj.XDict := l;
+  end else begin
+    old := obj.AppCodes;
+    obj.AppCodes := l;
+  end;
+  old.Free;
+end;
+
+procedure ParseObject(p: TDxfParser; obj: TDxfObject);
+var
+  l : TDxfValuesList;
+begin
+  obj.Handle := ConsumeStr(p, CB_HANDLE);
+
+  l:=ParseVarList(p);
+  if Assigned(l) then AssignList(obj, l);
+
+  l:=ParseVarList(p);
+  if Assigned(l) then AssignList(obj, l);
+
+  l:=ParseVarList(p);
+  if Assigned(l) then AssignList(obj, l);
+
+  obj.Owner := ConsumeStr(p, CB_OWNERHANDLE);
+end;
+
+function ParseObjectEntryFromType(p: TDxfParser; const tp: string): TDxfObject;
+var
+  nm : string;
+begin
+  Result := nil;
+  if tp='' then Exit;
+
+  nm := upcase(tp);
+  case nm[1] of
+    'D':
+      if nm = OT_DICTIONARY then begin
+        Result := TDxfDictionary.Create;
+        ParseDictionary(p, TDxfDictionary(Result));
+      end;
+  end;
+  if Assigned(Result) and (Result.ObjectType='') then
+    Result.ObjectType := tp;
+end;
+
+function ParseVarList(p: TDxfParser): TDxfValuesList;
+begin
+  Result := nil;
+  if not Assigned(p) then Exit;
+  if p.scanner.CodeGroup <> CB_GROUPSTART then Exit;
+  Result := TDxfValuesList.Create;
+  Result.Name := p.scanner.ValStr;
+  p.Next;
+  if p.scanner.CodeGroup=CB_GROUPSTART then Exit;
+
+  while p.scanner.CodeGroup<>CB_GROUPSTART do begin
+    case DxfDataType(p.scanner.CodeGroup) of
+     dtInt16, dtInt32:
+       Result.AddInt(p.scanner.CodeGroup, p.scanner.ValInt);
+     dtInt64:
+       Result.AddInt(p.scanner.CodeGroup, p.scanner.ValInt64);
+     dtDouble:
+       Result.AddFloat(p.scanner.CodeGroup, p.scanner.ValFloat);
+    else
+      Result.AddStr(p.scanner.CodeGroup, p.scanner.ValStr);
+    end;
+    p.Next;
+  end;
+  p.Next;
+end;
+
 procedure ReadFile(const fn: string; dst: TDxfFile);
 var
   f : TFileStream;
@@ -928,6 +1022,7 @@ var
   b : TDxfFileBlock;
   dummyEnd : TDxfBlockEnd;
   cls : TDxfClass;
+  obj : TDxfObject;
 begin
   if not Assigned(p) or not Assigned(dst) then Exit;
 
@@ -985,6 +1080,10 @@ begin
           ParseClass(p, cls);
         end;
 
+        prObjStart: begin
+          obj := ParseObjectEntryFromType(p, p.EntityType);
+          if Assigned(obj) then dst.AddObject(obj);
+        end;
 
         prSecEnd: begin
           tbl := nil;
