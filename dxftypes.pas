@@ -556,6 +556,11 @@ const
   OT_WIPEOUTVARIABLES    = 'WIPEOUTVARIABLES';
   OT_XRECORD             = 'XRECORD';
 
+const
+  // for object
+  CB_DICT_ENTRYNAME  = 3;
+  CB_DICT_ENTRYOWNER = 330;
+
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
 

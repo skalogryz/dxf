@@ -1030,7 +1030,8 @@ type
     Entries     : TList;
     constructor Create;
     destructor Destroy; override;
-    function AddEntry: TDxfDictionaryEntry;
+    function AddEntry: TDxfDictionaryEntry; overload;
+    function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
     procedure Clear;
   end;
 
@@ -1210,6 +1211,14 @@ function TDxfDictionary.AddEntry: TDxfDictionaryEntry;
 begin
   Result := TDxfDictionaryEntry.Create;
   Entries.Add(Result);
+end;
+
+function TDxfDictionary.AddEntry(const aid, aowner: string
+  ): TDxfDictionaryEntry;
+begin
+  Result := AddEntry();
+  Result.EntryName := aid;
+  Result.Owner := AOwner;
 end;
 
 procedure TDxfDictionary.Clear;
