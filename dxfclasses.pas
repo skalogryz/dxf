@@ -1012,7 +1012,7 @@ type
   //
   TDxfAcDbDictionaryWDFLT = class(TDxfObject)
     SubClass2   : string;  // 100 Subclass marker (AcDbDictionary)
-    CloningFlag : Integer; // 281 Duplicate record cloning flag (determines how to merge duplicate entries):
+    CloneFlag   : Integer; // 281 Duplicate record cloning flag (determines how to merge duplicate entries):
                            // 0 = Not applicable
                            // 1 = Keep existing
                            // 2 = Use clone
@@ -1022,8 +1022,8 @@ type
     Entries     : TList;   // (3, 350)
 
     SubClass3   : string;  // 100 Subclass marker (AcDbDictionaryWithDefault)
-    ObjectID    : string;  // 340 Hard pointer to default object ID/handle (currently only used for plot
-                           // style dictionary's default entry, named “Normal”)
+    DefaultID   : string;  // 340 Hard pointer to default object ID/handle (currently only used for plot
+                           //     style dictionary's default entry, named “Normal”)
     constructor Create;
     destructor Destroy; override;
     function AddEntry: TDxfDictionaryEntry; overload;
