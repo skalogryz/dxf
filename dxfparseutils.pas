@@ -43,6 +43,7 @@ procedure ParseTableEntry(P: TDxfParser; e: TDxfTableEntry);
 procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
 
 function ParseObjectEntryFromType(p: TDxfParser; const tp: string): TDxfObject;
+procedure ParseAcDbDictionaryWDFLT(p: TDxfParser; obj: TDxfAcDbDictionaryWDFLT);
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 procedure ParseObject(p: TDxfParser; obj: TDxfObject);
 
@@ -895,6 +896,23 @@ begin
   tbl.Owner2    := ConsumeStr(p, 340);
 end;
 
+procedure ParseAcDbDictionaryWDFLT(p: TDxfParser; obj: TDxfAcDbDictionaryWDFLT);
+var
+  id    : string;
+  owner : string;
+begin
+  ParseObject(p, obj);
+  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  obj.CloneFlag := ConsumeInt(p, 281);
+  while p.scanner.CodeGroup = CB_DICT_ENTRYNAME do begin
+    id := ConsumeStr(p, CB_DICT_ENTRYNAME);
+    owner := ConsumeStr(p, CB_DICT_ENTRYOWNER);
+    obj.AddEntry(id, owner);
+  end;
+  obj.SubClass3 := ConsumeStr(p, CB_SUBCLASS);
+  obj.DefaultID := ConsumeStr(p, 340);
+end;
+
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 var
   id    : string;
@@ -957,6 +975,11 @@ begin
 
   nm := upcase(tp);
   case nm[1] of
+    'A':
+      if nm = OT_ACDBDICTIONARYWDFLT then begin
+        Result := TDxfAcDbDictionaryWDFLT.Create;
+        ParseAcDbDictionaryWDFLT(p, TDxfAcDbDictionaryWDFLT(Result));
+      end;
     'D':
       if nm = OT_DICTIONARY then begin
         Result := TDxfDictionary.Create;
