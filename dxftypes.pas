@@ -512,7 +512,7 @@ const
   // Table Entry
   TE_APPID        = 'APPID';
   TE_BLOCK_RECORD = 'BLOCK_RECORD';
-  TE_DIMSTYLE     = 'DIMSYLE';
+  TE_DIMSTYLE     = 'DIMSTYLE';
   TE_LAYER        = 'LAYER';
   TE_LTYPE        = 'LTYPE';
   TE_STYLE        = 'STYLE';

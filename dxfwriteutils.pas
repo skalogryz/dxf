@@ -39,6 +39,20 @@ procedure WriteCircle(w: TDxfWriter; c: TDxfCircle);
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
 
+procedure WriteTableEntry(w: TDxfWriter; e: TDxfTableEntry);
+procedure WriteAppId(w: TDxfWriter; e: TDxfAppIdEntry);
+procedure WriteBlockRecord(w: TDxfWriter; e: TDxfBlockRecordEntry);
+procedure WriteDimStyle(w: TDxfWriter; e: TDxfDimStyleEntry);
+procedure WriteLayerTableEntry(w: TDxfWriter; e: TDxfLayerEntry);
+procedure WriteLType(w: TDxfWriter; e: TDxfLTypeEntry);
+procedure WriteStyleTableEntry(w: TDxfWriter; e: TDxfStyleEntry);
+procedure WriteUCSTableEntry(w: TDxfWriter; e: TDxfUCSEntry);
+procedure WriteView(w: TDxfWriter; e: TDxfViewEntry);
+procedure WriteVPort(w: TDxfWriter; e: TDxfVPortEntry);
+procedure WriteAnyEntry(w: TDxfWriter; e: TDxfTableEntry);
+
+procedure WriteTableHeader(w: TDxfWriter; tbl: TDxfTable);
+procedure WriteTable(w: TDxfWriter; tbl: TDxfTable);
 procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
@@ -309,6 +323,17 @@ begin
   end;
 end;
 
+procedure WriteTable(w: TDxfWriter; tbl: TDxfTable);
+var
+  i : integer;
+begin
+  if not Assigned(w) or not Assigned(tbl) then Exit;
+  WriteTableHeader(w, tbl);
+  for i:=0 to tbl.Count-1 do
+    WriteAnyEntry(w, tbl.Entry[i]);
+  WriteCtrl(w, NAME_ENDTAB);
+end;
+
 procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
 begin
   WriteHeaderVarStr(w, vACADVER,      header.acad.Version,         CB_VARVALUE);
@@ -513,6 +538,12 @@ begin
   end;
   w.WriteStr(CB_CONTROL, NAME_ENDSEC);
 
+  WriteStartSection(w, NAME_TABLES);
+  for i := 0 to src.tables.Count - 1 do begin
+    WriteTable(w, TDxfTable(src.tables[i]));
+  end;
+  w.WriteStr(CB_CONTROL, NAME_ENDSEC);
+
   WriteStartSection(w, NAME_BLOCKS);
   for i := 0 to src.blocks.Count-1 do begin
     fb := TDxfFileBlock(src.blocks[i]);
@@ -548,5 +579,304 @@ begin
   w.WriteStr(codeGroup, v);
 end;
 
+procedure WriteTableEntry(w: TDxfWriter; e: TDxfTableEntry);
+begin
+  WriteCtrl(w, e.EntryType);
+  if e.EntryType = NAME_DIMSTYLE then
+    w.WriteStr(CB_DIMHANDLE, e.Handle)
+  else
+    w.WriteStr(CB_HANDLE, e.Handle);
+  w.WriteStr(CB_OWNERHANDLE, e.Owner);
+  w.WriteStr(CB_SUBCLASS, e.SubClass);
+end;
+
+procedure WriteAppId(w: TDxfWriter; e: TDxfAppIdEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr( CB_SUBCLASS, e.SubClass2);
+  w.WriteStr( CB_NAME    , e.AppData  );
+  w.WriteInt( CB_VARINT  , e.Flags    );
+end;
+
+procedure WriteBlockRecord(w: TDxfWriter; e: TDxfBlockRecordEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr(CB_SUBCLASS ,e.SubClass2   );
+  w.WriteStr(CB_NAME     ,e.BlockName   );
+  w.WriteStr(340         ,e.LayoutId    );
+  w.WriteInt(CB_VARINT   ,e.InsertUnit  );
+  w.WriteInt(280         ,e.isExplodable);
+  w.WriteInt(281         ,e.isScalable  );
+  w.WriteStr(310         ,e.PreviewBin  );
+  w.WriteStr(1001        ,e.XDataApp    );
+end;
+
+procedure WriteDimStyle(w: TDxfWriter; e: TDxfDimStyleEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr(CB_SUBCLASS, e.SubClass2);
+  w.WriteStr(CB_NAME,   e.Dim.StyleName);
+  w.WriteInt(CB_VARINT, e.Flags);
+
+  w.WriteStr(  3 ,e.Dim.Suffix           );
+  w.WriteStr(  4 ,e.Dim.AltSuffix        );
+  w.WriteStr(  5 ,e.Dim.ArrowBlock       );
+  w.WriteStr(  6 ,e.Dim.ArrowBlock1      );
+  w.WriteStr(  7 ,e.Dim.ArrowBlock2      );
+  w.WriteFloat( 40 ,e.Dim.Scale            );
+  w.WriteFloat( 41 ,e.Dim.ArrowSize        );
+  w.WriteFloat( 42 ,e.Dim.ExtLineOfs       );
+  w.WriteFloat( 43 ,e.Dim.DimLineInc       );
+  w.WriteFloat( 44 ,e.Dim.ExtLineExt       );
+  w.WriteFloat( 45 ,e.Dim.RoundVal         );
+  w.WriteFloat( 46 ,e.Dim.DimLineExt       );
+  w.WriteFloat( 47 ,e.Dim.PlusToler        );
+  w.WriteFloat( 48 ,e.Dim.MinusToler       );
+  w.WriteFloat(140 ,e.Dim.TextHeight       );
+  w.WriteFloat(141 ,e.Dim.CenterSize       );
+  w.WriteFloat(142 ,e.Dim.TickSize         );
+  w.WriteFloat(143 ,e.Dim.AltScale         );
+  w.WriteFloat(144 ,e.Dim.LinearScale      );
+  w.WriteFloat(145 ,e.Dim.TextVertPos      );
+  w.WriteFloat(146 ,e.Dim.DispTolerance    );
+  w.WriteFloat(147 ,e.Dim.LineGap          );
+  w.WriteFloat(148 ,e.Dim.RoundValAlt      );
+  w.WriteInt( 71 ,e.Dim.Tolerance        );
+  w.WriteInt( 72 ,e.Dim.Limits           );
+  w.WriteInt( 73 ,e.Dim.isTextIns        );
+  w.WriteInt( 74 ,e.Dim.isTextOut        );
+  w.WriteInt( 75 ,e.Dim.isSupExt1        );
+  w.WriteInt( 76 ,e.Dim.isSupExt2        );
+  w.WriteInt( 77 ,e.Dim.isTextAbove      );
+  w.WriteInt( 78 ,e.Dim.SupZeros         );
+  w.WriteInt( 79 ,e.Dim.ZeroSupAngUnit   );
+  w.WriteInt(170 ,e.Dim.isUseAltUnit     );
+  w.WriteInt(171 ,e.Dim.AltDec           );
+  w.WriteInt(172 ,e.Dim.isTextOutExt     );
+  w.WriteInt(173 ,e.Dim.isUseSepArrow    );
+  w.WriteInt(174 ,e.Dim.isForceTextIns   );
+  w.WriteInt(175 ,e.Dim.isSuppOutExt     );
+  w.WriteInt(176 ,e.Dim.LineColor        );
+  w.WriteInt(177 ,e.Dim.ExtLineColor     );
+  w.WriteInt(178 ,e.Dim.TextColor        );
+  w.WriteInt(179 ,e.Dim.AngleDecPlaces   );
+  w.WriteInt(270 ,e.Dim.__Units          );
+  w.WriteInt(271 ,e.Dim.DecPlacesPrim    );
+  w.WriteInt(272 ,e.Dim.DecPlacesOther   );
+  w.WriteInt(273 ,e.Dim.UnitsFormat      );
+  w.WriteInt(274 ,e.Dim.DecPlacesAltUnit );
+  w.WriteInt(275 ,e.Dim.AngleFormat      );
+  w.WriteInt(276 ,e.Dim.UnitFrac         );
+  w.WriteInt(277 ,e.Dim.Units            );
+  w.WriteInt(278 ,e.Dim.DecSeparator     );
+  w.WriteInt(279 ,e.Dim.TextMove         );
+  w.WriteInt(280 ,e.Dim.HorzTextJust     );
+  w.WriteInt(281 ,e.Dim.isSuppLine1      );
+  w.WriteInt(282 ,e.Dim.isSuppLine2      );
+  w.WriteInt(283 ,e.Dim.VertJustTol      );
+  w.WriteInt(284 ,e.Dim.ZeroSupTol       );
+  w.WriteInt(285 ,e.Dim.ZeroSupAltUnitTol);
+  w.WriteInt(286 ,e.Dim.ZeroSupAltTol    );
+  w.WriteInt(287 ,e.Dim.__TextArrowPlace );
+  w.WriteInt(288 ,e.Dim.isEditCursorText );
+  w.WriteInt(289 ,e.Dim.TextArrowPlace   );
+  w.WriteStr(340 ,e.Dim.TextStyle        );
+  w.WriteStr(341 ,e.Dim.ArrowBlockLead   );
+  w.WriteStr(342 ,e.Dim.ArrowBlockId     );
+  w.WriteStr(343 ,e.Dim.ArrowBlockId1    );
+  w.WriteStr(344 ,e.Dim.ArrowBlockId2    );
+  w.WriteInt(371 ,e.Dim.LineWeight       );
+  w.WriteInt(372 ,e.Dim.LineWeightExt    );
+end;
+
+procedure WriteLayerTableEntry(w: TDxfWriter; e: TDxfLayerEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr(100, e.SubClass2  );
+  w.WriteStr(  2, e.LayerName  );
+  w.WriteInt( 70, e.Flags      );
+  w.WriteInt( 62, e.ColorNum   );
+  w.WriteStr(  6, e.LineType   );
+  WriteOptInt(w, e.isPlotting, 0, 290);
+  w.WriteInt(370, e.Lineweight );
+  w.WriteStr(390, e.PlotStyleID);
+  WriteOptStr(w, e.MatObjID, '', 347);
+end;
+
+procedure WriteLType(w: TDxfWriter; e: TDxfLTypeEntry);
+var
+  i : integer;
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr  (100, e.SubClass2    );
+  w.WriteStr  (  2, e.LineType     );
+  w.WriteInt  ( 70, e.Flags        );
+  w.WriteStr  (  3, e.Descr        );
+  w.WriteInt  ( 72, e.AlignCode    );
+  w.WriteInt  ( 73, e.LineTypeElems);
+  w.WriteFloat( 40, e.TotalPatLen  );
+  WriteOptFlt(w, e.Len,        0, 49);
+  WriteOptInt(w, e.Flags2,     0, 74);
+  WriteOptInt(w, e.ShapeNum,   0, 75);
+  WriteOptStr(w, e.StyleObjId,'',340);
+
+  for i:=0 to length(e.ScaleVal)-1 do  WriteOptFlt(w, e.ScaleVal[i],  0, 46);
+  for i:=0 to length(e.RotateVal)-1 do WriteOptFlt(w, e.RotateVal[i], 0, 50);
+  for i:=0 to length(e.XOfs)-1 do      WriteOptFlt(w, e.XOfs[i],      0, 44);
+  for i:=0 to length(e.YOfs)-1 do      WriteOptFlt(w, e.YOfs[i],      0, 45);
+
+  WriteOptStr(w, e.TextStr,'',9);
+end;
+
+procedure WriteStyleTableEntry(w: TDxfWriter; e: TDxfStyleEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr  ( 100 , e.SubClass2  );
+  w.WriteStr  (   2 , e.StyleName  );
+  w.WriteInt  (  70 , e.Flags      );
+  w.WriteFloat(  40 , e.FixedHeight);
+  w.WriteFloat(  41 , e.WidthFactor);
+  w.WriteFloat(  50 , e.Angle      );
+  w.WriteInt  (  71 , e.TextFlags  );
+  w.WriteFloat(  42 , e.LastHeight );
+  w.WriteStr  (   3 , e.FontName   );
+  w.WriteStr  (   4 , e.BigFontName);
+  WriteOptStr (w, e.FullFont, '', 1017);
+end;
+
+procedure WriteUCSTableEntry(w: TDxfWriter; e: TDxfUCSEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr  (100, e.SubClass2);
+  w.WriteStr  (  2, e.UCSName  );
+  w.WriteInt  ( 70, e.Flags    );
+  WritePoint(w, e.Origin, 10);
+  WritePoint(w, e.XDir,   11);
+  WritePoint(w, e.YDir,   12);
+  w.WriteInt  ( 79, e.Zero     );
+  w.WriteFloat(146, e.Elev     );
+  w.WriteStr  (346, e.BaseUCS  );
+  w.WriteInt  ( 71, e.OrthType );
+  WritePoint(w, e.UCSRelOfs, 13);
+end;
+
+procedure WriteView(w: TDxfWriter; e: TDxfViewEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr  (100 , e.SubClass2);
+  w.WriteStr  (  2 , e.ViewName );
+  w.WriteInt  ( 70 , e.Flags    );
+  w.WriteFloat( 40 , e.Height   );
+  WritePoint2D(w, e.CenterPoint, 10);
+  w.WriteFloat(41  , e.Width);
+  WritePoint  (w, e.ViewDir,     11);
+  WritePoint  (w, e.TargetPoint, 12);
+  w.WriteFloat( 42, e.LensLen     );
+  w.WriteFloat( 43, e.FontClipOfs );
+  w.WriteFloat( 44, e.BackClipOfs );
+  w.WriteFloat( 50, e.TwistAngle  );
+  w.WriteInt  ( 71, e.ViewMode    );
+  w.WriteInt  (281, e.RenderMode  );
+  w.WriteInt  ( 72, e.isUcsAssoc  );
+  w.WriteInt  ( 73, e.isCameraPlot);
+  w.WriteStr  (332, e.BackObjId   );
+  w.WriteStr  (334, e.LiveSectId  );
+  w.WriteStr  (348, e.StyleId     );
+  w.WriteStr  (361, e.OwnerId     );
+  // The following codes appear only if code 72 is set to 1.
+  if e.isUcsAssoc <> 0 then begin
+    WritePoint(w, e.UCSOrig  , 110);
+    WritePoint(w, e.UCSXAxis , 111);
+    WritePoint(w, e.UCSYAxis , 112);
+    w.WriteInt  (  79 ,e.OrthType );
+    w.WriteFloat( 146 ,e.UCSElev  );
+    w.WriteStr  ( 345 ,e.UCSID    );
+    w.WriteStr  ( 346 ,e.UCSBaseID);
+  end;
+end;
+
+procedure WriteVPort(w: TDxfWriter; e: TDxfVPortEntry);
+begin
+  WriteTableEntry(w, e);
+  w.WriteStr  (100,e.SubClass2);
+  w.WriteStr  (  2,e.ViewName );
+  w.WriteInt  ( 70,e.Flags    );
+  WritePoint2d(w, e.LeftLow    , 10);
+  WritePoint2d(w, e.UpRight    , 11);
+  WritePoint2d(w, e.ViewCenter , 12);
+  WritePoint2d(w, e.SnapBase   , 13);
+  WritePoint2d(w, e.SnapSpace  , 14);
+  WritePoint2d(w, e.GridSpace  , 15);
+  WritePoint  (w, e.ViewDir    , 16);
+  WritePoint  (w, e.ViewTarget , 17);
+  w.WriteFloat( 40,e._40);
+  w.WriteFloat( 41,e._41);
+  w.WriteFloat( 42,e.LensLen     );
+  w.WriteFloat( 43,e.FrontClipOfs);
+  w.WriteFloat( 44,e.BackClipOfs );
+  WriteOptFlt(w,e.Height,0, 45);
+  w.WriteFloat( 50,e.RotateAngle );
+  w.WriteFloat( 51,e.TwistAngle  );
+  w.WriteInt  ( 71,e.ViewMode    );
+  w.WriteInt  ( 72,e.CircleSides );
+  w.WriteInt  ( 74,e.UCSICON     );
+  w.WriteStr  (331,e.FrozeLayerId);
+  //w.WriteStr( 441,e.FrozeLayerId);
+  w.WriteInt  ( 70,e.PerspFlag   );
+  w.WriteStr  (  1,e.PlotStyle   );
+  w.WriteInt  (281,e.RenderMode  );
+  WritePoint(w, e.UCSOrigin, 110);
+  WritePoint(w, e.UCSXAxis , 111);
+  WritePoint(w, e.UCSYAxis , 112);
+  WriteOptStr(w, e.UCSId      , '', 345);
+  WriteOptStr(w, e.UCSBaseId  , '', 346);
+  w.WriteInt  ( 79, e.OrthType     );
+  w.WriteFloat(146, e.Elevation    );
+  WriteOptInt(w, e.PlotShade, 0, 170);
+  WriteOptInt(w, e.GridLines, 0,  61);
+  WriteOptStr(w, e.BackObjId    ,'', 332);
+  WriteOptStr(w, e.ShadePlotId  ,'', 333);
+  WriteOptStr(w, e.VisualStyleId,'', 348);
+  WriteOptInt(w, e.isDefLight   ,0 , 292);
+  WriteOptInt(w, e.DefLightType ,0 , 282);
+  WriteOptFlt(w, e.Brightness   ,0 , 141);
+  WriteOptFlt(w, e.Contract     ,0 , 142);
+  WriteOptInt(w, e.Color1       ,0 ,  63);
+  WriteOptInt(w, e.Color2       ,0 , 421);
+  WriteOptInt(w, e.Color3       ,0 , 431);
+end;
+
+procedure WriteAnyEntry(w: TDxfWriter; e: TDxfTableEntry);
+begin
+  if e is TDxfAppIdEntry then
+    WriteAppId(w, TDxfAppIdEntry(e))
+  else if e is TDxfBlockRecordEntry then
+    WriteBlockRecord(w, TDxfBlockRecordEntry(e))
+  else if e is TDxfDimStyleEntry then
+    WriteDimStyle(w, TDxfDimStyleEntry(e))
+  else if e is TDxfLayerEntry then
+    WriteLayerTableEntry(w, TDxfLayerEntry(e))
+  else if e is TDxfLTypeEntry then
+    WriteLType(w, TDxfLTypeEntry(e))
+  else if e is TDxfStyleEntry then
+    WriteStyleTableEntry(w, TDxfStyleEntry(e))
+  else if e is TDxfUCSEntry then
+    WriteUCSTableEntry(w, TDxfUCSEntry(e))
+  else if e is TDxfViewEntry then
+    WriteView(w, TDxfViewEntry(e))
+  else if e is TDxfVPortEntry then
+    WriteVPort(w, TDxfVPortEntry(e))
+  ;
+end;
+
+procedure WriteTableHeader(w: TDxfWriter; tbl: TDxfTable);
+begin
+  WriteCtrl(w, NAME_TABLE);
+  w.WriteStr(CB_NAME, tbl.Name);
+  w.WriteStr(CB_HANDLE, tbl.Handle);
+  w.WriteStr(CB_OWNERHANDLE, tbl.Owner);
+  w.WriteStr(CB_SUBCLASS, tbl.SubClass);
+  w.WriteInt(CB_VARINT, tbl.MaxNumber);
+end;
 
 end.

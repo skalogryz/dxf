@@ -496,7 +496,7 @@ type
 
   TDxfTableEntry = class(TObject)
   public
-    EntityType  : string;
+    EntryType   : string;
     Handle      : string;
     Owner       : string;
     SubClass    : string;
@@ -723,6 +723,15 @@ type
     Color1        : Integer;      // 63, 421, 431 Ambient color (only output when non-black)
     Color2        : Integer;
     Color3        : Integer;
+
+    _40           : Double;       // unknown, but present in the file!
+    _41           : Double;       // unknown, but present in the file!
+    _73           : Integer;      // unknown, but present in the file!
+    _75           : Integer;      // unknown, but present in the file!
+    _76           : Integer;      // unknown, but present in the file!
+    _77           : Integer;      // unknown, but present in the file!
+    _78           : Integer;      // unknown, but present in the file!
+    _65           : Integer;      // unknown, but present in the file!
   end;
 
   // todo:

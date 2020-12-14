@@ -539,7 +539,8 @@ procedure ParseTableEntry(p: TDxfParser; e: TDxfTableEntry);
 begin
   //e.EntityType := ConsumeStr(p, CB_CONTROL);
   e.Handle := ConsumeStr(p, CB_HANDLE);    // it's either OR, never together
-  e.Handle := ConsumeStr(p, CB_DIMHANDLE);
+  if (e.Handle ='') then
+    e.Handle := ConsumeStr(p, CB_DIMHANDLE);
   e.Owner := ConsumeStr(p, CB_OWNERHANDLE);
   e.SubClass := ConsumeStr(p, CB_SUBCLASS);
 end;
@@ -662,7 +663,7 @@ begin
   e.SubClass2     := ConsumeStr(p, 100);
   e.LineType      := ConsumeStr(p,   2);
   e.Flags         := ConsumeInt(p,  70);
-  e.Descr         := ConsumeStr(p,   1);
+  e.Descr         := ConsumeStr(p,   3);
   e.AlignCode     := ConsumeInt(p,  72);
   e.LineTypeElems := ConsumeInt(p,  73);
   e.TotalPatLen   := ConsumeFlt(p,  40);
@@ -751,52 +752,70 @@ begin
 end;
 
 procedure ParseVPort(p: TDxfParser; e: TDxfVPortEntry);
+var
+  c70: integer;
 begin
   ParseTableEntry(p, e);
-  e.SubClass2     := ConsumeStr(p, 100);
-  e.ViewName      := ConsumeStr(p,   2);
-  e.Flags         := ConsumeInt(p,  70);
-  ParsePoint(p, e.LeftLow    , 10);
-  ParsePoint(p, e.UpRight    , 11);
-  ParsePoint(p, e.ViewCenter , 12);
-  ParsePoint(p, e.SnapBase   , 13);
-  ParsePoint(p, e.SnapSpace  , 14);
-  ParsePoint(p, e.GridSpace  , 15);
-  ParsePoint(p, e.ViewDir    , 16);
-  ParsePoint(p, e.ViewTarget , 17);
-  e.LensLen       := ConsumeFlt(p,  42);
-  e.FrontClipOfs  := ConsumeFlt(p,  43);
-  e.BackClipOfs   := ConsumeFlt(p,  44);
-  e.Height        := ConsumeFlt(p,  45);
-  e.RotateAngle   := ConsumeFlt(p,  50);
-  e.TwistAngle    := ConsumeFlt(p,  51);
-  e.CircleSides   := ConsumeInt(p,  72);
-  e.FrozeLayerId  := ConsumeStr(p, 331);
-  e.FrozeLayerId  := ConsumeStr(p, 441);
-  e.PerspFlag     := ConsumeInt(p,  70);
-  e.PlotStyle     := ConsumeStr(p,   1);
-  e.RenderMode    := ConsumeInt(p, 281);
-  e.ViewMode      := ConsumeInt(p,  71);
-  e.UCSICON       := ConsumeInt(p,  74);
-  ParsePoint(p, e.UCSOrigin, 110);
-  ParsePoint(p, e.UCSXAxis , 111);
-  ParsePoint(p, e.UCSYAxis , 112);
-  e.UCSId         := ConsumeStr(p, 345);
-  e.UCSBaseId     := ConsumeStr(p, 346);
-  e.OrthType      := ConsumeInt(p,  79);
-  e.Elevation     := ConsumeFlt(p, 146);
-  e.PlotShade     := ConsumeInt(p, 170);
-  e.GridLines     := ConsumeInt(p,  61);
-  e.BackObjId     := ConsumeStr(p, 332);
-  e.ShadePlotId   := ConsumeStr(p, 333);
-  e.VisualStyleId := ConsumeStr(p, 348);
-  e.isDefLight    := ConsumeInt(p, 292);
-  e.DefLightType  := ConsumeInt(p, 282);
-  e.Brightness    := ConsumeFlt(p, 141);
-  e.Contract      := ConsumeFlt(p, 142);
-  e.Color1        := ConsumeInt(p,  63);
-  e.Color2        := ConsumeInt(p, 421);
-  e.Color3        := ConsumeInt(p, 431);
+  c70:=0;
+  while p.token in [prTableAttr, prTableEntryAttr] do begin
+    case p.scanner.CodeGroup of
+     100: e.SubClass2     := ConsumeStr(p, 100);
+       2: e.ViewName      := ConsumeStr(p,   2);
+      70: begin
+        case c70 of
+          0: e.Flags         := ConsumeInt(p,  70);
+          1: e.PerspFlag     := ConsumeInt(p,  70);
+        else
+          p.Next;
+        end;
+        inc(c70);
+      end;
+      10: ParsePoint(p, e.LeftLow    , 10);
+      11: ParsePoint(p, e.UpRight    , 11);
+      12: ParsePoint(p, e.ViewCenter , 12);
+      13: ParsePoint(p, e.SnapBase   , 13);
+      14: ParsePoint(p, e.SnapSpace  , 14);
+      15: ParsePoint(p, e.GridSpace  , 15);
+      16: ParsePoint(p, e.ViewDir    , 16);
+      17: ParsePoint(p, e.ViewTarget , 17);
+      40: e._40 := ConsumeFlt(p,  40);
+      41: e._41 := ConsumeFlt(p,  41);
+      42: e.LensLen       := ConsumeFlt(p,  42);
+      43: e.FrontClipOfs  := ConsumeFlt(p,  43);
+      44: e.BackClipOfs   := ConsumeFlt(p,  44);
+      45: e.Height        := ConsumeFlt(p,  45);
+      50: e.RotateAngle   := ConsumeFlt(p,  50);
+      51: e.TwistAngle    := ConsumeFlt(p,  51);
+      72: e.CircleSides   := ConsumeInt(p,  72);
+     331: e.FrozeLayerId  := ConsumeStr(p, 331);
+     441: e.FrozeLayerId  := ConsumeStr(p, 441);
+       1: e.PlotStyle     := ConsumeStr(p,   1);
+     281: e.RenderMode    := ConsumeInt(p, 281);
+      71: e.ViewMode      := ConsumeInt(p,  71);
+      74: e.UCSICON       := ConsumeInt(p,  74);
+     110: ParsePoint(p, e.UCSOrigin, 110);
+     111: ParsePoint(p, e.UCSXAxis , 111);
+     112: ParsePoint(p, e.UCSYAxis , 112);
+     345: e.UCSId         := ConsumeStr(p, 345);
+     346: e.UCSBaseId     := ConsumeStr(p, 346);
+      79: e.OrthType      := ConsumeInt(p,  79);
+     146: e.Elevation     := ConsumeFlt(p, 146);
+     170: e.PlotShade     := ConsumeInt(p, 170);
+      61: e.GridLines     := ConsumeInt(p,  61);
+     332: e.BackObjId     := ConsumeStr(p, 332);
+     333: e.ShadePlotId   := ConsumeStr(p, 333);
+     348: e.VisualStyleId := ConsumeStr(p, 348);
+     292: e.isDefLight    := ConsumeInt(p, 292);
+     282: e.DefLightType  := ConsumeInt(p, 282);
+     141: e.Brightness    := ConsumeFlt(p, 141);
+     142: e.Contract      := ConsumeFlt(p, 142);
+      63: e.Color1        := ConsumeInt(p,  63);
+     421: e.Color2        := ConsumeInt(p, 421);
+     431: e.Color3        := ConsumeInt(p, 431);
+    else
+      p.Next;
+    end;
+  end;
 
 end;
 
@@ -851,6 +870,8 @@ begin
         ParseVPort(p, TDxfVPortEntry(Result));
       end;
   end;
+  if Assigned(Result) and (Result.EntryType='') then
+    Result.EntryType := tp;
 end;
 
 procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
