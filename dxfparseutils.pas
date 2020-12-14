@@ -45,6 +45,7 @@ procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
 function ParseObjectEntryFromType(p: TDxfParser; const tp: string): TDxfObject;
 procedure ParseAcDbDictionaryWDFLT(p: TDxfParser; obj: TDxfAcDbDictionaryWDFLT);
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
+procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
 procedure ParseObject(p: TDxfParser; obj: TDxfObject);
 
 // used to parse a list of 102... anything ...102
@@ -930,6 +931,31 @@ begin
   end;
 end;
 
+procedure ScannerToVarList(sc: TDxfScanner; dst: TDxfValuesList);
+begin
+  case DxfDataType(sc.CodeGroup) of
+    dtInt16, dtInt32:
+      dst.AddInt(sc.CodeGroup, sc.ValInt);
+    dtInt64:
+      dst.AddInt(sc.CodeGroup, sc.ValInt64);
+    dtDouble:
+      dst.AddFloat(sc.CodeGroup, sc.ValFloat);
+  else
+     dst.AddStr(sc.CodeGroup, sc.ValStr);
+  end;
+end;
+
+procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
+begin
+  ParseObject(p, obj);
+  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  obj.CloneFlag := ConsumeInt(p, 280);
+  while (p.scanner.CodeGroup <> 0) do begin
+    ScannerToVarList(p.Scanner, obj.XRec);
+    p.Next;
+  end;
+end;
+
 procedure AssignList(obj: TDxfObject; l :TDxfValuesList);
 var
   old : TDxfValuesList;
@@ -1002,16 +1028,7 @@ begin
   if p.scanner.CodeGroup=CB_GROUPSTART then Exit;
 
   while p.scanner.CodeGroup<>CB_GROUPSTART do begin
-    case DxfDataType(p.scanner.CodeGroup) of
-     dtInt16, dtInt32:
-       Result.AddInt(p.scanner.CodeGroup, p.scanner.ValInt);
-     dtInt64:
-       Result.AddInt(p.scanner.CodeGroup, p.scanner.ValInt64);
-     dtDouble:
-       Result.AddFloat(p.scanner.CodeGroup, p.scanner.ValFloat);
-    else
-      Result.AddStr(p.scanner.CodeGroup, p.scanner.ValStr);
-    end;
+    ScannerToVarList(p.scanner, Result);
     p.Next;
   end;
   p.Next;
