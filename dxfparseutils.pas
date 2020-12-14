@@ -881,6 +881,11 @@ begin
   tbl.Owner := ConsumeStr(p, CB_OWNERHANDLE);
   tbl.SubClass := ConsumeStr(p, CB_SUBCLASS);
   tbl.MaxNumber := ConsumeInt(p, CB_VARINT);
+
+  // DIMSTYLE only
+  tbl.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  tbl.IntVal2   := ConsumeInt(p, 71);
+  tbl.Owner2    := ConsumeStr(p, 340);
 end;
 
 procedure ReadFile(const fn: string; dst: TDxfFile);
