@@ -1084,6 +1084,65 @@ type
     Value     : integer; // 1 Value of variable
   end;
 
+  { TDxfTableStyle }
+  //
+  // TABLESTYLE
+  //
+  TDxfTableCell = class(TObject)
+    StyleName : string;       //   7 Text style name (string; default = STANDARD)
+    Height    : double;       // 140 Text height (real)
+    Align     : Integer;      // 170 Cell alignment (integer)
+    Color     : Integer;      //  62 Text color (integer; default = BYBLOCK)
+    FillColor : Integer;      //  63 Cell fill color (integer; default = 7)
+    isUseFillColor : Integer; // 283 Flag for whether background color is enabled (default = 0):
+                              //     0 = Disabled
+                              //     1 = Enabled
+    CellDataType   : Integer; //  90 Cell data type
+    CellUnit       : Integer; //  91 Cell unit type
+    BordType1      : Integer; // 274 Lineweight associated with each border type of the cell (default = kLnWtByBlock)
+    BordType2      : Integer; // 275 Lineweight associated with each border type of the cell (default = kLnWtByBlock)
+    BordType3      : Integer; // 276 Lineweight associated with each border type of the cell (default = kLnWtByBlock)
+    BordType4      : Integer; // 277 Lineweight associated with each border type of the cell (default = kLnWtByBlock)
+    BordType5      : Integer; // 278 Lineweight associated with each border type of the cell (default = kLnWtByBlock)
+    BordType6      : Integer; // 279 Lineweight associated with each border type of the cell (default = kLnWtByBlock)
+    isBordVis1     : Integer; // 284 Flag for visibility associated with each border type of the cell (default = 1):
+    isBordVis2     : Integer; // 285 Flag for visibility associated with each border type of the cell (default = 1):
+    isBordVis3     : Integer; // 286 Flag for visibility associated with each border type of the cell (default = 1):
+    isBordVis4     : Integer; // 287 Flag for visibility associated with each border type of the cell (default = 1):
+    isBordVis5     : Integer; // 288 Flag for visibility associated with each border type of the cell (default = 1):
+    isBordVis6     : Integer; // 289 Flag for visibility associated with each border type of the cell (default = 1):
+    BordColor1     : Integer; //  64 Color value associated with each border type of the cell (default = BYBLOCK)
+    BordColor2     : Integer; //  65 Color value associated with each border type of the cell (default = BYBLOCK)
+    BordColor3     : Integer; //  66 Color value associated with each border type of the cell (default = BYBLOCK)
+    BordColor4     : Integer; //  67 Color value associated with each border type of the cell (default = BYBLOCK)
+    BordColor5     : Integer; //  68 Color value associated with each border type of the cell (default = BYBLOCK)
+    BordColor6     : Integer; //  69 Color value associated with each border type of the cell (default = BYBLOCK)
+  end;
+
+  TDxfTableStyle = class(TDxfObject)
+    SubClass2      : string;  // 100 Subclass marker (AcDbTableStyle)
+    VerNum         : Integer; // 280 Version number:
+                              //     0 = 2010
+    Descr          : string;  // 3 Table style description (string; 255 characters maximum)
+    FlowDir        : integer; // 70 FlowDirection (integer):
+                              //    0 = Down
+                              //    1 = Up
+    Flags          : Integer; // 71 Flags (bit-coded)
+    HorzMargin     : Double;  // 40 Horizontal cell margin (real; default = 0.06)
+    VertMargin     : Double;  //  41 Vertical cell margin (real; default = 0.06)
+    isTitleSupp    : Integer; // 280 Flag for whether the title is suppressed:
+                              //     0 = Not suppressed
+                              //     1 = Suppressed
+    isColHeadSupp  : Integer; // 281 Flag for whether the column heading is suppressed:
+                              //     0 = Not suppressed
+                              //     1 = Suppressed
+    //     The following group codes are repeated for every cell in the table
+    Cells          : TList;
+    constructor Create;
+    destructor Destroy; override;
+    function AddCell: TDxfTableCell;
+    procedure Clear;
+  end;
 
   { TDxfXRecord }
   //
@@ -1167,6 +1226,36 @@ begin
   Result:= isSameDbl(a.x,b.x, epsilon)
     and isSameDbl(a.y,b.y, epsilon)
     and isSameDbl(a.z,b.z, epsilon);
+end;
+
+{ TDxfTableStyle }
+
+constructor TDxfTableStyle.Create;
+begin
+  inherited Create;
+  cells := TList.Create;
+end;
+
+destructor TDxfTableStyle.Destroy;
+begin
+  Clear;
+  cells.Free;
+  inherited Destroy;
+end;
+
+function TDxfTableStyle.AddCell: TDxfTableCell;
+begin
+  Result := TDxfTableCell.Create;
+  Cells.Add(Result);
+end;
+
+procedure TDxfTableStyle.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to cells.Count-1 do
+    Tobject(cells[i]).free;
+  cells.Clear;
 end;
 
 { TDxfXRecord }
