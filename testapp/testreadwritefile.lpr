@@ -1,27 +1,12 @@
 program testreadwritefile;
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}
+{$mode delphi}{$H+}
+{$WARN 5066 off : Symbol "$1" is deprecated: "$2"}
+{$endif}
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-  {$ENDIF}{$ENDIF}
   Classes, SysUtils, dxfwrite, dxfclasses, dxftypes, dxfparseutils, dxfwriteutils;
-
-procedure DumpEntities(const en: TList; const pfx: string );
-var
-  i : integer;
-  e : TDxfEntity;
-begin
-  if not Assigned(en) or (en.Count=0) then Exit;
-  for i := 0 to en.Count-1 do begin
-    e := TDxfEntity(en[i]);
-    write(pfx, e.EntityType);
-    if e is TDxfInsert then
-      write(' @',TDxfInsert(e).BlockName);
-    writeln;
-  end;
-end;
 
 procedure TestReadWrite(const fn: string);
 var
