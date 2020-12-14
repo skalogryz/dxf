@@ -604,11 +604,12 @@ begin
   w.WriteStr(CB_SUBCLASS ,e.SubClass2   );
   w.WriteStr(CB_NAME     ,e.BlockName   );
   w.WriteStr(340         ,e.LayoutId    );
-  w.WriteInt(CB_VARINT   ,e.InsertUnit  );
-  w.WriteInt(280         ,e.isExplodable);
-  w.WriteInt(281         ,e.isScalable  );
-  w.WriteStr(310         ,e.PreviewBin  );
-  w.WriteStr(1001        ,e.XDataApp    );
+  WriteOptInt(w, e.InsertUnit,   0, CB_VARINT);
+  WriteOptInt(w, e.isExplodable, 0,  280);
+  WriteOptInt(w, e.isScalable,   0,  281);
+  WriteOptStr(w, e.PreviewBin,  '',  310);
+  WriteOptInt(w, e.isScalable,   0,  281);
+  WriteoptStr(w, e.XDataApp,    '', 1001);
 end;
 
 procedure WriteDimStyle(w: TDxfWriter; e: TDxfDimStyleEntry);
@@ -877,6 +878,12 @@ begin
   w.WriteStr(CB_OWNERHANDLE, tbl.Owner);
   w.WriteStr(CB_SUBCLASS, tbl.SubClass);
   w.WriteInt(CB_VARINT, tbl.MaxNumber);
+
+  if tbl.Name = NAME_DIMSTYLE then begin
+    w.WriteStr(CB_SUBCLASS, tbl.SubClass2);
+    w.WriteInt(71, tbl.IntVal2);
+    w.WriteStr(340, tbl.Owner2);
+  end;
 end;
 
 end.
