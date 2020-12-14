@@ -965,6 +965,7 @@ procedure RunHeaderVarProc(Header: TDxfHeader; const curVar: string; codeblock: 
 procedure DefaultHeaderVar(Header: TDxfHeader; const curVar: string; codeblock: Integer; const value: string; var Handled: Boolean);
 
 procedure DxfFileDump(dxf: TDxfFile);
+procedure DxfEntityDump(e: TDxfEntity; const prefix: string = '');
 
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
 
@@ -1245,13 +1246,21 @@ begin
     Handled := false;
 end;
 
+procedure DxfEntityDump(e: TDxfEntity; const prefix: string);
+begin
+  write(prefix);
+  write(e.EntityType,' (',e.Handle,')');
+  writeln;
+end;
+
 procedure DxfFileDump(dxf: TDxfFile);
 var
-  i : integer;
-  j : integer;
-  t : TDxfTable;
-  e : TDxfEntity;
+  i  : integer;
+  j  : integer;
+  t  : TDxfTable;
+  e  : TDxfEntity;
   te : TDxfTableEntry;
+  b  : TDxfFileBlock;
 begin
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
@@ -1262,10 +1271,18 @@ begin
       writeln('     ', te.DisplayName);
     end;
   end;
+  writeln('Blocks: ', dxf.blocks.Count);
+  for i:=0 to dxf.blocks.Count-1 do begin
+    b := TDxfFileBlock(dxf.blocks[i]);
+    writeln('  ',b.BlockName2,' (',b.Handle,')');
+    for j:=0 to b._entities.Count -1 do begin
+      DxfEntityDump(TDxfEntity(b._entities[j]),'    ');
+    end;
+  end;
   writeln('Entities: ', dxf.entities.Count);
   for i:=0 to dxf.entities.Count-1 do begin
     e := TDxfEntity(dxf.entities[i]);
-    //writeln('  ',e.Name,' ',e.ClassName);
+    DxfEntityDump(e,'  ');
   end;
 end;
 
