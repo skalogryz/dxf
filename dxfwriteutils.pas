@@ -59,6 +59,7 @@ procedure Write102Values(w: TDxfWriter; vl: TDxfValuesList);
 procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
 procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
+procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
@@ -354,6 +355,8 @@ procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 var
   de : TDxfDictionaryEntry;
   i  : Integer;
+const
+  ACAD_XREC_ROUNDTRIP = 'ACAD_XREC_ROUNDTRIP'; // something special?
 begin
   WriteObject(w, obj);
   w.WriteStr(CB_SUBCLASS, obj.SubClass2);
@@ -362,7 +365,30 @@ begin
   for i := 0 to obj.Entries.Count-1 do begin
     de := TDxfDictionaryEntry(obj.Entries[i]);
     w.WriteStr(CB_DICT_ENTRYNAME,  de.EntryName);
-    w.WriteStr(CB_DICT_ENTRYOWNER, de.Owner);
+    if de.EntryName = ACAD_XREC_ROUNDTRIP then
+      w.WriteStr(360, de.Owner)
+    else
+      w.WriteStr(CB_DICT_ENTRYOWNER, de.Owner);
+  end;
+end;
+
+procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
+var
+  i : integer;
+  v : TDxfValue;
+begin
+  WriteObject(w, obj);
+  w.WriteStr(CB_SUBCLASS, obj.SubClass2);
+  w.WriteInt(280, obj.CloneFlag);
+  for i:= 0 to obj.XRec.Count-1 do begin
+    v := TDxfValue(obj.XRec.values[i]);
+    case v.valType of
+      dvtInt:   w.WriteInt(v.cg, v.i);
+      dvtInt64: w.WriteInt(v.cg, v.i64);
+      dvtFloat: w.WriteFloat(v.cg, v.f);
+    else
+      w.WriteStr(v.cg, v.s);
+    end;
   end;
 end;
 
@@ -371,6 +397,7 @@ begin
   if not Assigned(w) or not Assigned(obj) then Exit;
   if obj is TDxfDictionary then WriteDictionary(w, TDxfDictionary(obj))
   else if obj is TDxfAcDbDictionaryWDFLT then WriteAcDbDictionaryWDFLT(w, TDxfAcDbDictionaryWDFLT(obj))
+  else if obj is TDxfXRecord then WriteXRecord(w, TDxfXRecord(obj))
   ;
 end;
 
