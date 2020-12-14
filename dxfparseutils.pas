@@ -1012,6 +1012,11 @@ begin
         Result := TDxfDictionary.Create;
         ParseDictionary(p, TDxfDictionary(Result));
       end;
+    'X':
+      if nm = OT_XRECORD then begin
+        Result := TDxfXRecord.Create;
+        ParseXRecord(p, TDxfXRecord(Result));
+      end;
   end;
   if Assigned(Result) and (Result.ObjectType='') then
     Result.ObjectType := tp;
