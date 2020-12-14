@@ -464,6 +464,7 @@ const
   vOLESTARTUP      = '$OLESTARTUP';
 
 const
+  // Entity
   ET_3DFACE            = '3DFACE';
   ET_3DSOLID           = '3DSOLID';
   ET_ACAD_PROXY_ENTITY = 'ACAD_PROXY_ENTITY';
@@ -507,6 +508,17 @@ const
   ET_VERTEX            = 'VERTEX';
   ET_WIPEOUT           = 'WIPEOUT';
   ET_XLINE             = 'XLINE';
+
+  // Table Entry
+  TE_APPID        = 'APPID';
+  TE_BLOCK_RECORD = 'BLOCK_RECORD';
+  TE_DIMSTYLE     = 'DIMSYLE';
+  TE_LAYER        = 'LAYER';
+  TE_LTYPE        = 'LTYPE';
+  TE_STYLE        = 'STYLE';
+  TE_UCS          = 'UCS';
+  TE_VIEW         = 'VIEW';
+  TE_VPORT        = 'VPORT';
 
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
