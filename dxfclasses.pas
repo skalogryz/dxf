@@ -500,6 +500,8 @@ type
     Handle      : string;
     Owner       : string;
     SubClass    : string;
+
+    function DisplayName: string; virtual;
   end;
 
   { TDxfTable }
@@ -527,12 +529,17 @@ type
     property Count: Integer read GetCount;
   end;
 
+  { TDxfAppIdEntry }
+
   TDxfAppIdEntry = class(TDxfTableEntry)
   public
     SubClass2 : string;
     AppData   : string;
     Flags     : integer;
+    function DisplayName: string; override;
   end;
+
+  { TDxfBlockRecordEntry }
 
   TDxfBlockRecordEntry = class(TDxfTableEntry)
   public
@@ -547,14 +554,20 @@ type
     XDataApp     : string; // 1001
     // 1000
     //todo: 1002 .. [1070 1070] 1002
+    function DisplayName: string; override;
   end;
+
+  { TDxfDimStyleEntry }
 
   TDxfDimStyleEntry = class(TDxfTableEntry)
     SubClass2    : string;
     //StyleName    : string; // 2 (StyleName is in Dim)
     Flags        : Integer; //
     Dim          : TDxfDimensions;
+    function DisplayName: string; override;
   end;
+
+  { TDxfLayerEntry }
 
   TDxfLayerEntry = class(TDxfTableEntry)
     SubClass2   : string;
@@ -566,7 +579,10 @@ type
     Lineweight  : Integer;
     PlotStyleID : string;
     MatObjID    : string;
+    function DisplayName: string; override;
   end;
+
+  { TDxfLTypeEntry }
 
   TDxfLTypeEntry = class(TDxfTableEntry)
     SubClass2   : string;
@@ -592,7 +608,10 @@ type
     XOfs          : array of Double;  // X = X offset value (optional); multiple entries can exist
     YOfs          : array of Double;  // Y = Y offset value (optional); multiple entries can exist
     TextStr       : string;  // Text string (one per element if code 74 =
+    function DisplayName: string; override;
   end;
+
+  { TDxfStyleEntry }
 
   TDxfStyleEntry = class(TDxfTableEntry)
     SubClass2   : string;
@@ -606,6 +625,7 @@ type
     FontName    : string;  // Primary font file name
     BigFontName : string;  // Bigfont file name; blank if none
     FullFont    : string;  // A long value which contains a truetype font’s pitch and family, charset, and italic and bold flags
+    function DisplayName: string; override;
   end;
 
 
@@ -622,6 +642,8 @@ type
    cause the new UCS origin to be set to this UCS's origin point.
   }
 
+  { TDxfUCSEntry }
+
   TDxfUCSEntry = class(TDxfTableEntry)
     SubClass2   : string;     // 100
     UCSName     : string;     //   2
@@ -636,7 +658,10 @@ type
     OrthType    : Integer;    //  71 Orthographic type (optional; always appears in pairs with the 13, 23, 33 codes):
                               //     see UCS_ORTHO_* constants
     UCSRelOfs   : TDxfPoint;  // _13 Origin for this orthographic type relative to this UCS
+    function DisplayName: string; override;
   end;
+
+  { TDxfViewEntry }
 
   TDxfViewEntry = class(TDxfTableEntry)
     SubClass2   : string;     // 100
@@ -676,8 +701,11 @@ type
     UCSBaseID : string;       // 346 ID/handle of AcDbUCSTableRecord of base UCS if UCS is orthographic (79 code is nonzero).
                               //     If not present and 79 code is non-zero, then base UCS is taken to be WORLD (appears
                               //     only if code 72 is set to 1)
+    function DisplayName: string; override;
   end;
 
+
+  { TDxfVPortEntry }
 
   TDxfVPortEntry = class(TDxfTableEntry)
     SubClass2     : string;       // 100
@@ -736,6 +764,7 @@ type
     _77           : Integer;      // unknown, but present in the file!
     _78           : Integer;      // unknown, but present in the file!
     _65           : Integer;      // unknown, but present in the file!
+    function DisplayName: string; override;
   end;
 
   // todo:
@@ -963,6 +992,76 @@ begin
     and isSameDbl(a.z,b.z, epsilon);
 end;
 
+{ TDxfVPortEntry }
+
+function TDxfVPortEntry.DisplayName: string;
+begin
+  Result:=ViewName;
+end;
+
+{ TDxfViewEntry }
+
+function TDxfViewEntry.DisplayName: string;
+begin
+  Result:=ViewName;
+end;
+
+{ TDxfUCSEntry }
+
+function TDxfUCSEntry.DisplayName: string;
+begin
+  Result:=UCSName;
+end;
+
+{ TDxfStyleEntry }
+
+function TDxfStyleEntry.DisplayName: string;
+begin
+  Result:=StyleName;
+end;
+
+{ TDxfLTypeEntry }
+
+function TDxfLTypeEntry.DisplayName: string;
+begin
+  Result := LineType;
+end;
+
+{ TDxfLayerEntry }
+
+function TDxfLayerEntry.DisplayName: string;
+begin
+  Result := LayerName;
+end;
+
+{ TDxfDimStyleEntry }
+
+function TDxfDimStyleEntry.DisplayName: string;
+begin
+  Result := Dim.StyleName;
+end;
+
+{ TDxfBlockRecordEntry }
+
+function TDxfBlockRecordEntry.DisplayName: string;
+begin
+  Result := BlockName;
+end;
+
+{ TDxfAppIdEntry }
+
+function TDxfAppIdEntry.DisplayName: string;
+begin
+  Result:=AppData;
+end;
+
+{ TDxfTableEntry }
+
+function TDxfTableEntry.DisplayName: string;
+begin
+  Result := EntryType;
+end;
+
 { TDxfFileBlock }
 
 constructor TDxfFileBlock.Create;
@@ -1149,13 +1248,19 @@ end;
 procedure DxfFileDump(dxf: TDxfFile);
 var
   i : integer;
+  j : integer;
   t : TDxfTable;
   e : TDxfEntity;
+  te : TDxfTableEntry;
 begin
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
     t := TDxfTable(dxf.tables[i]);
     writeln('  ',t.Name);
+    for j := 0 to t.Count-1 do begin
+      te := t.Entry[j];
+      writeln('     ', te.DisplayName);
+    end;
   end;
   writeln('Entities: ', dxf.entities.Count);
   for i:=0 to dxf.entities.Count-1 do begin
