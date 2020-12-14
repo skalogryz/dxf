@@ -925,6 +925,7 @@ begin
   while p.scanner.CodeGroup = CB_DICT_ENTRYNAME do begin
     id := ConsumeStr(p, CB_DICT_ENTRYNAME);
     owner := ConsumeStr(p, CB_DICT_ENTRYOWNER);
+    if owner = '' then owner := ConsumeStr(p, 360); // possible
     obj.AddEntry(id, owner);
   end;
 end;
