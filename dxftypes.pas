@@ -559,7 +559,7 @@ const
 const
   // for object
   CB_DICT_ENTRYNAME  = 3;
-  CB_DICT_ENTRYOWNER = 330;
+  CB_DICT_ENTRYOWNER = 350;
 
 // from Group Code Value Types
 function DxfDataType(groupCode: Integer): TDxfType;
