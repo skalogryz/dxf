@@ -1086,7 +1086,9 @@ type
 
 
   { TDxfXRecord }
-
+  //
+  // XRECORD
+  //
   // Xrecord objects are used to store and manage arbitrary data. They are composed
   // of DXF group codes with “normal object” groups (that is, non-xdata group
   // codes), ranging from 1 through 369 for supported ranges. This object is similar
@@ -1098,15 +1100,16 @@ type
   TDxfXRecord = class(TDxfObject)
   public
     SubClass2  : string;  // 100 Subclass marker (AcDbXrecord)
-    isCloning  : Integer; // 280 Duplicate record cloning flag (determines how to merge duplicate entries):
+    CloneFlag  : Integer; // 280 Duplicate record cloning flag (determines how to merge duplicate entries):
                           //     0 = Not applicable
                           //     1 = Keep existing
                           //     2 = Use clone
                           //     3 = <xref>$0$<name>
                           //     4 = $0$<name>
                           //     5 = Unmangle name
-    // todo:
-    // 1-369 (except 5 and 105)  These values can be used by an application in any way
+    XRec       : TDxfValuesList; // 1-369 (except 5 and 105)  These values can be used by an application in any way
+    constructor Create;
+    destructor Destroy; override;
   end;
 
   { TDxfFile }
@@ -1164,6 +1167,20 @@ begin
   Result:= isSameDbl(a.x,b.x, epsilon)
     and isSameDbl(a.y,b.y, epsilon)
     and isSameDbl(a.z,b.z, epsilon);
+end;
+
+{ TDxfXRecord }
+
+constructor TDxfXRecord.Create;
+begin
+  inherited Create;
+  XRec := TDxfValuesList.Create;
+end;
+
+destructor TDxfXRecord.Destroy;
+begin
+  XRec.Free;
+  inherited Destroy;
 end;
 
 { TDxfAcDbDictionaryWDFLT }
