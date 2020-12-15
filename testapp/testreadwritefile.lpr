@@ -15,13 +15,13 @@ var
 begin
   f:=TDxfFile.Create;
   try
-    tm:={%H-}GetTickCount;
+    tm:=GetTickCount;
     ReadFile(fn, f);
     tm:=GetTickCount-tm;
     writeln('read in ', tm, 'ms');
     DxfFileDump(f);
 
-    tm:={%H-}GetTickCount;
+    tm:=GetTickCount;
     WriteFileAscii(ChangeFileExt(fn, '.outdxf'), f);
     tm:=GetTickCount-tm;
     writeln('written in ', tm, 'ms');
