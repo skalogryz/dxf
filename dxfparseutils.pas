@@ -45,6 +45,7 @@ procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
 function ParseObjectEntryFromType(p: TDxfParser; const tp: string): TDxfObject;
 procedure ParseAcDbDictionaryWDFLT(p: TDxfParser; obj: TDxfAcDbDictionaryWDFLT);
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
+procedure ParseDictionaryVar(p: TDxfParser; obj: TDxfDictionaryVar);
 procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
 procedure ParseObject(p: TDxfParser; obj: TDxfObject);
 
@@ -937,6 +938,14 @@ begin
   end;
 end;
 
+procedure ParseDictionaryVar(p: TDxfParser; obj: TDxfDictionaryVar);
+begin
+  ParseObject(p, obj);
+  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+  obj.SchemaNum := ConsumeInt(p, 280);
+  obj.Value     := ConsumeStr(p, 1);
+end;
+
 procedure ParseTableStyle(p: TDxfParser; obj: TDxfTableStyle);
 var
   c : TDxfTableCell;
@@ -1074,6 +1083,9 @@ begin
       if nm = OT_DICTIONARY then begin
         Result := TDxfDictionary.Create;
         ParseDictionary(p, TDxfDictionary(Result));
+      end else if nm = OT_DICTIONARYVAR then begin
+        Result := TDxfDictionaryVar.Create;
+        ParseDictionaryVar(p, TDxfDictionaryVar(Result));
       end;
     'T':
       if nm = OT_TABLESTYLE then begin
