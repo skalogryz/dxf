@@ -493,8 +493,9 @@ type
   end;
 
   TDxfBase = class(TObject)
-    Handle      : string; // 5 (or 105 for DIMSTYLE)
-    Owner       : string; // 330
+    Handle  : string; // 5 (or 105 for DIMSTYLE)
+    Owner   : string; // 330
+    _Owner  : TDxfBase; // the actual reference. It's nil after "raw" load
   end;
 
   { TDxfTableEntry }
@@ -1009,6 +1010,7 @@ type
   TDxfDictionaryEntry = class(TObject)
     EntryName   : string;  // 3 Entry name (one for each entry) (optional)
     RefId       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
+    _Ref        : TDxfBase; // the actual reference. It's nil right after file loads
   end;
 
   { TDxfAcDbDictionaryWDFLT }
