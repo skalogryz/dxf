@@ -381,6 +381,31 @@ begin
   w.WriteStr(1,   obj.Value);
 end;
 
+procedure WriteLayout(w: TDxfWriter; obj: TDxfLayout);
+begin
+  WriteObject(w, obj);
+  w.WriteStr(100, obj.SubClass2  );
+  w.WriteStr(  1, obj.LayoutName );
+  w.WriteInt( 70, obj.Flags      );
+  w.WriteInt( 71, obj.TabOrder   );
+  WritePoint2D(w, obj.MinLim  , 10);
+  WritePoint2D(w, obj.MaxLim  , 11);
+  WritePoint  (w, obj.InsBase , 12);
+  WritePoint  (w, obj.ExtMin  , 14);
+  WritePoint  (w, obj.ExtMax  , 15);
+  w.WriteFloat(146, obj.Elevation);
+  WritePoint  (w, obj.UCSOrig , 13);
+  WritePoint  (w, obj.UCSXAxis, 16);
+  WritePoint  (w, obj.UCSYAxis, 17);
+  w.WriteInt( 79, obj.OrthoTypes );
+  w.WriteStr(330, obj.PaperId    );
+  w.WriteStr(331, obj.LastVPortId);
+  w.WriteStr(345, obj.UcsId      );
+  w.WriteStr(346, obj.UcsOrthoId );
+  w.WriteStr(333, obj.ShadePlotId);
+
+end;
+
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
 var
   i : integer;
@@ -463,6 +488,7 @@ begin
   else if obj is TDxfXRecord then WriteXRecord(w, TDxfXRecord(obj))
   else if obj is TDxfTableStyle then WriteTableStyle(w, TDxfTableStyle(obj))
   else if obj is TDxfDictionaryVar then WriteDictionaryVar(w, TDxfDictionaryVar(obj))
+  else if obj is TDxfLayout then WriteLayout(w, TDxfLayout(obj))
   ;
 end;
 
