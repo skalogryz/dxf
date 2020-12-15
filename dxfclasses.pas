@@ -1168,7 +1168,7 @@ type
                               //     3 = View specified by code 6
                               //     4 = Window specified by codes 48, 49, 140, and 141
                               //     5 = Layout information
-                              //     7 Current style sheet
+    StyleSheet     : string;  //     7 Current style sheet
     StdScale       : integer; //  75 Standard scale type:
                               //     0 = Scaled to Fit
                               //     1 = 1/128"=1'; 2 = 1/64"=1'; 3 = 1/32"=1'
@@ -1233,7 +1233,7 @@ type
     UcsId       : string;     // 345 ID/handle of AcDbUCSTableRecord if UCS is a named UCS. If not present, then UCS is unnamed
     UcsOrthoId  : string;     // 346 ID/handle of AcDbUCSTableRecord of base UCS if UCS is orthographic (76 code is non-zero).
                               //     If not present and 76 code is non-zero, then base UCS is taken to be WORLD
-    ShadePlotId2: string;     // 333 Shade plot ID
+    ShadePlotId3: string;     // 333 Shade plot ID
   end;
 
   { TDxfDictionaryVar }
