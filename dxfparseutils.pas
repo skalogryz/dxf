@@ -44,6 +44,7 @@ procedure ParseTable(P: TDxfParser; tbl: TDxfTable);
 
 function ParseObjectEntryFromType(p: TDxfParser; const tp: string): TDxfObject;
 procedure ParseAcDbDictionaryWDFLT(p: TDxfParser; obj: TDxfAcDbDictionaryWDFLT);
+procedure ParseAcDbPlaceholder(p: TDxfParser; obj: TDxfAcDbPlaceholder);
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 procedure ParseDictionaryVar(p: TDxfParser; obj: TDxfDictionaryVar);
 procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
@@ -927,6 +928,11 @@ begin
   obj.DefaultID := ConsumeStr(p, 340);
 end;
 
+procedure ParseAcDbPlaceholder(p: TDxfParser; obj: TDxfAcDbPlaceholder);
+begin
+  ParseObject(p, obj);
+end;
+
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 var
   id    : string;
@@ -1084,6 +1090,9 @@ begin
       if nm = OT_ACDBDICTIONARYWDFLT then begin
         Result := TDxfAcDbDictionaryWDFLT.Create;
         ParseAcDbDictionaryWDFLT(p, TDxfAcDbDictionaryWDFLT(Result));
+      end else if nm = OT_ACDBPLACEHOLDER then begin
+        Result := TDxfAcDbPlaceholder.Create;
+        ParseAcDbPlaceholder(p, TDxfAcDbPlaceholder(Result));
       end;
     'D':
       if nm = OT_DICTIONARY then begin

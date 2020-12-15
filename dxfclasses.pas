@@ -1107,7 +1107,12 @@ type
     function Count: Integer;
   end;
 
+  { TDxfAcdBPlaceHolder }
+  //
   //ACDBPLACEHOLDER
+  //
+  TDxfAcDbPlaceHolder = class(TDxfObject)
+  end;
 
   { TDxfLayout }
   //

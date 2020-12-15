@@ -58,6 +58,7 @@ procedure WriteHeaderVars(w: TDxfWriter; header: TDxfHeader);
 procedure Write102Values(w: TDxfWriter; vl: TDxfValuesList);
 procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
 procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
+procedure WriteAcDbPlaceholder(w: TDxfWriter; obj: TDxfAcDbPlaceholder);
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
 procedure WriteTableStyle(w: TDxfWriter; obj: TDxfTableStyle);
@@ -353,6 +354,11 @@ begin
   w.WriteStr(340, obj.DefaultID);
 end;
 
+procedure WriteAcDbPlaceholder(w: TDxfWriter; obj: TDxfAcDbPlaceholder);
+begin
+  WriteObject(w, obj);
+end;
+
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 var
   de : TDxfDictionaryEntry;
@@ -510,6 +516,7 @@ begin
   if not Assigned(w) or not Assigned(obj) then Exit;
   if obj is TDxfDictionary then WriteDictionary(w, TDxfDictionary(obj))
   else if obj is TDxfAcDbDictionaryWDFLT then WriteAcDbDictionaryWDFLT(w, TDxfAcDbDictionaryWDFLT(obj))
+  else if obj is TDxfAcDbPlaceHolder then WriteAcDbPlaceholder(w, TDxfAcDbPlaceHolder(obj))
   else if obj is TDxfXRecord then WriteXRecord(w, TDxfXRecord(obj))
   else if obj is TDxfTableStyle then WriteTableStyle(w, TDxfTableStyle(obj))
   else if obj is TDxfDictionaryVar then WriteDictionaryVar(w, TDxfDictionaryVar(obj))
