@@ -49,6 +49,7 @@ procedure WriteStyleTableEntry(w: TDxfWriter; e: TDxfStyleEntry);
 procedure WriteUCSTableEntry(w: TDxfWriter; e: TDxfUCSEntry);
 procedure WriteView(w: TDxfWriter; e: TDxfViewEntry);
 procedure WriteVPort(w: TDxfWriter; e: TDxfVPortEntry);
+procedure WritePlotSettings(w: TDxfWriter; obj: TDxfPlotSettings);
 procedure WriteLayout(w: TDxfWriter; obj: TDxfLayout);
 procedure WriteAnyEntry(w: TDxfWriter; e: TDxfTableEntry);
 
@@ -334,8 +335,8 @@ begin
   WriteCtrl(w, obj.ObjectType);
   w.WriteStr(CB_HANDLE, obj.Handle);
   Write102Values(w, obj.AppCodes);
-  Write102Values(w, obj.Reactors);
   Write102Values(w, obj.XDict);
+  Write102Values(w, obj.Reactors);
   w.WriteStr(CB_OWNERHANDLE, obj.Owner);
 end;
 
@@ -390,12 +391,49 @@ begin
   w.WriteStr(1,   obj.Value);
 end;
 
-procedure WriteLayout(w: TDxfWriter; obj: TDxfLayout);
+procedure WritePlotSettings(w: TDxfWriter; obj: TDxfPlotSettings);
 begin
   WriteObject(w, obj);
-  w.WriteStr(100, obj.SubClass2  );
+  w.Writestr (100,obj.SubClass2     );
+  w.Writestr (  1,obj.PageName      );
+  w.Writestr (  2,obj.PrinterName   );
+  w.Writestr (  4,obj.PaperSize     );
+  w.Writestr (  6,obj.PlotViewName  );
+  w.WriteFlt ( 40,obj.MarginLeftMm  );
+  w.WriteFlt ( 41,obj.MarginBottomMm);
+  w.WriteFlt ( 42,obj.MarginRightMm );
+  w.WriteFlt ( 43,obj.MarginTopMm   );
+  w.WriteFlt ( 44,obj.WidthMm       );
+  w.WriteFlt ( 45,obj.HeightMm      );
+  w.WriteFlt ( 46,obj.OffsetX       );
+  w.WriteFlt ( 47,obj.OffsetY       );
+  w.WriteFlt ( 48,obj.PlotX         );
+  w.WriteFlt ( 49,obj.PlotY         );
+  w.WriteFlt (140,obj.PlotX2        );
+  w.WriteFlt (141,obj.PlotY2        );
+  w.WriteFlt (142,obj.Numerator     );
+  w.WriteFlt (143,obj.Denominator   );
+  w.Writeint ( 70,obj.Flags         );
+  w.Writeint ( 72,obj.PlotUnits     );
+  w.Writeint ( 73,obj.PlotRotation  );
+  w.Writeint ( 74,obj.PlotType      );
+  w.WriteStr (  7,obj.StyleSheet    );
+  w.Writeint ( 75,obj.StdScale      );
+  writeOptInt(w,obj.ShadePlotMode,0, 76);
+  writeOptInt(w,obj.ShadePlotRes ,0, 77);
+  writeOptInt(w,obj.ShadePlotDPI ,0, 78);
+  w.WriteFlt (147,obj.ViewScale     );
+  w.WriteFlt (148,obj.PaperImgOrigX );
+  w.WriteFlt (149,obj.PaperImgOrigY );
+  WriteOptStr(w,obj.ShadePlotID,'', 333);
+end;
+
+procedure WriteLayout(w: TDxfWriter; obj: TDxfLayout);
+begin
+  WritePlotSettings(w, obj);
+  w.WriteStr(100, obj.SubClass3  );
   w.WriteStr(  1, obj.LayoutName );
-  w.WriteInt( 70, obj.Flags      );
+  w.WriteInt( 70, obj.LayoutFlags);
   w.WriteInt( 71, obj.TabOrder   );
   WritePoint2D(w, obj.MinLim  , 10);
   WritePoint2D(w, obj.MaxLim  , 11);
@@ -406,13 +444,12 @@ begin
   WritePoint  (w, obj.UCSOrig , 13);
   WritePoint  (w, obj.UCSXAxis, 16);
   WritePoint  (w, obj.UCSYAxis, 17);
-  w.WriteInt( 79, obj.OrthoTypes );
+  w.WriteInt( 76, obj.OrthoTypes );
   w.WriteStr(330, obj.PaperId    );
-  w.WriteStr(331, obj.LastVPortId);
-  w.WriteStr(345, obj.UcsId      );
-  w.WriteStr(346, obj.UcsOrthoId );
-  w.WriteStr(333, obj.ShadePlotId);
-
+  WriteOptStr(w, obj.LastVPortId  ,'', 331);
+  WriteOptStr(w, obj.UcsId        ,'', 345);
+  WriteOptStr(w, obj.UcsOrthoId   ,'', 346);
+  WriteOptStr(w, obj.ShadePlotId3 ,'', 333);
 end;
 
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
@@ -868,10 +905,22 @@ begin
   WriteOptFlt(w ,e.Dim.ExtLineOfs    ,0 ,  42);
   WriteOptFlt(w ,e.Dim.DimLineInc    ,0 ,  43);
   WriteOptFlt(w ,e.Dim.ExtLineExt    ,0 ,  44);
+
   WriteOptFlt(w ,e.Dim.RoundVal      ,0 ,  45);
   WriteOptFlt(w ,e.Dim.DimLineExt    ,0 ,  46);
   WriteOptFlt(w ,e.Dim.PlusToler     ,0 ,  47);
   WriteOptFlt(w ,e.Dim.MinusToler    ,0 ,  48);
+
+  WriteOptInt(w ,e.Dim.Tolerance     ,0 ,  71);
+  WriteOptInt(w ,e.Dim.Limits        ,0 ,  72);
+  w.WriteInt( 73 ,e.Dim.isTextIns        );
+  WriteOptInt(w ,e.Dim.isTextOut     ,0 ,  74);
+  WriteOptInt(w ,e.Dim.isSupExt1     ,0 ,  75);
+  WriteOptInt(w ,e.Dim.isSupExt2     ,0 ,  76);
+  w.WriteInt( 77 ,e.Dim.isTextAbove      );
+  w.WriteInt( 78 ,e.Dim.SupZeros         );
+  WriteOptInt(w, e.Dim.ZeroSupAngUnit,0 ,  79);
+
   WriteOptFlt(w ,e.Dim.TextHeight    ,0 , 140);
   WriteOptFlt(w ,e.Dim.CenterSize    ,0 , 141);
   WriteOptFlt(w ,e.Dim.TickSize      ,0 , 142);
@@ -881,18 +930,10 @@ begin
   WriteOptFlt(w ,e.Dim.DispTolerance ,0 , 146);
   WriteOptFlt(w ,e.Dim.LineGap       ,0 , 147);
   WriteOptFlt(w ,e.Dim.RoundValAlt   ,0 , 148);
-  WriteOptInt(w ,e.Dim.Tolerance     ,0 ,  71);
-  WriteOptInt(w ,e.Dim.Limits        ,0 ,  72);
-  w.WriteInt( 73 ,e.Dim.isTextIns        );
-  WriteOptInt(w ,e.Dim.isTextOut     ,0 ,  74);
-  WriteOptInt(w ,e.Dim.isSupExt1     ,0 ,  75);
-  WriteOptInt(w ,e.Dim.isSupExt2     ,0 ,  76);
-  w.WriteInt( 77 ,e.Dim.isTextAbove      );
-  w.WriteInt( 78 ,e.Dim.SupZeros         );
-  w.WriteInt( 79 ,e.Dim.ZeroSupAngUnit   );
-  w.WriteInt(170 ,e.Dim.isUseAltUnit     );
-  w.WriteInt(171 ,e.Dim.AltDec           );
-  w.WriteInt(172 ,e.Dim.isTextOutExt     );
+
+  WriteOptInt(w ,e.Dim.isUseAltUnit  ,0  , 170);
+  WriteOptInt(w ,e.Dim.AltDec        ,0  , 171);
+  WriteOptInt(w ,e.Dim.isTextOutExt  ,0  , 172);
   WriteOptInt(w ,e.Dim.isUseSepArrow ,0  , 173);
   WriteOptInt(w ,e.Dim.isForceTextIns,0  , 174);
   WriteOptInt(w ,e.Dim.isSuppOutExt  ,0  , 175);

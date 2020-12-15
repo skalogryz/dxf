@@ -16,6 +16,7 @@ type
     procedure WriteInt32(codeGroup: integer; v: int32); virtual; abstract;
     procedure WriteStrPart(codeGroup: integer; const s: string); virtual; abstract;
     procedure WriteFloat(codeGroup: integer; f: double); virtual; abstract;
+    procedure WriteFlt(codeGroup: integer; f: double);
     procedure WriteBin(codeGroup: integer; const data; dataLen: integer); virtual; abstract;
     procedure WriteStr(codeGroup: integer; const data: string; maxLen: Integer = -1);
     // tries to determine the 16 vs 32 based on the group code
@@ -90,6 +91,11 @@ begin
 end;
 
 { TDxfWriter }
+
+procedure TDxfWriter.WriteFlt(codeGroup: integer; f: double);
+begin
+  WriteFloat(codeGroup, f);
+end;
 
 procedure TDxfWriter.WriteStr(codeGroup: integer; const data: string;
   maxLen: Integer);
