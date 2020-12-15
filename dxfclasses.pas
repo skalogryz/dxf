@@ -492,13 +492,18 @@ type
     Time : TDxfTimeHeader;
   end;
 
+  TDxfBase = class(TObject)
+    Handle      : string; // 5 (or 105 for DIMSTYLE)
+    Owner       : string; // 330
+  end;
+
   { TDxfTableEntry }
 
-  TDxfTableEntry = class(TObject)
+  TDxfTableEntry = class(TDxfBase)
   public
     EntryType   : string;
-    Handle      : string;
-    Owner       : string;
+    //Handle      : string;
+    //Owner       : string;
     SubClass    : string;
 
     function DisplayName: string; virtual;
@@ -506,15 +511,15 @@ type
 
   { TDxfTable }
 
-  TDxfTable = class(TObject)
+  TDxfTable = class(TDxfBase)
   private
     fItems: TList;
     function GetObject(i: integer): TDxfTableEntry;
     function GetCount: Integer;
   public
     Name   : string;
-    Handle : string;
-    Owner  : string;
+    //Handle : string;
+    //Owner  : string;
     SubClass : string;
     MaxNumber : integer;
     // dimstyle table headers:
@@ -798,14 +803,14 @@ type
 
   { TDxfEntity }
 
-  TDxfEntity = class
+  TDxfEntity = class(TDxfBase)
     EntityType      : string; // 0. Not parsed, but assigned elsewhere
-    Handle          : string;          // 5
+    //Handle          : string;          // 5
     appName         : string;          // 120 (value of)
     appValues       : TDxfValuesList;  // 120+custom
     ACAD_Reactors   : TDxfValuesList;  // 120+330
     ACAD_XDict      : TDxfValuesList;  // 120+360
-    Owner           : string;  // 330
+    //Owner           : string;  // 330
     SubClass        : string;  // 100 (should be AcDbEntity)
     SpaceFlag       : int32;   // 67 -- optional!!!  (seen on Paper_Source)
     AppTableLayout  : string; // 410
@@ -853,10 +858,10 @@ type
     IsAnEntity : integer; // 281
   end;
 
-  TDxfBlockEntity = class
-    Handle       : string;  // 5
+  TDxfBlockEntity = class (TDxfBase)
+    //Handle       : string;  // 5
     appDefGroup  : string;  // 102
-    Owner        : string;  //
+    //Owner        : string;  //
     SubClass     : string;  // 100
     SpaceFlag    : int32;   // 67 -- optional!!!  (seen on Paper_Source)
     LayerName    : string;  // 8
@@ -956,9 +961,9 @@ type
 
   { TDxfObject }
 
-  TDxfObject = class(TObject)
+  TDxfObject = class(TDxfBase)
     ObjectType  : string; //  0 Object type
-    Handle      : string; //  5 Handle
+    //Handle      : string; //  5 Handle
 
     AppCodes    : TDxfValuesList; // 102 Start of application-defined group "{application_name" (optional)
                                   // application- Codes and values within the 102 groups are application defined (optional)
@@ -972,7 +977,7 @@ type
                                   // only if persistent reactors have been attached to this object (optional)
                                   // 360 Hard-owner ID/handle to owner dictionary (optional)
                                   // 102 End of group, "}" (optional)
-    Owner       : string;         // 330 Soft-pointer ID/handle to owner object
+    //Owner       : string;         // 330 Soft-pointer ID/handle to owner object
 
     destructor Destroy; override;
   end;
