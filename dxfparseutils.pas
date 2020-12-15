@@ -48,6 +48,7 @@ procedure ParseAcDbPlaceholder(p: TDxfParser; obj: TDxfAcDbPlaceholder);
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 procedure ParseDictionaryVar(p: TDxfParser; obj: TDxfDictionaryVar);
 procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
+procedure ParsePlotSettings(p: TDxfParser; obj: TDxfPlotSettings);
 procedure ParseLayout(p: TDxfParser; obj: TDxfLayout);
 procedure ParseMLineStyle(p: TDxfParser; obj: TDxfMLineStyle);
 procedure ParseObject(p: TDxfParser; obj: TDxfObject);
@@ -1127,10 +1128,45 @@ begin
     Result.ObjectType := tp;
 end;
 
+procedure ParsePlotSettings(p: TDxfParser; obj: TDxfPlotSettings);
+begin
+  ParseObject(p, obj);
+  obj.SubClass2      := Consumestr(p, 100);
+  obj.PageName       := Consumestr(p,   1);
+  obj.PrinterName    := Consumestr(p,   2);
+  obj.PaperSize      := Consumestr(p,   4);
+  obj.PlotViewName   := Consumestr(p,   6);
+  obj.MarginLeftMm   := ConsumeFlt(p,  40);
+  obj.MarginBottomMm := ConsumeFlt(p,  41);
+  obj.MarginRightMm  := ConsumeFlt(p,  42);
+  obj.MarginTopMm    := ConsumeFlt(p,  43);
+  obj.WidthMm        := ConsumeFlt(p,  44);
+  obj.HeightMm       := ConsumeFlt(p,  45);
+  obj.OffsetX        := ConsumeFlt(p,  46);
+  obj.OffsetY        := ConsumeFlt(p,  47);
+  obj.PlotX          := ConsumeFlt(p,  48);
+  obj.PlotY          := ConsumeFlt(p,  49);
+  obj.PlotX2         := ConsumeFlt(p, 140);
+  obj.PlotY2         := ConsumeFlt(p, 141);
+  obj.Numerator      := ConsumeFlt(p, 142);
+  obj.Denominator    := ConsumeFlt(p, 143);
+  obj.Flags          := Consumeint(p,  70);
+  obj.PlotUnits      := Consumeint(p,  72);
+  obj.PlotRotation   := Consumeint(p,  73);
+  obj.PlotType       := Consumeint(p,  74);
+  obj.StdScale       := Consumeint(p,  75);
+  obj.ShadePlotMode  := Consumeint(p,  76);
+  obj.ShadePlotRes   := Consumeint(p,  77);
+  obj.ShadePlotDPI   := Consumeint(p,  78);
+  obj.ViewScale      := ConsumeFlt(p, 147);
+  obj.PaperImgOrigX  := ConsumeFlt(p, 148);
+  obj.PaperImgOrigY  := ConsumeFlt(p, 149);
+  obj.ShadePlotID    := Consumestr(p, 333);
+end;
 
 procedure ParseLayout(p: TDxfParser; obj: TDxfLayout);
 begin
-  ParseObject(p, obj);
+  ParsePlotSettings(p, obj);
   obj.SubClass2  := ConsumeStr(p, 100);
   obj.LayoutName := ConsumeStr(p,   1);
   obj.Flags      := ConsumeInt(p,  70);
