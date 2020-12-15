@@ -48,6 +48,7 @@ procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 procedure ParseDictionaryVar(p: TDxfParser; obj: TDxfDictionaryVar);
 procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
 procedure ParseLayout(p: TDxfParser; obj: TDxfLayout);
+procedure ParseMLineStyle(p: TDxfParser; obj: TDxfMLineStyle);
 procedure ParseObject(p: TDxfParser; obj: TDxfObject);
 
 // used to parse a list of 102... anything ...102
@@ -977,31 +978,31 @@ begin
             c := obj.AddCell;
             c.StyleName      := ConsumeStr(p, 7);
          end;
-      140: if Assigned(c) then  c.Height         := ConsumeFlt(p, 140);
-      170: if Assigned(c) then  c.Align          := ConsumeInt(p, 170);
-       62: if Assigned(c) then  c.Color          := ConsumeInt(p,  62);
-       63: if Assigned(c) then  c.FillColor      := ConsumeInt(p,  63);
-      283: if Assigned(c) then  c.isUseFillColor := ConsumeInt(p, 283);
-       90: if Assigned(c) then  c.CellDataType   := ConsumeInt(p,  90);
-       91: if Assigned(c) then  c.CellUnit       := ConsumeInt(p,  91);
-      274: if Assigned(c) then  c.BordType1      := ConsumeInt(p, 274);
-      275: if Assigned(c) then  c.BordType2      := ConsumeInt(p, 275);
-      276: if Assigned(c) then  c.BordType3      := ConsumeInt(p, 276);
-      277: if Assigned(c) then  c.BordType4      := ConsumeInt(p, 277);
-      278: if Assigned(c) then  c.BordType5      := ConsumeInt(p, 278);
-      279: if Assigned(c) then  c.BordType6      := ConsumeInt(p, 279);
-      284: if Assigned(c) then  c.isBordVis1     := ConsumeInt(p, 284);
-      285: if Assigned(c) then  c.isBordVis2     := ConsumeInt(p, 285);
-      286: if Assigned(c) then  c.isBordVis3     := ConsumeInt(p, 286);
-      287: if Assigned(c) then  c.isBordVis4     := ConsumeInt(p, 287);
-      288: if Assigned(c) then  c.isBordVis5     := ConsumeInt(p, 288);
-      289: if Assigned(c) then  c.isBordVis6     := ConsumeInt(p, 289);
-       64: if Assigned(c) then  c.BordColor1     := ConsumeInt(p,  64);
-       65: if Assigned(c) then  c.BordColor2     := ConsumeInt(p,  65);
-       66: if Assigned(c) then  c.BordColor3     := ConsumeInt(p,  66);
-       67: if Assigned(c) then  c.BordColor4     := ConsumeInt(p,  67);
-       68: if Assigned(c) then  c.BordColor5     := ConsumeInt(p,  68);
-       69: if Assigned(c) then  c.BordColor6     := ConsumeInt(p,  69);
+      140: if Assigned(c) then  c.Height         := ConsumeFlt(p, 140) else p.Next;
+      170: if Assigned(c) then  c.Align          := ConsumeInt(p, 170) else p.Next;
+       62: if Assigned(c) then  c.Color          := ConsumeInt(p,  62) else p.Next;
+       63: if Assigned(c) then  c.FillColor      := ConsumeInt(p,  63) else p.Next;
+      283: if Assigned(c) then  c.isUseFillColor := ConsumeInt(p, 283) else p.Next;
+       90: if Assigned(c) then  c.CellDataType   := ConsumeInt(p,  90) else p.Next;
+       91: if Assigned(c) then  c.CellUnit       := ConsumeInt(p,  91) else p.Next;
+      274: if Assigned(c) then  c.BordType1      := ConsumeInt(p, 274) else p.Next;
+      275: if Assigned(c) then  c.BordType2      := ConsumeInt(p, 275) else p.Next;
+      276: if Assigned(c) then  c.BordType3      := ConsumeInt(p, 276) else p.Next;
+      277: if Assigned(c) then  c.BordType4      := ConsumeInt(p, 277) else p.Next;
+      278: if Assigned(c) then  c.BordType5      := ConsumeInt(p, 278) else p.Next;
+      279: if Assigned(c) then  c.BordType6      := ConsumeInt(p, 279) else p.Next;
+      284: if Assigned(c) then  c.isBordVis1     := ConsumeInt(p, 284) else p.Next;
+      285: if Assigned(c) then  c.isBordVis2     := ConsumeInt(p, 285) else p.Next;
+      286: if Assigned(c) then  c.isBordVis3     := ConsumeInt(p, 286) else p.Next;
+      287: if Assigned(c) then  c.isBordVis4     := ConsumeInt(p, 287) else p.Next;
+      288: if Assigned(c) then  c.isBordVis5     := ConsumeInt(p, 288) else p.Next;
+      289: if Assigned(c) then  c.isBordVis6     := ConsumeInt(p, 289) else p.Next;
+       64: if Assigned(c) then  c.BordColor1     := ConsumeInt(p,  64) else p.Next;
+       65: if Assigned(c) then  c.BordColor2     := ConsumeInt(p,  65) else p.Next;
+       66: if Assigned(c) then  c.BordColor3     := ConsumeInt(p,  66) else p.Next;
+       67: if Assigned(c) then  c.BordColor4     := ConsumeInt(p,  67) else p.Next;
+       68: if Assigned(c) then  c.BordColor5     := ConsumeInt(p,  68) else p.Next;
+       69: if Assigned(c) then  c.BordColor6     := ConsumeInt(p,  69) else p.Next;
     else
       p.Next;
     end;
@@ -1097,6 +1098,11 @@ begin
         Result := TDxfLayout.Create;
         ParseLayout(p, TDxfLayout(Result));
       end;
+    'M':
+      if nm = OT_MLINESTYLE then begin
+        Result := TDxfMLineStyle.Create;
+        ParseMLineStyle(p, TDxfMLineStyle(Result));
+      end;
     'T':
       if nm = OT_TABLESTYLE then begin
         Result := TDxfTableStyle.Create;
@@ -1135,6 +1141,36 @@ begin
   obj.UcsId       := ConsumeStr(p, 345);
   obj.UcsOrthoId  := ConsumeStr(p, 346);
   obj.ShadePlotId := ConsumeStr(p, 333);
+end;
+
+procedure ParseMLineStyle(p: TDxfParser; obj: TDxfMLineStyle);
+var
+  e : TDxfMLineStyleEntry;
+begin
+  ParseObject(p, obj);
+  obj.SubClass2 := Consumestr(p, 100);
+  obj.StyleName := Consumestr(p,   2);
+  obj.Flags     := ConsumeInt(p,  70);
+  obj.Descr     := ConsumeStr(p,   3);
+  obj.FillColor := ConsumeInt(p,  62);
+  obj.StAngle   := ConsumeFlt(p,  51);
+  obj.EndAngle  := ConsumeFlt(p,  52);
+  obj.NumElems  := ConsumeInt(p,  71);
+  e:=nil;
+  while p.scanner.CodeGroup <> 0 do begin
+    case p.scanner.CodeGroup of
+      49: begin
+            e:=obj.AddEntry;
+            e.Offset := ConsumeFlt(p, 49);
+          end;
+      62: if Assigned(e) then e.Color    := ConsumeInt(p, 64) else p.Next;
+       6: if Assigned(e) then e.LineType := ConsumeStr(p, 6)  else p.Next;
+    else
+      p.Next;
+    end
+
+  end;
+
 end;
 
 function ParseVarList(p: TDxfParser): TDxfValuesList;
