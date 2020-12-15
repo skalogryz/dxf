@@ -1081,7 +1081,7 @@ type
   TDxfDictionaryVar = class(TDxfObject)
     SubClass2 : string;  // 100 Subclass marker (DictionaryVariables)
     SchemaNum : integer; // 280 Object schema number (currently set to 0)
-    Value     : integer; // 1 Value of variable
+    Value     : string; // 1 Value of variable
   end;
 
   { TDxfTableStyle }
