@@ -60,6 +60,7 @@ procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
 procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
+procedure WriteTableStyle(w: TDxfWriter; obj: TDxfTableStyle);
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
@@ -392,12 +393,67 @@ begin
   end;
 end;
 
+procedure WriteTableStyle(w: TDxfWriter; obj: TDxfTableStyle);
+var
+  c : TDxfTableCell;
+  i : integer;
+begin
+  WriteObject(w, obj);
+  w.WriteStr  (CB_SUBCLASS, obj.SubClass2);
+  w.WriteInt  (280, obj.VerNum );
+  w.WriteStr  (  3, obj.Descr  );
+  w.WriteInt  ( 70, obj.FlowDir);
+  w.WriteInt  ( 71, obj.Flags  );
+  w.WriteFloat( 40, obj.HorzMargin);
+  w.WriteFloat( 41, obj.VertMargin);
+  w.WriteInt  (280, obj.isTitleSupp);
+  w.WriteInt  (281, obj.isColHeadSupp);
+
+  for i:=0 to obj.Cells.Count-1 do begin
+    c := TDxfTableCell(obj.Cells[i]);
+    w.WriteStr(7, c.StyleName);
+    WriteOptFlt(w, c.Height        ,0, 140);
+    WriteOptInt(w, c.Align         ,0, 170);
+    WriteOptInt(w, c.Color         ,-1,  62);
+    WriteOptInt(w, c.FillColor     ,0,  63);
+    WriteOptInt(w, c.isUseFillColor,-1, 283);
+    WriteOptInt(w, c.CellDataType  ,0,  90);
+    WriteOptInt(w, c.CellUnit      ,0,  91);
+
+    WriteOptInt(w, c.BordType1     ,-1, 274);
+    WriteOptInt(w, c.isBordVis1    ,-1, 284);
+    WriteOptInt(w, c.BordColor1    ,-1,  64);
+
+    WriteOptInt(w, c.BordType2     ,-1, 275);
+    WriteOptInt(w, c.isBordVis2    ,-1, 285);
+    WriteOptInt(w, c.BordColor2    ,-1,  65);
+
+    WriteOptInt(w, c.BordType3     ,-1, 276);
+    WriteOptInt(w, c.isBordVis3    ,-1, 286);
+    WriteOptInt(w, c.BordColor3    ,-1,  66);
+
+    WriteOptInt(w, c.BordType4     ,-1, 277);
+    WriteOptInt(w, c.isBordVis4    ,-1, 287);
+    WriteOptInt(w, c.BordColor4    ,-1,  67);
+
+    WriteOptInt(w, c.BordType5     ,-1, 278);
+    WriteOptInt(w, c.isBordVis5    ,-1, 288);
+    WriteOptInt(w, c.BordColor5    ,-1,  68);
+
+    WriteOptInt(w, c.BordType6     ,-1, 279);
+    WriteOptInt(w, c.isBordVis6    ,-1, 289);
+    WriteOptInt(w, c.BordColor6    ,-1,  69);
+  end;
+
+end;
+
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 begin
   if not Assigned(w) or not Assigned(obj) then Exit;
   if obj is TDxfDictionary then WriteDictionary(w, TDxfDictionary(obj))
   else if obj is TDxfAcDbDictionaryWDFLT then WriteAcDbDictionaryWDFLT(w, TDxfAcDbDictionaryWDFLT(obj))
   else if obj is TDxfXRecord then WriteXRecord(w, TDxfXRecord(obj))
+  else if obj is TDxfTableStyle then WriteTableStyle(w, TDxfTableStyle(obj))
   ;
 end;
 
@@ -730,75 +786,75 @@ begin
   w.WriteStr(CB_NAME,   e.Dim.StyleName);
   w.WriteInt(CB_VARINT, e.Flags);
 
-  w.WriteStr(  3 ,e.Dim.Suffix           );
-  w.WriteStr(  4 ,e.Dim.AltSuffix        );
-  w.WriteStr(  5 ,e.Dim.ArrowBlock       );
-  w.WriteStr(  6 ,e.Dim.ArrowBlock1      );
-  w.WriteStr(  7 ,e.Dim.ArrowBlock2      );
-  w.WriteFloat( 40 ,e.Dim.Scale            );
-  w.WriteFloat( 41 ,e.Dim.ArrowSize        );
-  w.WriteFloat( 42 ,e.Dim.ExtLineOfs       );
-  w.WriteFloat( 43 ,e.Dim.DimLineInc       );
-  w.WriteFloat( 44 ,e.Dim.ExtLineExt       );
-  w.WriteFloat( 45 ,e.Dim.RoundVal         );
-  w.WriteFloat( 46 ,e.Dim.DimLineExt       );
-  w.WriteFloat( 47 ,e.Dim.PlusToler        );
-  w.WriteFloat( 48 ,e.Dim.MinusToler       );
-  w.WriteFloat(140 ,e.Dim.TextHeight       );
-  w.WriteFloat(141 ,e.Dim.CenterSize       );
-  w.WriteFloat(142 ,e.Dim.TickSize         );
-  w.WriteFloat(143 ,e.Dim.AltScale         );
-  w.WriteFloat(144 ,e.Dim.LinearScale      );
-  w.WriteFloat(145 ,e.Dim.TextVertPos      );
-  w.WriteFloat(146 ,e.Dim.DispTolerance    );
-  w.WriteFloat(147 ,e.Dim.LineGap          );
-  w.WriteFloat(148 ,e.Dim.RoundValAlt      );
-  w.WriteInt( 71 ,e.Dim.Tolerance        );
-  w.WriteInt( 72 ,e.Dim.Limits           );
+  WriteOptStr(w ,e.Dim.Suffix        ,'',  3 );
+  WriteOptStr(w ,e.Dim.AltSuffix     ,'',  4 );
+  WriteOptStr(w ,e.Dim.ArrowBlock    ,'',  5 );
+  WriteOptStr(w ,e.Dim.ArrowBlock1   ,'',  6 );
+  WriteOptStr(w ,e.Dim.ArrowBlock2   ,'',  7 );
+  WriteOptFlt(w ,e.Dim.Scale         ,0 ,  40 );
+  WriteOptFlt(w ,e.Dim.ArrowSize     ,0 ,  41);
+  WriteOptFlt(w ,e.Dim.ExtLineOfs    ,0 ,  42);
+  WriteOptFlt(w ,e.Dim.DimLineInc    ,0 ,  43);
+  WriteOptFlt(w ,e.Dim.ExtLineExt    ,0 ,  44);
+  WriteOptFlt(w ,e.Dim.RoundVal      ,0 ,  45);
+  WriteOptFlt(w ,e.Dim.DimLineExt    ,0 ,  46);
+  WriteOptFlt(w ,e.Dim.PlusToler     ,0 ,  47);
+  WriteOptFlt(w ,e.Dim.MinusToler    ,0 ,  48);
+  WriteOptFlt(w ,e.Dim.TextHeight    ,0 , 140);
+  WriteOptFlt(w ,e.Dim.CenterSize    ,0 , 141);
+  WriteOptFlt(w ,e.Dim.TickSize      ,0 , 142);
+  WriteOptFlt(w ,e.Dim.AltScale      ,0 , 143);
+  WriteOptFlt(w ,e.Dim.LinearScale   ,0 , 144);
+  WriteOptFlt(w ,e.Dim.TextVertPos   ,0 , 145);
+  WriteOptFlt(w ,e.Dim.DispTolerance ,0 , 146);
+  WriteOptFlt(w ,e.Dim.LineGap       ,0 , 147);
+  WriteOptFlt(w ,e.Dim.RoundValAlt   ,0 , 148);
+  WriteOptInt(w ,e.Dim.Tolerance     ,0 ,  71);
+  WriteOptInt(w ,e.Dim.Limits        ,0 ,  72);
   w.WriteInt( 73 ,e.Dim.isTextIns        );
-  w.WriteInt( 74 ,e.Dim.isTextOut        );
-  w.WriteInt( 75 ,e.Dim.isSupExt1        );
-  w.WriteInt( 76 ,e.Dim.isSupExt2        );
+  WriteOptInt(w ,e.Dim.isTextOut     ,0 ,  74);
+  WriteOptInt(w ,e.Dim.isSupExt1     ,0 ,  75);
+  WriteOptInt(w ,e.Dim.isSupExt2     ,0 ,  76);
   w.WriteInt( 77 ,e.Dim.isTextAbove      );
   w.WriteInt( 78 ,e.Dim.SupZeros         );
   w.WriteInt( 79 ,e.Dim.ZeroSupAngUnit   );
   w.WriteInt(170 ,e.Dim.isUseAltUnit     );
   w.WriteInt(171 ,e.Dim.AltDec           );
   w.WriteInt(172 ,e.Dim.isTextOutExt     );
-  w.WriteInt(173 ,e.Dim.isUseSepArrow    );
-  w.WriteInt(174 ,e.Dim.isForceTextIns   );
-  w.WriteInt(175 ,e.Dim.isSuppOutExt     );
+  WriteOptInt(w ,e.Dim.isUseSepArrow ,0  , 173);
+  WriteOptInt(w ,e.Dim.isForceTextIns,0  , 174);
+  WriteOptInt(w ,e.Dim.isSuppOutExt  ,0  , 175);
   w.WriteInt(176 ,e.Dim.LineColor        );
   w.WriteInt(177 ,e.Dim.ExtLineColor     );
   w.WriteInt(178 ,e.Dim.TextColor        );
-  w.WriteInt(179 ,e.Dim.AngleDecPlaces   );
-  w.WriteInt(270 ,e.Dim.__Units          );
-  w.WriteInt(271 ,e.Dim.DecPlacesPrim    );
-  w.WriteInt(272 ,e.Dim.DecPlacesOther   );
-  w.WriteInt(273 ,e.Dim.UnitsFormat      );
-  w.WriteInt(274 ,e.Dim.DecPlacesAltUnit );
-  w.WriteInt(275 ,e.Dim.AngleFormat      );
-  w.WriteInt(276 ,e.Dim.UnitFrac         );
-  w.WriteInt(277 ,e.Dim.Units            );
-  w.WriteInt(278 ,e.Dim.DecSeparator     );
-  w.WriteInt(279 ,e.Dim.TextMove         );
-  w.WriteInt(280 ,e.Dim.HorzTextJust     );
-  w.WriteInt(281 ,e.Dim.isSuppLine1      );
-  w.WriteInt(282 ,e.Dim.isSuppLine2      );
-  w.WriteInt(283 ,e.Dim.VertJustTol      );
-  w.WriteInt(284 ,e.Dim.ZeroSupTol       );
-  w.WriteInt(285 ,e.Dim.ZeroSupAltUnitTol);
-  w.WriteInt(286 ,e.Dim.ZeroSupAltTol    );
-  w.WriteInt(287 ,e.Dim.__TextArrowPlace );
-  w.WriteInt(288 ,e.Dim.isEditCursorText );
-  w.WriteInt(289 ,e.Dim.TextArrowPlace   );
-  w.WriteStr(340 ,e.Dim.TextStyle        );
-  w.WriteStr(341 ,e.Dim.ArrowBlockLead   );
-  w.WriteStr(342 ,e.Dim.ArrowBlockId     );
-  w.WriteStr(343 ,e.Dim.ArrowBlockId1    );
-  w.WriteStr(344 ,e.Dim.ArrowBlockId2    );
-  w.WriteInt(371 ,e.Dim.LineWeight       );
-  w.WriteInt(372 ,e.Dim.LineWeightExt    );
+  WriteOptInt(w ,e.Dim.AngleDecPlaces  ,0, 179);
+  WriteOptInt(w ,e.Dim.__Units         ,0, 270);
+  WriteOptInt(w ,e.Dim.DecPlacesPrim   ,0, 271);
+  WriteOptInt(w ,e.Dim.DecPlacesOther  ,0, 272);
+  WriteOptInt(w ,e.Dim.UnitsFormat     ,0, 273);
+  WriteOptInt(w ,e.Dim.DecPlacesAltUnit,0, 274);
+  WriteOptInt(w ,e.Dim.AngleFormat     ,0, 275);
+  WriteOptInt(w ,e.Dim.UnitFrac        ,0, 276);
+  WriteOptInt(w ,e.Dim.Units           ,0, 277);
+  WriteOptInt(w ,e.Dim.DecSeparator    ,0, 278);
+  WriteOptInt(w ,e.Dim.TextMove        ,0, 279);
+  WriteOptInt(w ,e.Dim.HorzTextJust    ,0, 280);
+  WriteOptInt(w ,e.Dim.isSuppLine1     ,0, 281);
+  WriteOptInt(w ,e.Dim.isSuppLine2     ,0, 282);
+  WriteOptInt(w ,e.Dim.VertJustTol     ,0, 283);
+  WriteOptInt(w ,e.Dim.ZeroSupTol       ,0,284);
+  WriteOptInt(w ,e.Dim.ZeroSupAltUnitTol,0,285);
+  WriteOptInt(w ,e.Dim.ZeroSupAltTol    ,0,286);
+  WriteOptInt(w ,e.Dim.__TextArrowPlace ,0,287);
+  WriteOptInt(w ,e.Dim.isEditCursorText ,0,288);
+  WriteOptInt(w ,e.Dim.TextArrowPlace   ,0,289);
+  WriteOptStr(w ,e.Dim.TextStyle       ,'',340);
+  WriteOptStr(w ,e.Dim.ArrowBlockLead  ,'',341);
+  WriteOptStr(w ,e.Dim.ArrowBlockId    ,'',342);
+  WriteOptStr(w ,e.Dim.ArrowBlockId1   ,'',343);
+  WriteOptStr(w ,e.Dim.ArrowBlockId2   ,'',344);
+  WriteOptInt(w ,e.Dim.LineWeight       ,0,371);
+  WriteOptInt(w ,e.Dim.LineWeightExt    ,0,372);
 end;
 
 procedure WriteLayerTableEntry(w: TDxfWriter; e: TDxfLayerEntry);
