@@ -399,6 +399,7 @@ begin
       else if v = vDIMAZIN   then hdr.Dim.ZeroSupAngUnit := ConsumeInt(p, CB_VARINT)
       else if v = vDIMDSEP   then hdr.Dim.DecSeparator   := ConsumeInt(p, CB_VARINT)
       else if v = vDIMATFIT  then hdr.Dim.TextArrowPlace := ConsumeInt(p, CB_VARINT)
+      else if v = vDIMFRAC   then hdr.Dim.UnitFrac       := ConsumeInt(p, CB_VARINT)
       else if v = vDIMLDRBLK then hdr.Dim.ArrowBlockLead := ConsumeStr(p, CB_VARVALUE)
       else if v = vDIMLUNIT  then hdr.Dim.Units          := ConsumeInt(p, CB_VARINT)
       else if v = vDIMLWD    then hdr.Dim.LineWeight     := ConsumeInt(p, CB_VARINT)
@@ -444,7 +445,9 @@ begin
       else if v = vMAXACTVP    then hdr.Base.MaxViewPorts := ConsumeInt(p,CB_VARINT)
       ;
     'O':
-      if v = vORTHOMODE then hdr.Base.isOrtho := ConsumeInt(p, CB_VARINT);
+      if v = vORTHOMODE then hdr.Base.isOrtho := ConsumeInt(p, CB_VARINT)
+      else if v = vOLESTARTUP then hdr.Base.isOLEStartup := ConsumeInt(p, CB_VARINT)
+      ;
     'P':
       if v = vPUCSBASE then hdr.PUcs.Base := ConsumeStr(p, 2)
       else if v = vPUCSNAME then hdr.PUcs.Name := ConsumeStr(p, 2)
@@ -491,6 +494,7 @@ begin
       else if v = vSURFV      then hdr.Base.SurfDensityN   := Consumeint(p, CB_VARINT)
       else if v = vSHADEDGE   then hdr.Base.ShadeEdge    := ConsumeInt(p,CB_VARINT)
       else if v = vSHADEDIF   then hdr.Base.ShadeDiffuse := ConsumeInt(p,CB_VARINT)
+      else if v = vSTYLESHEET then hdr.Base.StyleSheet := ConsumeStr(p, CB_VARVALUE)
       ;
     'T':
       if v = vTEXTSIZE then hdr.Base.TextHeight := ConsumeFlt(p, CB_VARFLOAT)

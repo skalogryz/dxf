@@ -616,6 +616,7 @@ begin
   WriteHeaderVarInt(w, vDIMAZIN      ,header.Dim.ZeroSupAngUnit  , CB_VARINT);
   WriteHeaderVarInt(w, vDIMDSEP      ,header.Dim.DecSeparator    , CB_VARINT);
   WriteHeaderVarInt(w, vDIMATFIT     ,header.Dim.TextArrowPlace  , CB_VARINT);
+  WriteHeaderVarInt(w, vDIMFRAC      ,header.Dim.UnitFrac        , CB_VARINT);
   WriteHeaderVarStr(w, vDIMLDRBLK    ,header.Dim.ArrowBlockLead  , 1);
   WriteHeaderVarInt(w, vDIMLUNIT     ,header.Dim.Units           , CB_VARINT);
   WriteHeaderVarInt(w, vDIMLWD       ,header.Dim.LineWeight      , CB_VARINT);
@@ -704,6 +705,7 @@ begin
   WriteHeaderVarInt(w, vLWDISPLAY       ,header.base.isLineShow       ,290);
   WriteHeaderVarInt(w, vINSUNITS        ,header.base.DefaultUnits     ,CB_VARINT);
   WriteHeaderVarStr(w, vHYPERLINKBASE   ,header.base.RelHyperLink     ,1);
+  WriteHeaderVarStr(w, vSTYLESHEET      ,header.base.StyleSheet       ,1);
   WriteHeaderVarInt(w, vXEDIT           ,header.base.isInPlaceEditin  ,290);
   WriteHeaderVarInt(w, vCEPSNTYPE       ,header.base.PlotStype        ,380);
   WriteHeaderVarInt(w, vPSTYLEMODE      ,header.base.isColorDepmode   ,290);
@@ -711,7 +713,7 @@ begin
   WriteHeaderVarStr(w, vVERSIONGUID     ,header.base.VersionGuild     ,2);
   WriteHeaderVarInt(w, vEXTNAMES        ,header.acad.isExtNames       ,290);
   WriteHeaderVarFlt(w, vPSVPSCALE       ,header.base.ViewPortScale    ,40);
-
+  WriteHeaderVarInt(w, vOLESTARTUP      ,header.base.isOLEStartup     ,290);
 end;
 
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
