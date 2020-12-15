@@ -1062,10 +1062,43 @@ type
   end;
 
   //DIMASSOC
-  //LAYOUT
   //MLINESTYLE
   //ACDBPLACEHOLDER
-  //TABLESTYLE
+
+  { TDxfLayout }
+  //
+  //LAYOUT
+  //
+  TDxfLayout = class(TDxfObject)
+    SubClass2  : string;      // 100 Subclass marker (DictionaryVariables)
+    LayoutName : string;      //   1 Layout name
+    Flags      : Integer;     //  70 Flag (bit-coded) to control the following:
+                              //     1 = Indicates the PSLTSCALE value for this layout when this layout is current
+                              //     2 = Indicates the LIMCHECK value for this layout when this layout is current
+    TabOrder   : Integer;     //  71 Tab order. This number is an ordinal indicating this layout's ordering in the tab control that is
+                              //     attached to the AutoCAD drawing frame window. Note that the “Model” tab always appears
+                              //     as the first tab regardless of its tab order
+    MinLim     : TDxfPoint2D; //  10 Minimum limits for this layout (defined by LIMMIN while this layout is current)
+    MaxLim     : TDxfPoint2D; //  11 Maximum limits for this layout (defined by LIMMAX while this layout is current):
+    InsBase    : TDxfPoint;   //  12 Insertion base point for this layout (defined by INSBASE while this layout is current):
+    ExtMin     : TDxfPoint;   //  14 Minimum extents for this layout (defined by EXTMIN while this layout is current):
+    ExtMax     : TDxfPoint;   //  15 Maximum extents for this layout (defined by EXTMAX while this layout is current):
+    Elevation  : Double;      // 146 Elevation
+    UCSOrig    : TDxfPoint;   //  13 UCS origin
+    UCSXAxis   : TDxfPoint;   //  16 UCS X-axis
+    UCSYAxis   : TDxfPoint;   //  17 UCS Y axis
+    OrthoTypes : Integer;     //  76 Orthographic type of UCS
+                              //     0 = UCS is not orthographic
+                              //     1 = Top; 2 = Bottom
+                              //     3 = Front; 4 = Back
+                              //     5 = Left; 6 = Right
+    PaperId     : string;     // 330 ID/handle to this layout's associated paper space block table record
+    LastVPortId : string;     // 331 ID/handle to the viewport that was last active in this layout when the layout was current
+    UcsId       : string;     // 345 ID/handle of AcDbUCSTableRecord if UCS is a named UCS. If not present, then UCS is unnamed
+    UcsOrthoId  : string;     // 346 ID/handle of AcDbUCSTableRecord of base UCS if UCS is orthographic (76 code is non-zero).
+                              //     If not present and 76 code is non-zero, then base UCS is taken to be WORLD
+    ShadePlotId : string;     // 333 Shade plot ID
+  end;
 
   { TDxfDictionaryVar }
 
