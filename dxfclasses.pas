@@ -1062,7 +1062,51 @@ type
   end;
 
   //DIMASSOC
+
+  { TDxfMLineStyle }
+  //
   //MLINESTYLE
+  //
+  // The 2 group codes in mline entities and MLINESTYLE objects are redundant
+  // fields. These groups should not be modified under any circumstances, although
+  // it is safe to read them and use their values. The correct fields to modify are:
+  // * Mline The 340 group in the same object, which indicates the proper
+  //   MLINESTYLE object.
+  // * Mlinestyle The 3 group value in the MLINESTYLE dictionary, which precedes
+  //   the 350 group that has the handle or entity name of the current mlinestyle.
+
+  TDxfMLineStyleEntry = class(TObject)
+    Offset   : Double;  //   49 Element offset (real, no default). Multiple entries can exist; one entry for each element
+    Color    : Integer; //   62 Element color (integer, default = 0). Multiple entries can exist; one entry for each element
+    LineType : string;  //    6 Element linetype (string, default = BYLAYER). Multiple entries can exist; one entry for each
+                        //      element
+  end;
+
+  TDxfMLineStyle = class(TDxfObject)
+    SubClass2 : string;  //  100 Subclass marker (AcDbMlineStyle)
+    StyleName : string;  //    2 Mline style name
+    Flags     : Integer; //   70 Flags (bit-coded):
+                         //         1 =Fill on
+                         //         2 = Display miters
+                         //        16 = Start square end (line) cap
+                         //        32 = Start inner arcs cap
+                         //        64 = Start round (outer arcs) cap
+                         //       256 = End square (line) cap
+                         //       512 = End inner arcs cap
+                         //      1024 = End round (outer arcs) cap
+    Descr     : string;  //    3 Style description (string, 255 characters maximum)
+    FillColor : Integer; //   62 Fill color (integer, default = 256)
+    StAngle   : Double;  //   51 Start angle (real, default is 90 degrees)
+    EndAngle  : Double;  //   52 End angle (real, default is 90 degrees)
+    NumElems  : Integer; //   71 Number of elements
+    _Entries  : TList;
+    constructor Create;
+    destructor Destroy; override;
+    function AddEntry: TDxfMLineStyleEntry;
+    procedure Clear;
+    function Count: Integer;
+  end;
+
   //ACDBPLACEHOLDER
 
   { TDxfLayout }
@@ -1259,6 +1303,41 @@ begin
   Result:= isSameDbl(a.x,b.x, epsilon)
     and isSameDbl(a.y,b.y, epsilon)
     and isSameDbl(a.z,b.z, epsilon);
+end;
+
+{ TDxfMLineStyle }
+
+constructor TDxfMLineStyle.Create;
+begin
+  inherited Create;
+  _Entries := TList.Create;
+end;
+
+destructor TDxfMLineStyle.Destroy;
+begin
+  Clear;
+  _Entries.Free;
+  inherited Destroy;
+end;
+
+function TDxfMLineStyle.AddEntry: TDxfMLineStyleEntry;
+begin
+  Result := TDxfMLineStyleEntry.Create;
+  _Entries.Add(Result);
+end;
+
+procedure TDxfMLineStyle.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to _Entries.Count-1 do
+    TObject(_Entries[i]).Free;
+  _Entries.Clear;
+end;
+
+function TDxfMLineStyle.Count: Integer;
+begin
+  Result := _Entries.Count;
 end;
 
 { TDxfTableStyle }
