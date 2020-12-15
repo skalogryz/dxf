@@ -1164,7 +1164,7 @@ begin
             e.Offset := ConsumeFlt(p, 49);
           end;
       62: if Assigned(e) then e.Color    := ConsumeInt(p, 62) else p.Next;
-       6: if Assigned(e) then e.LineType := ConsumeStr(p, 6)  else p.Next;
+       6: if Assigned(e) then e.LineType := ConsumeStr(p, 6, 'BYLAYER')  else p.Next;
     else
       p.Next;
     end

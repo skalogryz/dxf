@@ -61,6 +61,7 @@ procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
 procedure WriteTableStyle(w: TDxfWriter; obj: TDxfTableStyle);
+procedure WriteMLineStyle(w: TDxfWriter; obj: TDxfMLineStyle);
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 
 procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
@@ -480,6 +481,30 @@ begin
 
 end;
 
+procedure WriteMLineStyle(w: TDxfWriter; obj: TDxfMLineStyle);
+var
+  i : integer;
+  e : TDxfMLineStyleEntry;
+begin
+  WriteObject(w, obj);
+  w.Writestr  (100, obj.SubClass2);
+  w.Writestr  (  2, obj.StyleName);
+  w.WriteInt  ( 70, obj.Flags    );
+  w.WriteStr  (  3, obj.Descr    );
+  w.WriteInt  ( 62, obj.FillColor);
+  w.WriteFloat( 51, obj.StAngle  );
+  w.WriteFloat( 52, obj.EndAngle );
+  w.WriteInt  ( 71, obj.NumElems );
+  e:=nil;
+  for i := 0 to obj._Entries.Count-1 do begin
+    e := TDxfMLineStyleEntry(obj._Entries[i]);
+    w.WriteFloat(49, e.Offset);
+    WriteOptInt(w, e.Color, 0, 62);
+    WriteOptStr(w, e.LineType, '', 6);
+  end;
+
+end;
+
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 begin
   if not Assigned(w) or not Assigned(obj) then Exit;
@@ -489,6 +514,7 @@ begin
   else if obj is TDxfTableStyle then WriteTableStyle(w, TDxfTableStyle(obj))
   else if obj is TDxfDictionaryVar then WriteDictionaryVar(w, TDxfDictionaryVar(obj))
   else if obj is TDxfLayout then WriteLayout(w, TDxfLayout(obj))
+  else if obj is TDxfMLineStyle then WriteMLineStyle(w, TDxfMLineStyle(obj));
   ;
 end;
 
