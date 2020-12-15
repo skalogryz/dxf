@@ -11,6 +11,7 @@ procedure AddDefaultBlocks(dxf: TDxfFile);
 
 procedure NormalizeBlocks(dxf : TDxfFile);
 
+procedure AddDefaultTables(dxf: TDxfFile);
 procedure AddDefaultClasses(dxf: TDxfFile);
 
 procedure FillHandles(dxf: TDxfFile);
@@ -29,6 +30,11 @@ procedure HandlesToLinks(dxf: TDxfFile);
 // Handles must be populated prior to calling this procedure
 // FillHandles() can be used!
 procedure LinksToHandles(dxf: TDxfFile);
+
+procedure GatherDxfBase(dxf: TDxfFile; dst: TList);
+
+const
+  ZERO_HANDLE = '0';
 
 implementation
 
@@ -103,21 +109,56 @@ end;
 procedure FillHandles(dxf: TDxfFile);
 var
   i : integer;
-  e : TDxfEntity;
+  e : TDxfBase;
   h : integer;
+  l : TList;
 begin
   h:=0;
-  for i:=0 to dxf.entities.Count-1 do begin
-    e := TDxfEntity(dxf.entities[i]);
-    if e.Handle = '' then begin
-      e.Handle:='H'+IntToStr(h);
-      inc(h);
+  l:=TList.Create;
+  try
+    GatherDxfBase(dxf, l);
+    for i:=0 to l.Count-1 do begin
+      e := TDxfBase(l[i]);
+      if e.Handle = '' then begin
+        e.Handle:='H'+IntToStr(h);
+        inc(h);
+      end;
     end;
+  finally
+    l.Free;
   end;
 end;
 
 procedure AddDefaultObjects(dxf: TDxfFile);
+var
+  root : TDxfDictionary;
+
+  function AllocEntryDictionary(const EntryName: string): TDxfDictionary;
+  var
+    e    : TDxfDictionaryEntry;
+    d    : TDxfDictionary;
+  begin
+    e:=root.AddEntry;
+    e.EntryName := EntryName;
+    d := TDxfDictionary.Create;
+    dxf.objects.Add(d);
+    e._Ref := d;
+    Result := d;
+  end;
+
 begin
+  root := TDxfDictionary.Create;
+  dxf.objects.Add(root);
+
+  AllocEntryDictionary('ACAD_COLOR');
+  AllocEntryDictionary('ACAD_LAYOUT');
+  AllocEntryDictionary('ACAD_MATERIAL');
+  AllocEntryDictionary('ACAD_MLINESTYLE');
+  AllocEntryDictionary('ACAD_PLOTSETTINGS');
+  AllocEntryDictionary('ACAD_PLOTSTYLENAME'); // ACDBDICTIONARYWDFLT (D4) "" ACDBPLACEHOLDER (D5)
+  AllocEntryDictionary('ACAD_TABLESTYLE');
+  AllocEntryDictionary('ACDBHEADERROUNDTRIPXREC');
+  AllocEntryDictionary('AcDbVariableDictionary');
 end;
 
 procedure HandlesToLinks(dxf: TDxfFile);
@@ -164,18 +205,14 @@ var
 begin
   blist := TList.Create;
   try
-    for i:=0 to dxf.objects.Count-1 do begin
-      b := TDxfBase(dxf.objects[i]);
-      blist.Add(b);
-    end;
-    for i:=0 to dxf.entities.Count-1 do begin
-      b := TDxfBase(dxf.objects[i]);
-      blist.Add(b);
-    end;
+    GatherDxfBase(dxf, blist);
     for i := 0 to blist.Count-1 do begin
       b := TDxfBase(blist[i]);
       if Assigned(b._Owner) and (b.Owner = '') then
-        b.Owner := b._Owner.Handle;
+        b.Owner := b._Owner.Handle
+      else if not Assigned(b._Owner) and (b.Owner = '') then
+        b.Owner := ZERO_HANDLE;
+
       if (b is TDxfDictionary) then begin
         d := TDxfDictionary(b);
         for j:=0 to d.Entries.Count-1 do begin
@@ -188,6 +225,78 @@ begin
   finally
     blist.Free;
   end;
+
+end;
+
+procedure GatherDxfBase(dxf: TDxfFile; dst: TList);
+var
+  i : integer;
+  b : TDxfBase;
+begin
+  if not Assigned(dxf) or not Assigned(dst) then Exit;
+  for i:=0 to dxf.tables.Count-1 do begin
+    b := TDxfBase(dxf.tables[i]);
+    dst.Add(b);
+  end;
+  for i:=0 to dxf.objects.Count-1 do begin
+    b := TDxfBase(dxf.objects[i]);
+    dst.Add(b);
+  end;
+  for i:=0 to dxf.entities.Count-1 do begin
+    b := TDxfBase(dxf.entities[i]);
+    dst.Add(b);
+  end;
+end;
+
+procedure AddDefaultTables(dxf: TDxfFile);
+var
+  t : TDxfTable;
+begin
+  t := TDxfTable.Create;
+  t.Name := 'VPORT';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'LTYPE';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'LAYER';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'STYLE';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'VIEW';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'UCS';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'APPID';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'DIMSTYLE';
+  t.SubClass := 'AcDbSymbolTable';
+  t.SubClass2 := 'AcDbDimStyleTable';
+  dxf.tables.Add(t);
+
+  t := TDxfTable.Create;
+  t.Name := 'BLOCK_RECORD';
+  t.SubClass := 'AcDbSymbolTable';
+  dxf.tables.Add(t);
 
 end;
 
