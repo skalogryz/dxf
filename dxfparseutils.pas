@@ -47,6 +47,7 @@ procedure ParseAcDbDictionaryWDFLT(p: TDxfParser; obj: TDxfAcDbDictionaryWDFLT);
 procedure ParseDictionary(p: TDxfParser; obj: TDxfDictionary);
 procedure ParseDictionaryVar(p: TDxfParser; obj: TDxfDictionaryVar);
 procedure ParseXRecord(p: TDxfParser; obj: TDxfXRecord);
+procedure ParseLayout(p: TDxfParser; obj: TDxfLayout);
 procedure ParseObject(p: TDxfParser; obj: TDxfObject);
 
 // used to parse a list of 102... anything ...102
@@ -1087,6 +1088,11 @@ begin
         Result := TDxfDictionaryVar.Create;
         ParseDictionaryVar(p, TDxfDictionaryVar(Result));
       end;
+    'L':
+      if nm = OT_LAYOUT then begin
+        Result := TDxfLayout.Create;
+        ParseLayout(p, TDxfLayout(Result));
+      end;
     'T':
       if nm = OT_TABLESTYLE then begin
         Result := TDxfTableStyle.Create;
@@ -1100,6 +1106,31 @@ begin
   end;
   if Assigned(Result) and (Result.ObjectType='') then
     Result.ObjectType := tp;
+end;
+
+
+procedure ParseLayout(p: TDxfParser; obj: TDxfLayout);
+begin
+  ParseObject(p, obj);
+  obj.SubClass2  := ConsumeStr(p, 100);
+  obj.LayoutName := ConsumeStr(p,   1);
+  obj.Flags      := ConsumeInt(p,  70);
+  obj.TabOrder   := ConsumeInt(p,  71);
+  ParsePoint(p, obj.MinLim  , 10);
+  ParsePoint(p, obj.MaxLim  , 11);
+  ParsePoint(p, obj.InsBase , 12);
+  ParsePoint(p, obj.ExtMin  , 14);
+  ParsePoint(p, obj.ExtMax  , 15);
+  obj.Elevation  := ConsumeFlt(p, 146);
+  ParsePoint(p, obj.UCSOrig , 13);
+  ParsePoint(p, obj.UCSXAxis, 16);
+  ParsePoint(p, obj.UCSYAxis, 17);
+  obj.OrthoTypes := ConsumeInt(p, 76);
+  obj.PaperId     := ConsumeStr(p, 330);
+  obj.LastVPortId := ConsumeStr(p, 331);
+  obj.UcsId       := ConsumeStr(p, 345);
+  obj.UcsOrthoId  := ConsumeStr(p, 346);
+  obj.ShadePlotId := ConsumeStr(p, 333);
 end;
 
 function ParseVarList(p: TDxfParser): TDxfValuesList;
