@@ -49,6 +49,7 @@ procedure WriteStyleTableEntry(w: TDxfWriter; e: TDxfStyleEntry);
 procedure WriteUCSTableEntry(w: TDxfWriter; e: TDxfUCSEntry);
 procedure WriteView(w: TDxfWriter; e: TDxfViewEntry);
 procedure WriteVPort(w: TDxfWriter; e: TDxfVPortEntry);
+procedure WriteLayout(w: TDxfWriter; obj: TDxfLayout);
 procedure WriteAnyEntry(w: TDxfWriter; e: TDxfTableEntry);
 
 procedure WriteTableHeader(w: TDxfWriter; tbl: TDxfTable);
@@ -60,6 +61,7 @@ procedure WriteObject(w: TDxfWriter; obj: TDxfObject);
 procedure WriteAcDbDictionaryWDFLT(w: TDxfWriter; obj: TDxfAcDbDictionaryWDFLT);
 procedure WriteAcDbPlaceholder(w: TDxfWriter; obj: TDxfAcDbPlaceholder);
 procedure WriteDictionary(w: TDxfWriter; obj: TDxfDictionary);
+procedure WriteDictionaryVar(w: TDxfWriter; obj: TDxfDictionaryVar);
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
 procedure WriteTableStyle(w: TDxfWriter; obj: TDxfTableStyle);
 procedure WriteMLineStyle(w: TDxfWriter; obj: TDxfMLineStyle);
