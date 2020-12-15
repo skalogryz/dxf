@@ -373,6 +373,14 @@ begin
   end;
 end;
 
+procedure WriteDictionaryVar(w: TDxfWriter; obj: TDxfDictionaryVar);
+begin
+  WriteObject(w, obj);
+  w.WriteStr(CB_SUBCLASS, obj.SubClass2);
+  w.WriteInt(280, obj.SchemaNum);
+  w.WriteStr(1,   obj.Value);
+end;
+
 procedure WriteXRecord(w: TDxfWriter; obj: TDxfXRecord);
 var
   i : integer;
@@ -454,6 +462,7 @@ begin
   else if obj is TDxfAcDbDictionaryWDFLT then WriteAcDbDictionaryWDFLT(w, TDxfAcDbDictionaryWDFLT(obj))
   else if obj is TDxfXRecord then WriteXRecord(w, TDxfXRecord(obj))
   else if obj is TDxfTableStyle then WriteTableStyle(w, TDxfTableStyle(obj))
+  else if obj is TDxfDictionaryVar then WriteDictionaryVar(w, TDxfDictionaryVar(obj))
   ;
 end;
 
