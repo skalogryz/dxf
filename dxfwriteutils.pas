@@ -434,7 +434,7 @@ var
 begin
   WriteObject(w, obj);
   w.WriteStr  (CB_SUBCLASS, obj.SubClass2);
-  w.WriteInt  (280, obj.VerNum );
+  WriteOptInt (w, obj.VerNum, 0, 280);
   w.WriteStr  (  3, obj.Descr  );
   w.WriteInt  ( 70, obj.FlowDir);
   w.WriteInt  ( 71, obj.Flags  );
