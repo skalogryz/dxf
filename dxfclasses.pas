@@ -157,7 +157,7 @@ type
                                 //                          16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
                                 //                          19 = Light years; 20 = Parsecs
     RelHyperLink     : string;  // ($HYPERLINKBASE  )    1  Path for all relative hyperlinks in the drawing. If null, the drawing path is used
-    //// ($STYLESHEET     )    1 - NOOO
+    StyleSheet       : string;  // ($STYLESHEET     )    1 - NOOO
     isInPlaceEditin  : Integer; // ($XEDIT          )  290 Controls whether the current drawing can be edited inplace when being referenced by another drawing.
                                 //                         0 = Can't use in-place reference editing
                                 //                         1 = Can use in-place reference editing
@@ -174,7 +174,7 @@ type
     ViewPortScale    : double; // ($PSVPSCALE      )   40   View scale factor for new viewports:
     //                           0 = Scaled to fit
     //                           >0 = Scale factor (a positive real value)
-    // ($OLESTARTUP     )  290 - NOO
+    isOLEStartup     : Integer; // ($OLESTARTUP     )  290 - NOO
   end;
 
   TDxfUserHeader = record
