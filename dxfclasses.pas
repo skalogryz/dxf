@@ -1003,7 +1003,7 @@ type
 
   TDxfDictionaryEntry = class(TObject)
     EntryName   : string;  // 3 Entry name (one for each entry) (optional)
-    Owner       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
+    RefId       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
   end;
 
   { TDxfAcDbDictionaryWDFLT }
@@ -1031,7 +1031,7 @@ type
     procedure Clear;
   end;
 
-  { TDxfDictionary}
+  { TDxfDictionary }
   //
   // DICTIONARY
   //
@@ -1369,6 +1369,7 @@ procedure RunHeaderVarProc(Header: TDxfHeader; const curVar: string; codeblock: 
 procedure DefaultHeaderVar(Header: TDxfHeader; const curVar: string; codeblock: Integer; const value: string; var Handled: Boolean);
 
 procedure DxfFileDump(dxf: TDxfFile);
+function DxfFileFindObjectName(dxf: TDxfFile; obj: TDxfObject): string;
 procedure DxfEntityDump(e: TDxfEntity; const prefix: string = '');
 
 procedure PtrAttr(const codeGroup: Integer; scanner: TDxfScanner; var pt: TDxfPoint);
@@ -1502,7 +1503,7 @@ function TDxfAcDbDictionaryWDFLT.AddEntry(const aid, aowner: string
 begin
   Result := AddEntry();
   Result.EntryName := aid;
-  Result.Owner := AOwner;
+  Result.RefId := AOwner;
 end;
 
 procedure TDxfAcDbDictionaryWDFLT.Clear;
@@ -1592,7 +1593,7 @@ function TDxfDictionary.AddEntry(const aid, aowner: string
 begin
   Result := AddEntry();
   Result.EntryName := aid;
-  Result.Owner := AOwner;
+  Result.RefId := AOwner;
 end;
 
 procedure TDxfDictionary.Clear;
@@ -1887,6 +1888,48 @@ begin
   writeln;
 end;
 
+function DxfFileFindObjectName(dxf: TDxfFile; obj: TDxfObject): string;
+var
+  i : integer;
+  j  : integer;
+  d  : TDxfDictionary;
+  pr : TDxfObject;
+begin
+  Result := '';
+  if (dxf = nil) or (obj = nil) then Exit;
+  for i:=0 to dxf.objects.Count-1 do begin
+    pr := TDxfObject(dxf.objects[i]);
+    if pr.Handle <> obj.Owner then Continue;
+    if (pr is TDxfDictionary) then begin
+      d := TDxfDictionary(pr);
+      for j := 0 to d.Entries.Count-1 do
+        if TDxfDictionaryEntry(d.Entries[j]).RefId = obj.Handle then begin
+          Result := TDxfDictionaryEntry(d.Entries[j]).EntryName;
+          Exit
+        end;
+    end;
+    Exit;
+  end;
+end;
+
+procedure DxfFileDumpObjects(dxf: TDxfFile; const ofOwner: string; const pfx: string = '');
+var
+  i  : integer;
+  ob : TDxfObject;
+  j  : integer;
+  d  : TDxfDictionary;
+begin
+  for i:=0 to dxf.objects.Count-1 do begin
+    ob := TDxfObject(dxf.objects[i]);
+    if ob.Owner = ofOwner then begin
+      write(pfx);
+      write( '"',DxfFileFindObjectName(dxf, ob),'" ',  ob.ObjectType,' (',ob.Handle,')');
+      writeln;
+      DxfFileDumpObjects(dxf, ob.Handle, pfx+'   ');
+    end;
+  end;
+end;
+
 procedure DxfFileDump(dxf: TDxfFile);
 var
   i  : integer;
@@ -1895,7 +1938,16 @@ var
   e  : TDxfEntity;
   te : TDxfTableEntry;
   b  : TDxfFileBlock;
+  ob : TDxfObject;
+  cl : TDxfClass;
 begin
+  writeln('Classes: ', dxf.classes.Count);
+  for i:=0 to dxf.classes.Count-1 do begin
+    cl := TDxfClass(dxf.classes[i]);
+    writeln('  ',cl.recName,' ',cl.cppName);
+  end;
+
+
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
     t := TDxfTable(dxf.tables[i]);
@@ -1918,6 +1970,12 @@ begin
     e := TDxfEntity(dxf.entities[i]);
     DxfEntityDump(e,'  ');
   end;
+  writelN('Objects: ', dxf.objects.Count);
+  DxfFileDumpObjects(dxf, '0', '  ');
+  //for i:=0 to dxf.objects.Count-1 do begin
+  //  ob := TDxfObject(dxf.objects[i]);
+  //  writeln('  ',ob.DisplayName,' (',ob.Handle,') owner: ', ob.Owner);
+  //end;
 end;
 
 function AllocEntity(const Name: string): TDxfEntity;

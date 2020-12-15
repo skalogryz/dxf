@@ -351,7 +351,7 @@ begin
   for i := 0 to obj.Entries.Count-1 do begin
     de := TDxfDictionaryEntry(obj.Entries[i]);
     w.WriteStr(CB_DICT_ENTRYNAME,  de.EntryName);
-    w.WriteStr(CB_DICT_ENTRYOWNER, de.Owner);
+    w.WriteStr(CB_DICT_ENTRYOWNER, de.RefId);
   end;
   w.WriteStr(CB_SUBCLASS, obj.SubClass3);
   w.WriteStr(340, obj.DefaultID);
@@ -377,9 +377,9 @@ begin
     de := TDxfDictionaryEntry(obj.Entries[i]);
     w.WriteStr(CB_DICT_ENTRYNAME,  de.EntryName);
     if de.EntryName = ACAD_XREC_ROUNDTRIP then
-      w.WriteStr(360, de.Owner)
+      w.WriteStr(360, de.RefId)
     else
-      w.WriteStr(CB_DICT_ENTRYOWNER, de.Owner);
+      w.WriteStr(CB_DICT_ENTRYOWNER, de.RefId);
   end;
 end;
 
