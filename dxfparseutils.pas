@@ -578,78 +578,84 @@ end;
 procedure ParseDimStyle(p: TDxfParser; e: TDxfDimStyleEntry);
 begin
   ParseTableEntry(p, e);
-  e.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
-  e.Dim.StyleName := ConsumeStr(p, CB_NAME);
-  e.Flags := ConsumeInt(p, CB_VARINT);
-  e.Dim.Suffix            := ConsumeStr(p,   3); //   3 DIMPOST
-  e.Dim.AltSuffix         := ConsumeStr(p,   4); //   4 DIMAPOST
-  e.Dim.ArrowBlock        := ConsumeStr(p,   5); //   5 DIMBLK (obsolete, now object ID)
-  e.Dim.ArrowBlock1       := ConsumeStr(p,   6); //   6 DIMBLK1 (obsolete, now object ID)
-  e.Dim.ArrowBlock2       := ConsumeStr(p,   7); //   7 DIMBLK2 (obsolete, now object ID)
-  e.Dim.Scale             := ConsumeFlt(p,  40); //  40 DIMSCALE
-  e.Dim.ArrowSize         := ConsumeFlt(p,  41); //  41 DIMASZ
-  e.Dim.ExtLineOfs        := ConsumeFlt(p,  42); //  42 DIMEXO
-  e.Dim.DimLineInc        := ConsumeFlt(p,  43); //  43 DIMDLI
-  e.Dim.ExtLineExt        := ConsumeFlt(p,  44); //  44 DIMEXE
-  e.Dim.RoundVal          := ConsumeFlt(p,  45); //  45 DIMRND
-  e.Dim.DimLineExt        := ConsumeFlt(p,  46); //  46 DIMDLE
-  e.Dim.PlusToler         := ConsumeFlt(p,  47); //  47 DIMTP
-  e.Dim.MinusToler        := ConsumeFlt(p,  48); //  48 DIMTM
-  e.Dim.TextHeight        := ConsumeFlt(p, 140); // 140 DIMTXT
-  e.Dim.CenterSize        := ConsumeFlt(p, 141); // 141 DIMCEN
-  e.Dim.TickSize          := ConsumeFlt(p, 142); // 142 DIMTSZ
-  e.Dim.AltScale          := ConsumeFlt(p, 143); // 143 DIMALTF
-  e.Dim.LinearScale       := ConsumeFlt(p, 144); // 144 DIMLFAC
-  e.Dim.TextVertPos       := ConsumeFlt(p, 145); // 145 DIMTVP
-  e.Dim.DispTolerance     := ConsumeFlt(p, 146); // 146 DIMTFAC
-  e.Dim.LineGap           := ConsumeFlt(p, 147); // 147 DIMGAP
-  e.Dim.RoundValAlt       := ConsumeFlt(p, 148); // 148 DIMALTRND
-  e.Dim.Tolerance         := ConsumeInt(p,  71); //  71 DIMTOL
-  e.Dim.Limits            := ConsumeInt(p,  72); //  72 DIMLIM
-  e.Dim.isTextIns         := ConsumeInt(p,  73); //  73 DIMTIH
-  e.Dim.isTextOut         := ConsumeInt(p,  74); //  74 DIMTOH
-  e.Dim.isSupExt1         := ConsumeInt(p,  75); //  75 DIMSE1
-  e.Dim.isSupExt2         := ConsumeInt(p,  76); //  76 DIMSE2
-  e.Dim.isTextAbove       := ConsumeInt(p,  77); //  77 DIMTAD
-  e.Dim.SupZeros          := ConsumeInt(p,  78); //  78 DIMZIN
-  e.Dim.ZeroSupAngUnit    := ConsumeInt(p,  79); //  79 DIMAZIN
-  e.Dim.isUseAltUnit      := ConsumeInt(p, 170); // 170 DIMALT
-  e.Dim.AltDec            := ConsumeInt(p, 171); // 171 DIMALTD
-  e.Dim.isTextOutExt      := ConsumeInt(p, 172); // 172 DIMTOFL
-  e.Dim.isUseSepArrow     := ConsumeInt(p, 173); // 173 DIMSAH
-  e.Dim.isForceTextIns    := ConsumeInt(p, 174); // 174 DIMTIX
-  e.Dim.isSuppOutExt      := ConsumeInt(p, 175); // 175 DIMSOXD
-  e.Dim.LineColor         := ConsumeInt(p, 176); // 176 DIMCLRD
-  e.Dim.ExtLineColor      := ConsumeInt(p, 177); // 177 DIMCLRE
-  e.Dim.TextColor         := ConsumeInt(p, 178); // 178 DIMCLRT
-  e.Dim.AngleDecPlaces    := ConsumeInt(p, 179); // 179 DIMADEC
-  e.Dim.__Units           := ConsumeInt(p, 270); // 270 DIMUNIT (obsolete, now use DIMLUNIT AND DIMFRAC)
-  e.Dim.DecPlacesPrim     := ConsumeInt(p, 271); // 271 DIMDEC
-  e.Dim.DecPlacesOther    := ConsumeInt(p, 272); // 272 DIMTDEC
-  e.Dim.UnitsFormat       := ConsumeInt(p, 273); // 273 DIMALTU
-  e.Dim.DecPlacesAltUnit  := ConsumeInt(p, 274); // 274 DIMALTTD
-  e.Dim.AngleFormat       := ConsumeInt(p, 275); // 275 DIMAUNIT
-  e.Dim.UnitFrac          := ConsumeInt(p, 276); // 276 DIMFRAC
-  e.Dim.Units             := ConsumeInt(p, 277); // 277 DIMLUNIT
-  e.Dim.DecSeparator      := ConsumeInt(p, 278); // 278 DIMDSEP
-  e.Dim.TextMove          := ConsumeInt(p, 279); // 279 DIMTMOVE
-  e.Dim.HorzTextJust      := ConsumeInt(p, 280); // 280 DIMJUST
-  e.Dim.isSuppLine1       := ConsumeInt(p, 281); // 281 DIMSD1
-  e.Dim.isSuppLine2       := ConsumeInt(p, 282); // 282 DIMSD2
-  e.Dim.VertJustTol       := ConsumeInt(p, 283); // 283 DIMTOLJ
-  e.Dim.ZeroSupTol        := ConsumeInt(p, 284); // 284 DIMTZIN
-  e.Dim.ZeroSupAltUnitTol := ConsumeInt(p, 285); // 285 DIMALTZ
-  e.Dim.ZeroSupAltTol     := ConsumeInt(p, 286); // 286 DIMALTTZ
-  e.Dim.__TextArrowPlace  := ConsumeInt(p, 287); // 287 DIMFIT (obsolete, now use DIMATFIT and DIMTMOVE)
-  e.Dim.isEditCursorText  := ConsumeInt(p, 288); // 288 DIMUPT
-  e.Dim.TextArrowPlace    := ConsumeInt(p, 289); // 289 DIMATFIT
-  e.Dim.TextStyle         := ConsumeStr(p, 340); // 340 DIMTXSTY (handle of referenced STYLE)
-  e.Dim.ArrowBlockLead    := ConsumeStr(p, 341); // 341 DIMLDRBLK (handle of referenced BLOCK)
-  e.Dim.ArrowBlockId      := ConsumeStr(p, 342); // DIMBLK (handle of referenced BLOCK)
-  e.Dim.ArrowBlockId1     := ConsumeStr(p, 343); // DIMBLK1 (handle of referenced BLOCK)
-  e.Dim.ArrowBlockId2     := ConsumeStr(p, 344); // DIMBLK2 (handle of referenced BLOCK)
-  e.Dim.LineWeight        := ConsumeInt(p, 371); // DIMLWD (lineweight enum value)
-  e.Dim.LineWeightExt     := ConsumeInt(p, 372); // DIMLWE (lineweight enum value)
+  while p.scanner.CodeGroup<>0 do begin
+    case p.scanner.CodeGroup of
+      CB_SUBCLASS: e.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+      CB_NAME: e.Dim.StyleName := ConsumeStr(p, CB_NAME);
+      CB_VARINT: e.Flags := ConsumeInt(p, CB_VARINT);
+        3:  e.Dim.Suffix            := ConsumeStr(p,   3); //   3 DIMPOST
+        4:  e.Dim.AltSuffix         := ConsumeStr(p,   4); //   4 DIMAPOST
+        5:  e.Dim.ArrowBlock        := ConsumeStr(p,   5); //   5 DIMBLK (obsolete, now object ID)
+        6:  e.Dim.ArrowBlock1       := ConsumeStr(p,   6); //   6 DIMBLK1 (obsolete, now object ID)
+        7:  e.Dim.ArrowBlock2       := ConsumeStr(p,   7); //   7 DIMBLK2 (obsolete, now object ID)
+       40:  e.Dim.Scale             := ConsumeFlt(p,  40); //  40 DIMSCALE
+       41:  e.Dim.ArrowSize         := ConsumeFlt(p,  41); //  41 DIMASZ
+       42:  e.Dim.ExtLineOfs        := ConsumeFlt(p,  42); //  42 DIMEXO
+       43:  e.Dim.DimLineInc        := ConsumeFlt(p,  43); //  43 DIMDLI
+       44:  e.Dim.ExtLineExt        := ConsumeFlt(p,  44); //  44 DIMEXE
+       45:  e.Dim.RoundVal          := ConsumeFlt(p,  45); //  45 DIMRND
+       46:  e.Dim.DimLineExt        := ConsumeFlt(p,  46); //  46 DIMDLE
+       47:  e.Dim.PlusToler         := ConsumeFlt(p,  47); //  47 DIMTP
+       48:  e.Dim.MinusToler        := ConsumeFlt(p,  48); //  48 DIMTM
+      140:  e.Dim.TextHeight        := ConsumeFlt(p, 140); // 140 DIMTXT
+      141:  e.Dim.CenterSize        := ConsumeFlt(p, 141); // 141 DIMCEN
+      142:  e.Dim.TickSize          := ConsumeFlt(p, 142); // 142 DIMTSZ
+      143:  e.Dim.AltScale          := ConsumeFlt(p, 143); // 143 DIMALTF
+      144:  e.Dim.LinearScale       := ConsumeFlt(p, 144); // 144 DIMLFAC
+      145:  e.Dim.TextVertPos       := ConsumeFlt(p, 145); // 145 DIMTVP
+      146:  e.Dim.DispTolerance     := ConsumeFlt(p, 146); // 146 DIMTFAC
+      147:  e.Dim.LineGap           := ConsumeFlt(p, 147); // 147 DIMGAP
+      148:  e.Dim.RoundValAlt       := ConsumeFlt(p, 148); // 148 DIMALTRND
+       71:  e.Dim.Tolerance         := ConsumeInt(p,  71); //  71 DIMTOL
+       72:  e.Dim.Limits            := ConsumeInt(p,  72); //  72 DIMLIM
+       73:  e.Dim.isTextIns         := ConsumeInt(p,  73); //  73 DIMTIH
+       74:  e.Dim.isTextOut         := ConsumeInt(p,  74); //  74 DIMTOH
+       75:  e.Dim.isSupExt1         := ConsumeInt(p,  75); //  75 DIMSE1
+       76:  e.Dim.isSupExt2         := ConsumeInt(p,  76); //  76 DIMSE2
+       77:  e.Dim.isTextAbove       := ConsumeInt(p,  77); //  77 DIMTAD
+       78:  e.Dim.SupZeros          := ConsumeInt(p,  78); //  78 DIMZIN
+       79:  e.Dim.ZeroSupAngUnit    := ConsumeInt(p,  79); //  79 DIMAZIN
+      170:  e.Dim.isUseAltUnit      := ConsumeInt(p, 170); // 170 DIMALT
+      171:  e.Dim.AltDec            := ConsumeInt(p, 171); // 171 DIMALTD
+      172:  e.Dim.isTextOutExt      := ConsumeInt(p, 172); // 172 DIMTOFL
+      173:  e.Dim.isUseSepArrow     := ConsumeInt(p, 173); // 173 DIMSAH
+      174:  e.Dim.isForceTextIns    := ConsumeInt(p, 174); // 174 DIMTIX
+      175:  e.Dim.isSuppOutExt      := ConsumeInt(p, 175); // 175 DIMSOXD
+      176:  e.Dim.LineColor         := ConsumeInt(p, 176); // 176 DIMCLRD
+      177:  e.Dim.ExtLineColor      := ConsumeInt(p, 177); // 177 DIMCLRE
+      178:  e.Dim.TextColor         := ConsumeInt(p, 178); // 178 DIMCLRT
+      179:  e.Dim.AngleDecPlaces    := ConsumeInt(p, 179); // 179 DIMADEC
+      270:  e.Dim.__Units           := ConsumeInt(p, 270); // 270 DIMUNIT (obsolete, now use DIMLUNIT AND DIMFRAC)
+      271:  e.Dim.DecPlacesPrim     := ConsumeInt(p, 271); // 271 DIMDEC
+      272:  e.Dim.DecPlacesOther    := ConsumeInt(p, 272); // 272 DIMTDEC
+      273:  e.Dim.UnitsFormat       := ConsumeInt(p, 273); // 273 DIMALTU
+      274:  e.Dim.DecPlacesAltUnit  := ConsumeInt(p, 274); // 274 DIMALTTD
+      275:  e.Dim.AngleFormat       := ConsumeInt(p, 275); // 275 DIMAUNIT
+      276:  e.Dim.UnitFrac          := ConsumeInt(p, 276); // 276 DIMFRAC
+      277:  e.Dim.Units             := ConsumeInt(p, 277); // 277 DIMLUNIT
+      278:  e.Dim.DecSeparator      := ConsumeInt(p, 278); // 278 DIMDSEP
+      279:  e.Dim.TextMove          := ConsumeInt(p, 279); // 279 DIMTMOVE
+      280:  e.Dim.HorzTextJust      := ConsumeInt(p, 280); // 280 DIMJUST
+      281:  e.Dim.isSuppLine1       := ConsumeInt(p, 281); // 281 DIMSD1
+      282:  e.Dim.isSuppLine2       := ConsumeInt(p, 282); // 282 DIMSD2
+      283:  e.Dim.VertJustTol       := ConsumeInt(p, 283); // 283 DIMTOLJ
+      284:  e.Dim.ZeroSupTol        := ConsumeInt(p, 284); // 284 DIMTZIN
+      285:  e.Dim.ZeroSupAltUnitTol := ConsumeInt(p, 285); // 285 DIMALTZ
+      286:  e.Dim.ZeroSupAltTol     := ConsumeInt(p, 286); // 286 DIMALTTZ
+      287:  e.Dim.__TextArrowPlace  := ConsumeInt(p, 287); // 287 DIMFIT (obsolete, now use DIMATFIT and DIMTMOVE)
+      288:  e.Dim.isEditCursorText  := ConsumeInt(p, 288); // 288 DIMUPT
+      289:  e.Dim.TextArrowPlace    := ConsumeInt(p, 289); // 289 DIMATFIT
+      340:  e.Dim.TextStyle         := ConsumeStr(p, 340); // 340 DIMTXSTY (handle of referenced STYLE)
+      341:  e.Dim.ArrowBlockLead    := ConsumeStr(p, 341); // 341 DIMLDRBLK (handle of referenced BLOCK)
+      342:  e.Dim.ArrowBlockId      := ConsumeStr(p, 342); // DIMBLK (handle of referenced BLOCK)
+      343:  e.Dim.ArrowBlockId1     := ConsumeStr(p, 343); // DIMBLK1 (handle of referenced BLOCK)
+      344:  e.Dim.ArrowBlockId2     := ConsumeStr(p, 344); // DIMBLK2 (handle of referenced BLOCK)
+      371:  e.Dim.LineWeight        := ConsumeInt(p, 371); // DIMLWD (lineweight enum value)
+      372:  e.Dim.LineWeightExt     := ConsumeInt(p, 372); // DIMLWE (lineweight enum value)
+    else
+      p.Next;
+    end;
+  end;
 end;
 
 procedure ParseLayerTableEntry(p: TDxfParser; e: TDxfLayerEntry);
@@ -932,18 +938,60 @@ begin
 end;
 
 procedure ParseTableStyle(p: TDxfParser; obj: TDxfTableStyle);
+var
+  c : TDxfTableCell;
+  c280: integer;
 begin
+  c := nil;
+  c280 := 0;
   ParseObject(p, obj);
-  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
-  obj.VerNum  := ConsumeInt(p, 280);
-  obj.Descr   := ConsumeStr(p, 3);
-  obj.FlowDir := ConsumeInt(p, 70);
-  obj.Flags   := ConsumeInt(p, 71);
-  obj.HorzMargin   := ConsumeFlt(p, 40);
-  obj.VertMargin   := ConsumeFlt(p, 41);
-  obj.isTitleSupp  := ConsumeInt(p, 280);
-  obj.isColHeadSupp := ConsumeInt(p, 281);
-  //todo: cells!
+  while p.scanner.CodeGroup <> 0 do begin
+    case p.scanner.CodeGroup of
+      CB_SUBCLASS:  obj.SubClass2 := ConsumeStr(p, CB_SUBCLASS);
+      3:  obj.Descr   := ConsumeStr(p, 3);
+      70:  obj.FlowDir := ConsumeInt(p, 70);
+      71:  obj.Flags   := ConsumeInt(p, 71);
+      40:  obj.HorzMargin   := ConsumeFlt(p, 40);
+      41:  obj.VertMargin   := ConsumeFlt(p, 41);
+      280: begin
+         if c280 = 0 then obj.VerNum  := ConsumeInt(p, 280)
+         else if c280 = 1 then obj.isTitleSupp  := ConsumeInt(p,  280);
+         inc(c280);
+      end;
+      281:  obj.isColHeadSupp := ConsumeInt(p, 281);
+      7: begin
+            c := obj.AddCell;
+            c.StyleName      := ConsumeStr(p, 7);
+         end;
+      140: if Assigned(c) then  c.Height         := ConsumeFlt(p, 140);
+      170: if Assigned(c) then  c.Align          := ConsumeInt(p, 170);
+       62: if Assigned(c) then  c.Color          := ConsumeInt(p,  62);
+       63: if Assigned(c) then  c.FillColor      := ConsumeInt(p,  63);
+      283: if Assigned(c) then  c.isUseFillColor := ConsumeInt(p, 283);
+       90: if Assigned(c) then  c.CellDataType   := ConsumeInt(p,  90);
+       91: if Assigned(c) then  c.CellUnit       := ConsumeInt(p,  91);
+      274: if Assigned(c) then  c.BordType1      := ConsumeInt(p, 274);
+      275: if Assigned(c) then  c.BordType2      := ConsumeInt(p, 275);
+      276: if Assigned(c) then  c.BordType3      := ConsumeInt(p, 276);
+      277: if Assigned(c) then  c.BordType4      := ConsumeInt(p, 277);
+      278: if Assigned(c) then  c.BordType5      := ConsumeInt(p, 278);
+      279: if Assigned(c) then  c.BordType6      := ConsumeInt(p, 279);
+      284: if Assigned(c) then  c.isBordVis1     := ConsumeInt(p, 284);
+      285: if Assigned(c) then  c.isBordVis2     := ConsumeInt(p, 285);
+      286: if Assigned(c) then  c.isBordVis3     := ConsumeInt(p, 286);
+      287: if Assigned(c) then  c.isBordVis4     := ConsumeInt(p, 287);
+      288: if Assigned(c) then  c.isBordVis5     := ConsumeInt(p, 288);
+      289: if Assigned(c) then  c.isBordVis6     := ConsumeInt(p, 289);
+       64: if Assigned(c) then  c.BordColor1     := ConsumeInt(p,  64);
+       65: if Assigned(c) then  c.BordColor2     := ConsumeInt(p,  65);
+       66: if Assigned(c) then  c.BordColor3     := ConsumeInt(p,  66);
+       67: if Assigned(c) then  c.BordColor4     := ConsumeInt(p,  67);
+       68: if Assigned(c) then  c.BordColor5     := ConsumeInt(p,  68);
+       69: if Assigned(c) then  c.BordColor6     := ConsumeInt(p,  69);
+    else
+      p.Next;
+    end;
+  end;
 end;
 
 procedure ScannerToVarList(sc: TDxfScanner; dst: TDxfValuesList);
