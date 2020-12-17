@@ -197,7 +197,7 @@ type
     MultiLineJust       : Integer; // ($CMLJUST)   Current multiline justification:
     MultiLineScale      : double;  // ($CMLSCALE)  Current multiline scale
     EntLineType         : string;  // ($CELTYPE)   Entity linetype name, or BYBLOCK or BYLAYER
-    TextStyle           : string;  // ($TEXTSTYLE) Current text style name
+    TextStyle           : string;  // ($TEXTSTYLE) Current text style name. "STANDARD" is considered to be the default;
     EntColor            : Integer; // ($CECOLOR)   Current entity color number:  0 = BYBLOCK; 256 = BYLAYER
     EntLineTypeScale    : Double;  // ($CELTSCALE) Current entity linetype scale
     DispSilhMode        : Integer; // ($DISPSILH)  Controls the display of silhouette curves of body objects in

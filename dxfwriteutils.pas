@@ -20,6 +20,8 @@ procedure WriteOptStr(w: TDxfWriter; const v, def: string; codeGroup: integer);
 // otherwise returns check
 function IfEmpt(const check, def: string): string; inline;
 
+// SNE - String Not Empty
+procedure WriteHeaderVarSNE(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
 procedure WriteHeaderVarStr(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
 procedure WriteHeaderVarInt(w: TDxfWriter; const Name: string; v: Integer; codeGroup: Integer);
 procedure WriteHeaderVarFlt(w: TDxfWriter; const Name: string; v: double; codeGroup: Integer = CB_VARFLOAT);
@@ -165,6 +167,12 @@ begin
   w.WriteStr(codeGroup, v);
 end;
 
+procedure WriteHeaderVarSNE(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
+begin
+  if v = '' then Exit;
+  WriteHeaderVarStr(w, Name, v, codeGroup);
+end;
+
 procedure WriteHeaderVarInt(w: TDxfWriter; const Name: string; v: Integer; codeGroup: Integer);
 begin
   w.WriteStr(CB_VARNAME, Name);
@@ -194,13 +202,13 @@ end;
 procedure WriteHeaderVarSpace(w: TDxfWriter; const hdr: TDxfSpacingHeader; isPaper: Boolean);
 begin
   if isPaper then begin
-    WriteHeaderVarStr(w, vPUCSBASE      , hdr.Base, 2);
-    WriteHeaderVarStr(w, vPUCSNAME      , hdr.Name, 2);
+    WriteHeaderVarSNE(w, vPUCSBASE      , hdr.Base, 2);
+    WriteHeaderVarSNE(w, vPUCSNAME      , hdr.Name, 2);
     WriteHeaderVarPnt(w, vPUCSORG       , hdr.Origin);
     WriteHeaderVarPnt(w, vPUCSXDIR      , hdr.XDir);
     WriteHeaderVarPnt(w, vPUCSYDIR      , hdr.YDir);
 
-    WriteHeaderVarStr(w, vPUCSORTHOREF  , hdr.OrthoRef, 2);
+    WriteHeaderVarSNE(w, vPUCSORTHOREF  , hdr.OrthoRef, 2);
     WriteHeaderVarInt(w, vPUCSORTHOVIEW , hdr.OrthoView, CB_VARINT);
     WriteHeaderVarPnt(w, vPUCSORGTOP    , hdr.OriginTop);
     WriteHeaderVarPnt(w, vPUCSORGBOTTOM , hdr.OriginBottom);
@@ -210,13 +218,13 @@ begin
     WriteHeaderVarPnt(w, vPUCSORGFRONT  , hdr.OriginFront);
     WriteHeaderVarPnt(w, vPUCSORGBACK   , hdr.OriginBack);
   end else begin
-    WriteHeaderVarStr(w, vUCSBASE      , hdr.Base, 2);
-    WriteHeaderVarStr(w, vUCSNAME      , hdr.Name, 2);
+    WriteHeaderVarSNE(w, vUCSBASE      , hdr.Base, 2);
+    WriteHeaderVarSNE(w, vUCSNAME      , hdr.Name, 2);
     WriteHeaderVarPnt(w, vUCSORG       , hdr.Origin);
     WriteHeaderVarPnt(w, vUCSXDIR      , hdr.XDir);
     WriteHeaderVarPnt(w, vUCSYDIR      , hdr.YDir);
 
-    WriteHeaderVarStr(w, vUCSORTHOREF  , hdr.OrthoRef, 2);
+    WriteHeaderVarSNE(w, vUCSORTHOREF  , hdr.OrthoRef, 2);
     WriteHeaderVarInt(w, vUCSORTHOVIEW , hdr.OrthoView, CB_VARINT);
     WriteHeaderVarPnt(w, vUCSORGTOP    , hdr.OriginTop);
     WriteHeaderVarPnt(w, vUCSORGBOTTOM , hdr.OriginBottom);
@@ -616,13 +624,14 @@ begin
   WriteHeaderVarInt(w, vFILLMODE,     header.Base.isFill,          CB_VARINT);
   WriteHeaderVarInt(w, vQTEXTMODE,    header.Base.isQText,         CB_VARINT);
   WriteHeaderVarInt(w, vMIRRTEXT,     header.Base.isMirrText,      CB_VARINT);
+
   WriteHeaderVarFlt(w, vLTSCALE,      header.Base.LineTypeScale);
   WriteHeaderVarInt(w, vATTMODE,      header.Base.AttrVisMode,     CB_VARINT);
   WriteHeaderVarFlt(w, vTEXTSIZE,     header.Base.TextHeight,      CB_VARFLOAT);
   WriteHeaderVarFlt(w, vTRACEWID,     header.Base.TraceWidth,      CB_VARFLOAT);
-  WriteHeaderVarStr(w, vTEXTSTYLE,    header.Sel.TextStyle,        7);
-  WriteHeaderVarStr(w, vCLAYER,       header.Sel.Layer,            CB_LAYERNAME);
-  WriteHeaderVarStr(w, vCELTYPE,      header.Sel.EntLineType,      6);
+  WriteHeaderVarSNE(w, vTEXTSTYLE,    header.Sel.TextStyle,        7);
+  WriteHeaderVarSNE(w, vCLAYER,       header.Sel.Layer,            CB_LAYERNAME);
+  WriteHeaderVarSNE(w, vCELTYPE,      header.Sel.EntLineType,      6);
   WriteHeaderVarInt(w, vCECOLOR,      header.Sel.EntColor,         62);
   WriteHeaderVarFlt(w, vCELTSCALE,    header.Sel.EntLineTypeScale);
   WriteHeaderVarInt(w, vDISPSILH,     header.Sel.DispSilhMode,     CB_VARINT);
@@ -695,13 +704,14 @@ begin
   WriteHeaderVarInt(w, vDIMLWE       ,header.Dim.LineWeightExt   , CB_VARINT);
   WriteHeaderVarInt(w, vDIMTMOVE     ,header.Dim.TextMove        , CB_VARINT);
 
+
   WriteHeaderVarInt(w, vLUNITS       ,header.Base.DistFormat     , CB_VARINT);
   WriteHeaderVarInt(w, vLUPREC       ,header.base.DistPrec       , CB_VARINT);
   WriteHeaderVarFlt(w, vSKETCHINC    ,header.base.SketchInc      );
   WriteHeaderVarFlt(w, vFILLETRAD    ,header.base.FilletRadius   );
   WriteHeaderVarInt(w, vAUNITS       ,header.base.AnglesFormat   , CB_VARINT);
   WriteHeaderVarInt(w, vAUPREC       ,header.base.AnglesPrec     , CB_VARINT);
-  WriteHeaderVarStr(w, vMENU         ,header.base.MenuName       , 1);
+  WriteHeaderVarSNE(w, vMENU         ,header.base.MenuName       , 1);
   WriteHeaderVarFlt(w, vELEVATION    ,header.Sel.Elev      );
   WriteHeaderVarFlt(w, vPELEVATION   ,header.sel.PaperElev );
   WriteHeaderVarFlt(w, vTHICKNESS    ,header.sel.Thickness );
@@ -736,8 +746,8 @@ begin
   WriteHeaderVarInt(w, vSURFU        ,header.base.SurfDensityM   , CB_VARINT);
   WriteHeaderVarInt(w, vSURFV        ,header.base.SurfDensityN   , CB_VARINT);
 
-  WriteHeaderVarSpace(w, header.Ucs, false);
-  WriteHeaderVarSpace(w, header.PUcs, true);
+  //WriteHeaderVarSpace(w, header.Ucs, false);
+  //WriteHeaderVarSpace(w, header.PUcs, true);
 
   WriteHeaderVarInt(w, vUSERI1       ,header.User.I1, CB_VARINT);
   WriteHeaderVarInt(w, vUSERI2       ,header.User.I2, CB_VARINT);
@@ -749,6 +759,8 @@ begin
   WriteHeaderVarFlt(w, vUSERR3       ,header.User.R3, CB_VARFLOAT);
   WriteHeaderVarFlt(w, vUSERR4       ,header.User.R4, CB_VARFLOAT);
   WriteHeaderVarFlt(w, vUSERR5       ,header.User.R5, CB_VARFLOAT);
+
+  exit;
 
   WriteHeaderVarInt(w, vWORLDVIEW       ,header.Base.isWorldView      ,CB_VARINT);
   WriteHeaderVarInt(w, vSHADEDGE        ,header.Base.ShadeEdge        ,CB_VARINT);
