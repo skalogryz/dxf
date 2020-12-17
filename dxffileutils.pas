@@ -6,6 +6,9 @@ uses
   Types, SysUtils, Classes,
   dxftypes, dxfclasses, HashStrings;
 
+const
+  DEFAULT_LAYER = '0';  // this is Layer Name
+
 procedure AddDefaultObjects(dxf: TDxfFile);
 procedure AddDefaultBlocks(dxf: TDxfFile);
 
@@ -18,7 +21,9 @@ procedure AddDefaultClasses(dxf: TDxfFile);
 // to include the latest "filled" handle
 procedure FillHandles(dxf: TDxfFile; UpdateHeader: Boolean = true);
 
-function AddLine(afile: TDxfFile; const p1, p2: TPoint): TDxfLine;
+function AddLine(afile: TDxfFile; const p1, p2: TPoint; const ALayerName: string = DEFAULT_LAYER): TDxfLine;
+function AddPolyLine(afile: TDxfFile; const p: array of TPoint; const ALayerName: string = DEFAULT_LAYER): TDxfPolyLine;
+function AddEndSeq(afile : TDxfFile; const ALayerName: string = DEFAULT_LAYER): TDxfSeqEnd;
 
 procedure PointToDfxPoint(const src: TPoint; var dst: TDxfPoint; z: double = 0);
 
@@ -107,12 +112,37 @@ begin
   c.cppName := 'AcDbTableStyle';
 end;
 
-function AddLine(afile: TDxfFile; const p1, p2: TPoint): TDxfLine;
+function AddLine(afile: TDxfFile; const p1, p2: TPoint; const ALayerName: string): TDxfLine;
 begin
   Result:=TDxfLine.Create;
   PointToDfxPoint(p1, Result.StartPoint);
   PointToDfxPoint(p2, Result.EndPoint);
+  Result.LayerName := ALayerName;
   afile.AddEntity(Result);
+end;
+
+function AddPolyLine(afile: TDxfFile; const p: array of TPoint; const ALayerName: string = DEFAULT_LAYER): TDxfPolyLine;
+var
+  i : integer;
+  v : TDxfVertex;
+begin
+  Result := TDxfPolyLine.Create;
+  Result.LayerName := ALayerName;
+  afile.AddEntity(Result);
+  for i:=0 to length(p)-1 do begin
+    v := TDxfVertex.Create;
+    v.LayerName := AlayerName;
+    PointToDfxPoint(p[i], v.Location);
+    afile.AddEntity(v);
+  end;
+  AddEndSeq(afile, ALayerName);
+end;
+
+function AddEndSeq(afile : TDxfFile; const ALayerName: string = DEFAULT_LAYER): TDxfSeqEnd;
+begin
+  Result := TDxfSeqEnd.Create;
+  Result.LayerName := ALayerName;
+  afile.AddEntity( Result );
 end;
 
 procedure PointToDfxPoint(const src: TPoint; var dst: TDxfPoint; z: double);
