@@ -1015,18 +1015,39 @@ type
   end;
 
 
+  TDxfDictionaryBase = class;
+
+  { TDxfDictionaryEntry }
 
   TDxfDictionaryEntry = class(TObject)
+  private
+    _Owner:  TDxfDictionaryBase;
+    fRef  :  TDxfBase;
+  protected
+    procedure SetRef(ARef: TDxfBase);
+  public
     EntryName   : string;  // 3 Entry name (one for each entry) (optional)
     RefId       : string;  // 350 Soft-owner ID/handle to entry object (one for each entry) (optional)
-    _Ref        : TDxfBase; // the actual reference. It's nil right after file loads
+    constructor Create(AOwner: TDxfDictionaryBase);
+    property _Ref : TDxfBase read fRef write SetRef; // the actual reference. It's nil right after file loads
+  end;
+
+  { TDxfDictionaryBase }
+
+  TDxfDictionaryBase = class(TDxfObject)
+    Entries     : TList;   // (3, 350)
+    constructor Create(const AObjectType: string);
+    destructor Destroy; override;
+    function AddEntry: TDxfDictionaryEntry; overload;
+    function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
+    procedure Clear;
   end;
 
   { TDxfAcDbDictionaryWDFLT }
   //
   //ACDBDICTIONARYWDFLT
   //
-  TDxfAcDbDictionaryWDFLT = class(TDxfObject)
+  TDxfAcDbDictionaryWDFLT = class(TDxfDictionaryBase)
     SubClass2   : string;  // 100 Subclass marker (AcDbDictionary)
     CloneFlag   : Integer; // 281 Duplicate record cloning flag (determines how to merge duplicate entries):
                            // 0 = Not applicable
@@ -1035,16 +1056,12 @@ type
                            // 3 = <xref>$0$<name>
                            // 4 = $0$<name>
                            // 5 = Unmangle name
-    Entries     : TList;   // (3, 350)
 
     SubClass3   : string;  // 100 Subclass marker (AcDbDictionaryWithDefault)
     DefaultID   : string;  // 340 Hard pointer to default object ID/handle (currently only used for plot
                            //     style dictionary's default entry, named “Normal”)
+    //Entries     : TList; // 3 and 350, see at TDxfDictionaryEntry
     constructor Create(const AObjectType: string = OT_ACDBDICTIONARYWDFLT);
-    destructor Destroy; override;
-    function AddEntry: TDxfDictionaryEntry; overload;
-    function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
-    procedure Clear;
   end;
 
   { TDxfDictionary }
@@ -1058,7 +1075,7 @@ type
   // reserved for use by AutoCAD applications.
 
 
-  TDxfDictionary = class(TDxfObject)
+  TDxfDictionary = class(TDxfDictionaryBase)
     SubClass2   : string;  // 100 Subclass marker (AcDbDictionary)
     isHardOwner : Integer; // 280 Hard-owner flag. If set to 1, indicates that elements of the dictionary are to be treated as hardowned
     CloneFlag   : Integer; // 281 Duplicate record cloning flag (determines how to merge duplicate entries):
@@ -1068,13 +1085,9 @@ type
                            // 3 = <xref>$0$<name>
                            // 4 = $0$<name>
                            // 5 = Unmangle name
-    // 3 and 350, see at TDxfDictionaryEntry
-    Entries     : TList;
+    // Entries     : TList; // 3 and 350, see at TDxfDictionaryEntry
+
     constructor Create(const AObjectType: string = OT_DICTIONARY);
-    destructor Destroy; override;
-    function AddEntry: TDxfDictionaryEntry; overload;
-    function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
-    procedure Clear;
   end;
 
   //DIMASSOC
@@ -1418,6 +1431,59 @@ begin
     and isSameDbl(a.z,b.z, epsilon);
 end;
 
+{ TDxfDictionaryBase }
+
+constructor TDxfDictionaryBase.Create(const AObjectType: string);
+begin
+  inherited Create(AObjectType);
+  Entries:=TList.Create;
+end;
+
+destructor TDxfDictionaryBase.Destroy;
+begin
+  Clear;
+  Entries.Free;
+  inherited Destroy;
+end;
+
+function TDxfDictionaryBase.AddEntry: TDxfDictionaryEntry;
+begin
+  Result := TDxfDictionaryEntry.Create(Self);
+  Entries.Add(Result);
+end;
+
+function TDxfDictionaryBase.AddEntry(const aid, aowner: string
+  ): TDxfDictionaryEntry;
+begin
+  Result := AddEntry();
+  Result.EntryName := aid;
+  Result.RefId := AOwner;
+end;
+
+procedure TDxfDictionaryBase.Clear;
+var
+  i : integer;
+begin
+  for i:=0 to Entries.Count-1 do
+    TObject(Entries[i]).Free;
+  Entries.Clear;
+end;
+
+{ TDxfDictionaryEntry }
+
+procedure TDxfDictionaryEntry.SetRef(ARef: TDxfBase);
+begin
+  fRef := ARef;
+  if Assigned(fRef) then
+    fRef._Owner := _Owner;
+end;
+
+constructor TDxfDictionaryEntry.Create(AOwner: TDxfDictionaryBase);
+begin
+  inherited Create;
+  _Owner := AOwner;
+end;
+
 { TDxfSeqEnd }
 
 constructor TDxfSeqEnd.Create(const AEntityType: string);
@@ -1544,37 +1610,6 @@ end;
 constructor TDxfAcDbDictionaryWDFLT.Create(const AObjectType: string = OT_ACDBDICTIONARYWDFLT);
 begin
   inherited Create(AObjectType);
-  Entries := TList.Create;
-end;
-
-destructor TDxfAcDbDictionaryWDFLT.Destroy;
-begin
-  Clear;
-  Entries.Free;
-  inherited Destroy;
-end;
-
-function TDxfAcDbDictionaryWDFLT.AddEntry: TDxfDictionaryEntry;
-begin
-  Result := TDxfDictionaryEntry.Create;
-  Entries.Add(Result);
-end;
-
-function TDxfAcDbDictionaryWDFLT.AddEntry(const aid, aowner: string
-  ): TDxfDictionaryEntry;
-begin
-  Result := AddEntry();
-  Result.EntryName := aid;
-  Result.RefId := AOwner;
-end;
-
-procedure TDxfAcDbDictionaryWDFLT.Clear;
-var
-  i : integer;
-begin
-  for i:=0 to Entries.Count-1 do
-    TObject(Entries[i]).Free;
-  Entries.Clear;
 end;
 
 { TDxfObject }
@@ -1650,41 +1685,10 @@ end;
 
 { TDxfDictionary }
 
-function TDxfDictionary.AddEntry: TDxfDictionaryEntry;
-begin
-  Result := TDxfDictionaryEntry.Create;
-  Entries.Add(Result);
-end;
-
-function TDxfDictionary.AddEntry(const aid, aowner: string
-  ): TDxfDictionaryEntry;
-begin
-  Result := AddEntry();
-  Result.EntryName := aid;
-  Result.RefId := AOwner;
-end;
-
-procedure TDxfDictionary.Clear;
-var
-  i : integer;
-begin
-  for i:=0 to Entries.Count-1 do
-    TObject(Entries[i]).Free;
-  Entries.Clear;
-end;
-
 constructor TDxfDictionary.Create(const AObjectType: string);
 begin
   inherited Create(AObjectType);
-  Entries := TList.Create;
   SubClass2 := CLS_AcDbDictionary;
-end;
-
-destructor TDxfDictionary.Destroy;
-begin
-  Clear;
-  Entries.Free;
-  inherited Destroy;
 end;
 
 { TDxfVPortEntry }
@@ -1842,6 +1846,7 @@ begin
     Exit;
   end;
   Result := _Items.Add(obj);
+  obj._Owner := Self;
 end;
 
 procedure TDxfTable.Clear;
