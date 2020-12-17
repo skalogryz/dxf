@@ -597,6 +597,11 @@ const
   Linewieght_ByBlock  = -1;
   // 0-211 = an integer representing 100th of mm
 
+const
+  CODEPAGE_ANSI_1251 = 'ANSI_1251';
+  DEFAULT_CODEPAGE   = CODEPAGE_ANSI_1251;
+  DEFAULT_TEXTSTYLE  = 'STANDARD'; // used for TextStyles Block or Header vars
+
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;
