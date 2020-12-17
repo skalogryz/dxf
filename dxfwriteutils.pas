@@ -37,7 +37,8 @@ procedure WriteEntityBase(w: TDxfWriter; e: TDxfEntity);
 
 procedure WriteLine(w: TDxfWriter; l: TDxfLine);
 procedure WriteCircle(w: TDxfWriter; c: TDxfCircle);
-
+procedure WriteVertex(w: TDxfWriter; e: TDxfVertex);
+procedure WritePolyLine(w: TDxfWriter; e: TDxfPolyLine);
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
 
@@ -282,7 +283,7 @@ begin
   WriteOptStr(w, e.PlotObj,      '', 390);
   WriteOptInt(w, e.ShadowMode,   0,  284);
 
-  w.WriteStr(100, e.Subclass2);
+  WriteOptStr(w, e.Subclass2,    '', 100); // todo: SubClass2 should be on a higher level
 end;
 
 procedure WriteLine(w: TDxfWriter; l: TDxfLine);
@@ -303,11 +304,57 @@ begin
   WriteExtrusionPoint(w, c.Extrusion);
 end;
 
+procedure WriteVertex(w: TDxfWriter; e: TDxfVertex);
+begin
+  WriteEntityBase(w, e);
+  w.WriteStr(100, e.SubClass3);
+  if e.Subclass3 = CLS_AcDb2dVertex then
+    WritePoint2D(w, e.Location, 10)
+  else
+    WritePoint(w, e.Location, 10);
+  WriteOptFlt(w, e.StartWidth  ,0, 40);
+  WriteOptFlt(w, e.EndWidth    ,0, 41);
+  WriteOptFlt(w, e.Buldge      ,0, 42);
+  WriteOptInt(w, e.Flags       ,0, 70);
+  WriteOptFlt(w, e.TangentDir  ,0, 50);
+  WriteOptInt(w, e.PolyFace[0] ,0, 71);
+  WriteOptInt(w, e.PolyFace[1] ,0, 72);
+  WriteOptInt(w, e.PolyFace[2] ,0, 73);
+  WriteOptInt(w, e.PolyFace[3] ,0, 74);
+  WriteOptInt(w, e.VertexId    ,0, 91);
+end;
+
+procedure WritePolyLine(w: TDxfWriter; e: TDxfPolyLine);
+begin
+  WriteEntityBase(w, e);
+  WriteOptInt(w, e.ObsFlag, 0, 66);
+  if e.Subclass2 = CLS_AcDb3dPolyline then
+    WritePoint(w, e.ElevPoint, 10)
+  else
+    WritePoint2D(w, e.ElevPoint, 10);
+  WriteOptFlt(w, e.Thickness,  0, CB_THICKNESS);
+  WriteOptInt(w, e.PolyFlags,  0, CB_FLAGS);
+  WriteOptFlt(w, e.StartWidth, 0, 40);
+  WriteOptFlt(w, e.EndWidth,   0, 41);
+
+  WriteoptInt(w, e.MCount     ,0, 71);
+  WriteoptInt(w, e.NCount     ,0, 72);
+  WriteoptInt(w, e.MDensity   ,0, 73);
+  WriteoptInt(w, e.NDensity   ,0, 74);
+  WriteoptInt(w, e.SurfType   ,0, 75);
+
+  WriteExtrusionPoint(w, e.Extrusion);
+end;
+
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 begin
   if not Assigned(w) or not Assigned(e) then Exit;
   if e is TDxfLine then WriteLine(w, TDxfLine(e))
   else if e is TDxfCircle then  WriteCircle(w, TDxfCircle(e))
+  else if e is TDxfSeqEnd then  WriteEntityBase(w, e)
+  else if e is TDxfVertex then  WriteVertex(w, TDxfVertex(e))
+  else if e is TDxfPolyLine then  WritePolyLine(w, TDxfPolyLine(e))
+  ;
 end;
 
 procedure WriteEntityList(w: TDxfWriter; lst: TList);
