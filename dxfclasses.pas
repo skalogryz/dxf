@@ -931,7 +931,7 @@ type
     NDensity   : Integer;
     SurfType   : Integer;
     Extrusion  : TDxfPoint; //
-    constructor Create(const AEntityType: string = ET_POLYLINE);
+    constructor Create(const PLineClass: string = CLS_AcDb2dPolyline; const AEntityType: string = ET_POLYLINE);
   end;
 
   { TDxfVertex }
@@ -945,8 +945,14 @@ type
     Flags      : Integer; // 70
     TangentDir : Double; // 50
     PolyFace   : array [0..3] of Integer; // 71..74
-    VertexIdx  : Integer; // 91
-    constructor Create(const AEntityType: string = ET_VERTEX);
+    VertexId   : Integer; // 91
+    constructor Create(const VtxClass: string = CLS_AcDb2dVertex; const AEntityType: string = ET_VERTEX);
+  end;
+
+  { TDxfSeqEnd }
+
+  TDxfSeqEnd = class(TDxfEntity)
+    constructor Create(const AEntityType: string = ET_SEQEND);
   end;
 
   { TDxfFileBlock }
@@ -1412,6 +1418,13 @@ begin
     and isSameDbl(a.z,b.z, epsilon);
 end;
 
+{ TDxfSeqEnd }
+
+constructor TDxfSeqEnd.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+end;
+
 { TDxfDictionaryVar }
 
 constructor TDxfDictionaryVar.Create(const AObjectType: string);
@@ -1772,16 +1785,20 @@ end;
 
 { TDxfVertex }
 
-constructor TDxfVertex.Create(const AEntityType: string);
+constructor TDxfVertex.Create(const VtxClass, AEntityType: string);
 begin
-  inherited Create(AEntityType)
+  inherited Create(AEntityType);
+  Self.SubClass2 := CLS_AcDbVertex;
+  Self.SubClass3 := VtxClass;
 end;
 
 { TDxfPolyLine }
 
-constructor TDxfPolyLine.Create(const AEntityType: string);
+constructor TDxfPolyLine.Create(const PLineClass, AEntityType: string);
 begin
   inherited Create(AEntityType);
+  Self.Subclass2:=PLineClass;
+  Extrusion := DefExtrusionPoint;
 end;
 
 { TDxfInsert }
