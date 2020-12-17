@@ -604,6 +604,21 @@ const
   Linewieght_ByBlock  = -1;
   // 0-211 = an integer representing 100th of mm
 
+  //Polyline flag (bit-coded; default = 0):
+  Polyline_Closed     = 1;   // This is a closed polyline (or a polygon mesh closed in the M direction)
+  Polyline_Curve      = 2;   // Curve-fit vertices have been added
+  Polyline_Spline     = 4;   // Spline-fit vertices have been added
+  Polyline_3d         = 8;   // This is a 3D polyline
+  Polyline_2dMesh     = 16;  // This is a 3D polygon mesh
+  Polyline_ClosedMesh = 32;  // The polygon mesh is closed in the N direction
+  Polyline_Polyface   = 64;  // The polyline is a polyface mesh
+  Polyline_ContLType  = 128; // The linetype pattern is generated continuously around the vertices of this polyline
+
+  SurfType_Nosmooth    = 0;  // No smooth surface fitted
+  SurfType_QuadBSpline = 5;  // Quadratic B-spline surface
+  SutfType_CubicBSplne = 6;  // Cubic B-spline surface
+  SurfType_Bezier      = 8;  // Bezier surface
+
 const
   CODEPAGE_ANSI_1251 = 'ANSI_1251';
   DEFAULT_CODEPAGE   = CODEPAGE_ANSI_1251;
