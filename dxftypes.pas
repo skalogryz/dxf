@@ -591,6 +591,13 @@ const
   CLS_AcDbLayout                = 'AcDbLayout';
   CLS_AcDbTableStyle            = 'AcDbTableStyle';
   CLS_AcDbSymbolTable           = 'AcDbSymbolTable';
+  CLS_AcDbEntity                = 'AcDbEntity';
+  CLS_AcDbLine                  = 'AcDbLine';
+  CLS_AcDbVertex                = 'AcDbVertex';
+  CLS_AcDb2dVertex              = 'AcDb2dVertex';
+  CLS_AcDb3dPolylineVertex      = 'AcDb3dPolylineVertex';
+  CLS_AcDb2dPolyline            = 'AcDb2dPolyline';
+  CLS_AcDb3dPolyline            = 'AcDb3dPolyline';
 
   Lineweight_Standard = -3;
   Lineweight_ByLayer  = -2;
