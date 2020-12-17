@@ -14,7 +14,9 @@ procedure NormalizeBlocks(dxf : TDxfFile);
 procedure AddDefaultTables(dxf: TDxfFile);
 procedure AddDefaultClasses(dxf: TDxfFile);
 
-procedure FillHandles(dxf: TDxfFile);
+// UpdateHeader indicates if "HandleSeed" of the dxf file should be updated
+// to include the latest "filled" handle
+procedure FillHandles(dxf: TDxfFile; UpdateHeader: Boolean = true);
 
 function AddLine(afile: TDxfFile; const p1, p2: TPoint): TDxfLine;
 
@@ -120,6 +122,16 @@ begin
   dst.z := z;
 end;
 
+function HandleToInt(const it: string): Integer;
+var
+  err : integer;
+begin
+  err := 0;
+  Result := 0;
+  Val('$'+it, Result, err);
+  if err <> 0 then Result := 0;
+end;
+
 function IntToHandle(it: integer): string;
 var
   i : integer;
@@ -134,17 +146,28 @@ begin
   Result := Copy(Result, i, length(Result));
 end;
 
-procedure FillHandles(dxf: TDxfFile);
+procedure FillHandles(dxf: TDxfFile; UpdateHeader: Boolean);
 var
   i : integer;
   e : TDxfBase;
   h : integer;
+  h2 : integer;
   l : TList;
 begin
   h:=32;
   l:=TList.Create;
   try
     GatherDxfBase(dxf, l);
+
+    // making sure the seed is the latest handle
+    for i:=0 to l.Count-1 do begin
+      e := TDxfBase(l[i]);
+      if e.Handle<>'' then begin
+        h2 := HandleToInt(e.Handle);
+        if h2 > h then h:=h2+1; // try the next!
+      end;
+    end;
+
     for i:=0 to l.Count-1 do begin
       e := TDxfBase(l[i]);
       if e.Handle = '' then begin
@@ -152,6 +175,9 @@ begin
         inc(h);
       end;
     end;
+
+    if UpdateHeader then
+      dxf.header.Base.NextHandle := IntToHandle(h);
   finally
     l.Free;
   end;
@@ -475,20 +501,21 @@ procedure DefaultHeader(var h: TDxfHeader);
 begin
   h.acad.Version := ACAD_VER_2000;
   h.acad.MaintVer := 6;
-  h.Base.CodePage := 'ANSI_1251';
+  h.Base.CodePage := DEFAULT_CODEPAGE;
   H.BASE.ExtLowLeft.x:=-2.5;
   H.BASE.ExtLowLeft.Y:=-2.5;
   H.BASE.ExtUpRight.x:=+2.5;
   H.BASE.ExtUpRight.Y:=+2.5;
   H.BASE.LimUpRight.x:=420;
   H.BASE.LimUpRight.Y:=297;
-  {
   h.base.isRegen := 1;
   h.base.isFill := 1;
   h.base.LineTypeScale := 1;
   h.base.AttrVisMode := 1;
-  h.Sel.TextStyle := 'STANDARD';
+  h.Sel.TextStyle := DEFAULT_TEXTSTYLE;  // this must be non-empty valid style!
+
   h.sel.Layer := '0';
+  {
   h.Sel.EntLineType := 'ByLayer'; // reference to LType
   h.Sel.EntColor := CECOLOR_BYLAYER;
   h.Dim.Scale := 1;
