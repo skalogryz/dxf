@@ -249,7 +249,7 @@ begin
   v.PolyFace[1] := ConsumeInt(p, 72);
   v.PolyFace[2] := ConsumeInt(p, 73);
   v.PolyFace[3] := ConsumeInt(p, 74);
-  v.VertexIdx   := ConsumeInt(p, 91)
+  v.VertexId    := ConsumeInt(p, 91)
 end;
 
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
