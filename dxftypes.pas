@@ -585,6 +585,18 @@ const
   GROUPLIST_REACTORS    = '{ACAD_REACTORS';
   GROUPLIST_XDICTIONARY = '{ACAD_XDICTIONARY';
 
+  CLS_AcDbDictionary            = 'AcDbDictionary';
+  CLS_AcDbDictionaryWithDefault = 'AcDbDictionaryWithDefault';
+  CLS_AcDbPlaceHolder           = 'AcDbPlaceHolder';
+  CLS_AcDbLayout                = 'AcDbLayout';
+  CLS_AcDbTableStyle            = 'AcDbTableStyle';
+  CLS_AcDbSymbolTable           = 'AcDbSymbolTable';
+
+  Lineweight_Standard = -3;
+  Lineweight_ByLayer  = -2;
+  Linewieght_ByBlock  = -1;
+  // 0-211 = an integer representing 100th of mm
+
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;
