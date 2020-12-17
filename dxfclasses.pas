@@ -1880,6 +1880,7 @@ procedure TDxfFile.AddEntity(ent: TDxfEntity);
 begin
   if not Assigned(ent) then Exit;
   entities.Add(ent);
+  ent._Owner := nil; // the base file is the owner
 end;
 
 function TDxfFile.AddBlock: TDxfFileBlock;
@@ -2088,6 +2089,7 @@ end;
 constructor TDxfLine.Create(const AEntityType: string);
 begin
   inherited Create(AEntityType);
+  Subclass2 := CLS_AcDbLine;
 end;
 
 { TDxfEntity }
@@ -2096,6 +2098,7 @@ constructor TDxfEntity.Create(const AEntityType: string);
 begin
   inherited Create;
   Self.EntityType := AEntityType;
+  Self.SubClass := CLS_AcDbEntity;
 end;
 
 
