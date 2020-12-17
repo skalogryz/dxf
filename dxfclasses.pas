@@ -514,10 +514,10 @@ type
 
   TDxfTable = class(TDxfBase)
   private
-    fItems: TList;
     function GetObject(i: integer): TDxfTableEntry;
     function GetCount: Integer;
   public
+    _Items: TList;
     Name   : string;
     //Handle : string;
     //Owner  : string;
@@ -979,9 +979,11 @@ type
                                   // 360 Hard-owner ID/handle to owner dictionary (optional)
                                   // 102 End of group, "}" (optional)
     //Owner       : string;         // 330 Soft-pointer ID/handle to owner object
-
+    constructor Create(const AObjectType: string = '');
     destructor Destroy; override;
   end;
+
+  { TDxfAcadProxyObject }
 
   TDxfAcadProxyObject = class(TDxfObject)
     SubClass2 : string;   // 100 DXF: Subclass marker (AcDbProxyObject)
@@ -1003,6 +1005,7 @@ type
                           // 0 = DWG format
                           // 1 = DXF format
                           // The 92 field is not used for AcDbProxyObject. Objects of this class never have graphics.
+    constructor Create(const AObjectType: string = OT_ACAD_PROXY_OBJECT);
   end;
 
 
@@ -1031,7 +1034,7 @@ type
     SubClass3   : string;  // 100 Subclass marker (AcDbDictionaryWithDefault)
     DefaultID   : string;  // 340 Hard pointer to default object ID/handle (currently only used for plot
                            //     style dictionary's default entry, named “Normal”)
-    constructor Create;
+    constructor Create(const AObjectType: string = OT_ACDBDICTIONARYWDFLT);
     destructor Destroy; override;
     function AddEntry: TDxfDictionaryEntry; overload;
     function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
@@ -1061,7 +1064,7 @@ type
                            // 5 = Unmangle name
     // 3 and 350, see at TDxfDictionaryEntry
     Entries     : TList;
-    constructor Create;
+    constructor Create(const AObjectType: string = OT_DICTIONARY);
     destructor Destroy; override;
     function AddEntry: TDxfDictionaryEntry; overload;
     function AddEntry(const aid, aowner: string): TDxfDictionaryEntry; overload;
@@ -1107,7 +1110,7 @@ type
     EndAngle  : Double;  //   52 End angle (real, default is 90 degrees)
     NumElems  : Integer; //   71 Number of elements
     _Entries  : TList;
-    constructor Create;
+    constructor Create(const AObjectType: string = OT_MLINESTYLE);
     destructor Destroy; override;
     function AddEntry: TDxfMLineStyleEntry;
     procedure Clear;
@@ -1119,6 +1122,7 @@ type
   //ACDBPLACEHOLDER
   //
   TDxfAcDbPlaceHolder = class(TDxfObject)
+    constructor Create(const AObjectType: string = OT_ACDBPLACEHOLDER);
   end;
 
 
@@ -1206,6 +1210,7 @@ type
     PaperImgOrigX  : double;  // 148 Paper image origin: X value
     PaperImgOrigY  : double;  // 149 Paper image origin: Y value
     ShadePlotID    : string;  // 333 ShadePlot ID/Handle (optional)
+    constructor Create(const AObjectType: string = OT_PLOTSETTINGS);
   end;
 
   { TDxfLayout }
@@ -1241,6 +1246,7 @@ type
     UcsOrthoId  : string;     // 346 ID/handle of AcDbUCSTableRecord of base UCS if UCS is orthographic (76 code is non-zero).
                               //     If not present and 76 code is non-zero, then base UCS is taken to be WORLD
     ShadePlotId3: string;     // 333 Shade plot ID
+    constructor Create(const AObjectType: string = OT_LAYOUT);
   end;
 
   { TDxfDictionaryVar }
@@ -1258,6 +1264,7 @@ type
     SubClass2 : string;  // 100 Subclass marker (DictionaryVariables)
     SchemaNum : integer; // 280 Object schema number (currently set to 0)
     Value     : string; // 1 Value of variable
+    constructor Create(const AObjectType: string = OT_DICTIONARYVAR);
   end;
 
   { TDxfTableStyle }
@@ -1314,7 +1321,7 @@ type
                               //     1 = Suppressed
     //     The following group codes are repeated for every cell in the table
     Cells          : TList;
-    constructor Create;
+    constructor Create(const AObjectType: string = OT_TABLESTYLE);
     destructor Destroy; override;
     function AddCell: TDxfTableCell;
     procedure Clear;
@@ -1343,7 +1350,7 @@ type
                           //     4 = $0$<name>
                           //     5 = Unmangle name
     XRec       : TDxfValuesList; // 1-369 (except 5 and 105)  These values can be used by an application in any way
-    constructor Create;
+    constructor Create(const AObjectType: string = OT_XRECORD);
     destructor Destroy; override;
   end;
 
@@ -1405,9 +1412,44 @@ begin
     and isSameDbl(a.z,b.z, epsilon);
 end;
 
+{ TDxfDictionaryVar }
+
+constructor TDxfDictionaryVar.Create(const AObjectType: string);
+begin
+  inherited Create(AObjectType);
+end;
+
+{ TDxfLayout }
+
+constructor TDxfLayout.Create(const AObjectType: string);
+begin
+  inherited Create(AObjectType);
+end;
+
+{ TDxfPlotSettings }
+
+constructor TDxfPlotSettings.Create(const AObjectType: string);
+begin
+  inherited Create(AObjectType);
+end;
+
+{ TDxfAcDbPlaceHolder }
+
+constructor TDxfAcDbPlaceHolder.Create(const AObjectType: string);
+begin
+  inherited Create(AObjectType);
+end;
+
+{ TDxfAcadProxyObject }
+
+constructor TDxfAcadProxyObject.Create(const AObjectType: string);
+begin
+  inherited Create(AObjectType);
+end;
+
 { TDxfMLineStyle }
 
-constructor TDxfMLineStyle.Create;
+constructor TDxfMLineStyle.Create(const AObjectType: string);
 begin
   inherited Create;
   _Entries := TList.Create;
@@ -1442,7 +1484,7 @@ end;
 
 { TDxfTableStyle }
 
-constructor TDxfTableStyle.Create;
+constructor TDxfTableStyle.Create(const AObjectType: string);
 begin
   inherited Create;
   cells := TList.Create;
@@ -1472,7 +1514,7 @@ end;
 
 { TDxfXRecord }
 
-constructor TDxfXRecord.Create;
+constructor TDxfXRecord.Create(const AObjectType: string);
 begin
   inherited Create;
   XRec := TDxfValuesList.Create;
@@ -1486,9 +1528,9 @@ end;
 
 { TDxfAcDbDictionaryWDFLT }
 
-constructor TDxfAcDbDictionaryWDFLT.Create;
+constructor TDxfAcDbDictionaryWDFLT.Create(const AObjectType: string = OT_ACDBDICTIONARYWDFLT);
 begin
-  inherited Create;
+  inherited Create(AObjectType);
   Entries := TList.Create;
 end;
 
@@ -1523,6 +1565,12 @@ begin
 end;
 
 { TDxfObject }
+
+constructor TDxfObject.Create(const AObjectType: string);
+begin
+  inherited Create;
+  ObjectType := AObjectType;
+end;
 
 destructor TDxfObject.Destroy;
 begin
@@ -1612,10 +1660,11 @@ begin
   Entries.Clear;
 end;
 
-constructor TDxfDictionary.Create;
+constructor TDxfDictionary.Create(const AObjectType: string);
 begin
-  inherited Create;
+  inherited Create(AObjectType);
   Entries := TList.Create;
+  SubClass2 := CLS_AcDbDictionary;
 end;
 
 destructor TDxfDictionary.Destroy;
@@ -1747,25 +1796,26 @@ end;
 constructor TDxfTable.Create;
 begin
   inherited;
-  fItems := TList.Create;
+  _Items := TList.Create;
+  SubClass := CLS_AcDbSymbolTable;
 end;
 
 destructor TDxfTable.Destroy;
 begin
   Clear;
-  fItems.Free;
+  _Items.Free;
   inherited Destroy;
 end;
 
 function TDxfTable.GetObject(i: integer): TDxfTableEntry;
 begin
-  if (i<0) or (i>=fItems.Count) then Result := nil
-  else Result := TDxfTableEntry(FItems[i]);
+  if (i<0) or (i>=_Items.Count) then Result := nil
+  else Result := TDxfTableEntry(_Items[i]);
 end;
 
 function TDxfTable.GetCount: Integer;
 begin
-  Result := FItems.Count;
+  Result := _Items.Count;
 end;
 
 function TDxfTable.AddItem(obj: TDxfTableEntry): Integer;
@@ -1774,16 +1824,16 @@ begin
     Result := -1;
     Exit;
   end;
-  Result := fItems.Add(obj);
+  Result := _Items.Add(obj);
 end;
 
 procedure TDxfTable.Clear;
 var
   i : integer;
 begin
-  for i:=0 to fItems.Count-1 do
-    TObject(fItems[i]).free;
-  fItems.Clear;
+  for i:=0 to _Items.Count-1 do
+    TObject(_Items[i]).free;
+  _Items.Clear;
 end;
 
 { TDxfFile }
@@ -1958,10 +2008,10 @@ begin
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
     t := TDxfTable(dxf.tables[i]);
-    writeln('  ',t.Name);
+    writeln('  ',t.Name,' (',t.Handle,') owner: ', t.Owner);
     for j := 0 to t.Count-1 do begin
       te := t.Entry[j];
-      writeln('     ', te.DisplayName);
+      writeln('     ', te.DisplayName,' (', te.Handle,') owner: ', te.Owner);
     end;
   end;
   writeln('Blocks: ', dxf.blocks.Count);
