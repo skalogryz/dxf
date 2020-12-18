@@ -1,5 +1,7 @@
 unit dxfwrite;
 
+{$ifdef fpc}{$mode delphi}{$H+}{$endif}
+
 interface
 
 uses
@@ -55,9 +57,9 @@ type
     procedure WriteHeader;
   end;
 
-procedure TextCodeGroupToDst(codeGroup: integer; d: TStream); inline;
-procedure TextStrToDst(const s: string; d: TStream); inline;
-procedure TextLFToDst(d: TStream); inline;
+procedure TextCodeGroupToDst(codeGroup: integer; d: TStream); {$ifdef fpc}inline;{$endif}
+procedure TextStrToDst(const s: string; d: TStream); {$ifdef fpc}inline;{$endif}
+procedure TextLFToDst(d: TStream); {$ifdef fpc}inline;{$endif}
 
 const
   LF = #13#10;
@@ -70,7 +72,7 @@ procedure WrHandle(w: TDxfWriter; const AHandle: string; CodeGroup: Integer = CB
 
 implementation
 
-procedure TextCodeGroupToDst(codeGroup: integer; d: TStream); inline;
+procedure TextCodeGroupToDst(codeGroup: integer; d: TStream); {$ifdef fpc}inline;{$endif}
 var
   s : string;
 begin
@@ -79,13 +81,13 @@ begin
   d.Write(LF[1], length(LF));
 end;
 
-procedure TextStrToDst(const s: string; d: TStream); inline;
+procedure TextStrToDst(const s: string; d: TStream); {$ifdef fpc}inline;{$endif}
 begin
   if s = '' then Exit;
   d.Write(s[1], length(s));
 end;
 
-procedure TextLFToDst(d: TStream); inline;
+procedure TextLFToDst(d: TStream); {$ifdef fpc}inline;{$endif}
 begin
   d.Write(LF[1], length(LF));
 end;
@@ -146,21 +148,24 @@ end;
 procedure TDxfBinaryWriter.WriteInt16(codeGroup: integer; v: int16);
 begin
   WriteCG(codeGroup);
-  dst.WriteWord(Word(v));
+  dst.Write(v, sizeof(v));
 end;
 
 procedure TDxfBinaryWriter.WriteInt32(codeGroup: integer; v: int32);
 begin
   WriteCG(codeGroup);
-  dst.WriteDWord(DWord(v));
+  dst.Write(v, sizeof(v));
 end;
 
 procedure TDxfBinaryWriter.WriteStrPart(codeGroup: integer; const s: string);
+var
+  b: byte;
 begin
   WriteCG(codeGroup);
   if s<>'' then
     dst.Write(s[1], length(s));
-  dst.WriteByte(0);
+  b:=0;
+  dst.Write(b, sizeof(b))
 end;
 
 procedure TDxfBinaryWriter.WriteFloat(codeGroup: integer; f: double);
@@ -171,15 +176,18 @@ end;
 
 procedure TDxfBinaryWriter.WriteBin(codeGroup: integer; const data;
   dataLen: integer);
+var
+  b : byte;
 begin
   WriteCG(codeGroup);
-  dst.WriteByte(byte(dataLen));
-  dst.Write(data, byte(dataLen));
+  b:=byte(dataLen);
+  dst.Write(b, sizeof(b));
+  dst.Write(data, b);
 end;
 
 procedure TDxfBinaryWriter.WriteCG(codeGroup: integer);
 begin
-  dst.WriteWord( Word(Int16(codegroup)));
+  dst.Write( Int16(codegroup), 2);
 end;
 
 procedure TDxfBinaryWriter.WriteHeader;

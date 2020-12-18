@@ -1,6 +1,6 @@
 unit dxfparse;
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}{$mode delphi}{$H+}{$endif}
 
 interface
 
@@ -214,7 +214,7 @@ begin
   SetLength(buf, 32);
   i:=1;
   while true do begin
-    b := src.ReadByte;
+    src.ReadBuffer(b, 1);
     if b = 0 then break;
     if i>length(buf) then
       SetLength(buf, length(buf) * 2);
@@ -280,6 +280,8 @@ end;
 function TDxfBinaryScanner.DoNext(var errmsg: string): TDxfScanResult;
 var
   sz : integer;
+  b  : byte;
+  w  : Word;
 begin
   if isEof or (src.Position>=src.Size) then begin
     Result := scEof;
@@ -287,11 +289,12 @@ begin
   end;
 
   Result := scValue;
-  codegroup := src.ReadWord;
+  src.ReadBuffer(codegroup, sizeof(codegroup));
   datatype := DxfDataType(codegroup);
   case datatype of
     dtBin1: begin
-      sz := src.ReadByte;
+      sz := 0;
+      src.ReadBuffer(sz, 1);
       SetLength(ValBin, sz);
       src.Read(ValBin[0], sz);
     end;
@@ -303,13 +306,15 @@ begin
         isEof := true;
     end;
     dtBoolean: begin
-      ValInt := src.ReadByte;
+      src.ReadBuffer(b, sizeof(b));
+      ValInt := b;
     end;
     dtInt16: begin
-      ValInt := Int16(src.ReadWord);
+      src.ReadBuffer(w, sizeof(w));
+      ValInt := w;
     end;
     dtInt32: begin
-      ValInt := Int32(src.ReadDWord);
+      src.ReadBuffer(ValInt, sizeof(ValInt));
     end;
     dtDouble:
       src.Read(ValFloat, sizeof(ValFloat));

@@ -1,5 +1,7 @@
 unit dxfwriteutils;
 
+{$ifdef fpc}{$mode delphi}{$H+}{$endif}
+
 interface
 
 uses
@@ -18,7 +20,7 @@ procedure WriteOptStr(w: TDxfWriter; const v, def: string; codeGroup: integer);
 
 // returns def, if check is an empty string (no trimming check)
 // otherwise returns check
-function IfEmpt(const check, def: string): string; inline;
+function IfEmpt(const check, def: string): string; {$ifdef fpc}inline;{$endif}
 
 // SNE - String Not Empty
 procedure WriteHeaderVarSNE(w: TDxfWriter; const Name: string; const v: string; codeGroup: Integer);
@@ -71,8 +73,8 @@ procedure WriteTableStyle(w: TDxfWriter; obj: TDxfTableStyle);
 procedure WriteMLineStyle(w: TDxfWriter; obj: TDxfMLineStyle);
 procedure WriteAnyObject(w: TDxfWriter; obj: TDxfObject);
 
-procedure WriteFileAscii(const dstFn: string; src: TDxfFile);
-procedure WriteFileAscii(const dst: TStream; src: TDxfFile);
+procedure WriteFileAscii(const dstFn: string; src: TDxfFile); overload;
+procedure WriteFileAscii(const dst: TStream; src: TDxfFile); overload;
 procedure WriteFile(w: TDxfWriter; src: TDxfFile);
 
 implementation

@@ -1,5 +1,7 @@
 unit dxfclasses;
 
+{$ifdef fpc}{$mode delphi}{$H+}{$endif}
+
 interface
 
 uses
@@ -1415,11 +1417,11 @@ const
   DEF_EPSILON = 0.0000001;
 
 function isSamePoint(const a,b: TDxfPoint; epsilon: Double = DEF_EPSILON): Boolean;
-function isSameDbl(a,b: double; epsilon: Double = DEF_EPSILON): Boolean; inline;
+function isSameDbl(a,b: double; epsilon: Double = DEF_EPSILON): Boolean; {$ifdef fpc}inline;{$endif}
 
 implementation
 
-function isSameDbl(a,b: double; epsilon: Double): Boolean; inline;
+function isSameDbl(a,b: double; epsilon: Double): Boolean; {$ifdef fpc}inline;{$endif}
 begin
   Result := (a=b) or (Abs(a-b)<epsilon);
 end;

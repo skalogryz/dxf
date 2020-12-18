@@ -1,6 +1,14 @@
 unit dxftypes;
 
+{$ifdef fpc}{$mode delphi}{$H+}{$endif}
+
 interface
+
+{$ifndef fpc}
+type
+  Int16 = SmallInt;
+  Int32 = Integer;
+{$endif}
 
 const
   DxfBinaryHeader = 'AutoCAD Binary DXF'#13#10#26#0;
