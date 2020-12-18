@@ -1419,7 +1419,24 @@ const
 function isSamePoint(const a,b: TDxfPoint; epsilon: Double = DEF_EPSILON): Boolean;
 function isSameDbl(a,b: double; epsilon: Double = DEF_EPSILON): Boolean; {$ifdef fpc}inline;{$endif}
 
+function DxfPoint(x,y: double): TDxfPoint; overload;
+function DxfPoint(x,y,z: double): TDxfPoint; overload;
+
 implementation
+
+function DxfPoint(x,y: double): TDxfPoint; overload;
+begin
+  Result.x:=x;
+  Result.y:=y;
+  Result.z:=0;
+end;
+
+function DxfPoint(x,y,z: double): TDxfPoint; overload;
+begin
+  Result.x:=x;
+  Result.y:=y;
+  Result.z:=z;
+end;
 
 function isSameDbl(a,b: double; epsilon: Double): Boolean; {$ifdef fpc}inline;{$endif}
 begin
