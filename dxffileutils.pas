@@ -8,6 +8,7 @@ uses
 
 const
   DEFAULT_LAYER = '0';  // this is Layer Name
+  DEFAULT_LINESTYLE = 'CONTINUOUS';
 
 procedure AddDefaultObjects(dxf: TDxfFile);
 procedure AddDefaultBlocks(dxf: TDxfFile);
@@ -24,6 +25,8 @@ procedure FillHandles(dxf: TDxfFile; UpdateHeader: Boolean = true);
 function AddLine(afile: TDxfFile; const p1, p2: TPoint; const ALayerName: string = DEFAULT_LAYER): TDxfLine;
 function AddPolyLine(afile: TDxfFile; const p: array of TPoint; const ALayerName: string = DEFAULT_LAYER): TDxfPolyLine;
 function AddEndSeq(afile : TDxfFile; const ALayerName: string = DEFAULT_LAYER): TDxfSeqEnd;
+
+function AddLine2d(afile: TDxfFile; const p1, p2: TDxfPoint; const ALayerName: string = DEFAULT_LAYER): TDxfLine;
 
 procedure PointToDfxPoint(const src: TPoint; var dst: TDxfPoint; z: double = 0);
 
@@ -52,6 +55,10 @@ procedure DeleteObject(dxf: TDxfFile; const h: string);
 procedure DefaultHeader(var h: TDxfHeader);
 
 function IntToHandle(it: integer): string;
+
+function AllocLayer(dst: TDxfTable; const Name: string;
+  const DefLineType: string;
+  ColorNum: Integer = 7): TDxfLayerEntry;
 
 implementation
 
@@ -117,6 +124,15 @@ begin
   Result:=TDxfLine.Create;
   PointToDfxPoint(p1, Result.StartPoint);
   PointToDfxPoint(p2, Result.EndPoint);
+  Result.LayerName := ALayerName;
+  afile.AddEntity(Result);
+end;
+
+function AddLine2d(afile: TDxfFile; const p1, p2: TDxfPoint; const ALayerName: string = DEFAULT_LAYER): TDxfLine;
+begin
+  Result:=TDxfLine.Create;
+  Result.StartPoint := p1;
+  Result.EndPoint := p2;
   Result.LayerName := ALayerName;
   afile.AddEntity(Result);
 end;
@@ -390,7 +406,7 @@ begin
   dxf.tables.Add(t);
   AllocLType(t, 'ByBlock','');
   AllocLType(t, 'ByLayer','');
-  AllocLType(t, 'CONTINUOUS','Solid line');
+  AllocLType(t, DEFAULT_LINESTYLE,'Solid line');
 
   t := TDxfTable.Create;
   t.Name := 'LAYER';
