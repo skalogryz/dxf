@@ -809,6 +809,9 @@ begin
   WriteHeaderVarFlt(w, vUSERR4       ,header.User.R4, CB_VARFLOAT);
   WriteHeaderVarFlt(w, vUSERR5       ,header.User.R5, CB_VARFLOAT);
 
+  WriteHeaderVarInt(w, vINSUNITS     ,header.base.DefaultUnits     ,CB_VARINT);
+  WriteHeaderVarInt(w, vUNITMODE     ,header.Base.UnitMode         ,CB_VARINT);
+
   exit;
 
   WriteHeaderVarInt(w, vWORLDVIEW       ,header.Base.isWorldView      ,CB_VARINT);
@@ -822,7 +825,6 @@ begin
   WriteHeaderVarPnt(w, vPEXTMAX         ,header.Base.PaperExtUpRight);
   WriteHeaderVarP2d(w, vPLIMMIN         ,header.Base.PaperLimLowLeft);
   WriteHeaderVarP2d(w, vPLIMMAX         ,header.Base.PaperLimUpRight);
-  WriteHeaderVarInt(w, vUNITMODE        ,header.Base.UnitMode         ,CB_VARINT);
   WriteHeaderVarInt(w, vVISRETAIN       ,header.Base.isRetainXRefVis  ,CB_VARINT);
   WriteHeaderVarInt(w, vPLINEGEN        ,header.Base.LineTypePatt     ,CB_VARINT);
   WriteHeaderVarInt(w, vPSLTSCALE       ,header.Base.PaperLineScaling ,CB_VARINT);
@@ -836,7 +838,6 @@ begin
   WriteHeaderVarInt(w, vENDCAPS         ,header.base.LineEndCaps      ,280);
   WriteHeaderVarInt(w, vJOINSTYLE       ,header.base.LineJointStyle   ,280);
   WriteHeaderVarInt(w, vLWDISPLAY       ,header.base.isLineShow       ,290);
-  WriteHeaderVarInt(w, vINSUNITS        ,header.base.DefaultUnits     ,CB_VARINT);
   WriteHeaderVarStr(w, vHYPERLINKBASE   ,header.base.RelHyperLink     ,1);
   WriteHeaderVarStr(w, vSTYLESHEET      ,header.base.StyleSheet       ,1);
   WriteHeaderVarInt(w, vXEDIT           ,header.base.isInPlaceEditin  ,290);
