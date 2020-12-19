@@ -125,6 +125,7 @@ begin
   PointToDfxPoint(p1, Result.StartPoint);
   PointToDfxPoint(p2, Result.EndPoint);
   Result.LayerName := ALayerName;
+  Result.ColorNumber := CECOLOR_BYLAYER;
   afile.AddEntity(Result);
 end;
 
@@ -134,6 +135,7 @@ begin
   Result.StartPoint := p1;
   Result.EndPoint := p2;
   Result.LayerName := ALayerName;
+  Result.ColorNumber := CECOLOR_BYLAYER;
   afile.AddEntity(Result);
 end;
 
