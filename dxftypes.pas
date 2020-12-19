@@ -150,6 +150,7 @@ const
   CLASS_PROXY_R13         = $8000; // R13 format proxy
 
 const
+  // used for $INSUNITS (vINSUNITS)
   UNITS_NO        = 0;  // Unitless
   UNITS_INCHES    = 1;  // Inches
   UNITS_FEET      = 2;  // Feet
@@ -171,6 +172,10 @@ const
   UNITS_ASTRO     = 18; // Astronomical units
   UNITS_LIGHTYEAR = 19; // Light years
   UNITS_PARSEC    = 20; // Parsecs
+
+  // for $UNITMODE. it's a bit field
+  UNITMODE_FRAC   = 1;  // Show fractions for units available (where applicable). I.e. feet-and-inches
+
 
   TABLE_ENTRY_FLAG_XREF     = 16; // If set, table entry is externally dependent on an xref
   TABLE_ENTRY_FLAG_XREF_RES = 32; // If both this bit and bit 16 are set, the externally dependent xref has been successfully resolved
