@@ -108,7 +108,7 @@ type
     PtDispMode     : Integer;   // ($PDMODE)     70  Point display mode
     PtDispSize     : Double;    // ($PDSIZE)     40  Point display size
     DefPolyWidth   : Double;    // ($PLINEWID)   40  Default polyline width
-    //: Integer; // ($SPLFRAME) 70
+    SplineFrame    : Integer;   // ($SPLFRAME)   70  (unknown. but AutoCad creates it! Teh value is zero)
     SplineCurvType : Integer;   // ($SPLINETYPE) 70  Spline curve type for PEDIT Spline
     LineSegments   : Integer;   // ($SPLINESEGS) 70  Number of line segments per spline patch
     NextHandle     : string;    // ($HANDSEED)    5  Next available handle
