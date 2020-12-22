@@ -60,6 +60,10 @@ function AllocLayer(dst: TDxfTable; const Name: string;
   const DefLineType: string;
   ColorNum: Integer = 7): TDxfLayerEntry;
 
+procedure InitFingerPrintId(var h: TDxfHeader);
+procedure InitVersionId(var h: TDxfHeader);
+procedure UpdateVersionIds(var h: TDxfHeader);
+
 implementation
 
 procedure AddDefaultBlocks(dxf: TDxfFile);
@@ -123,6 +127,7 @@ begin
   c.recName := 'TABLESTYLE';
   c.cppName := 'AcDbTableStyle';
   c.appName := APPName_ObjectDBX_Cls;
+  c.ProxyFlags := 4095;
 end;
 
 function AddLine(afile: TDxfFile; const p1, p2: TPoint; const ALayerName: string): TDxfLine;
@@ -555,6 +560,7 @@ procedure DefaultHeader(var h: TDxfHeader);
 begin
   h.acad.Version := ACAD_VER_2000;
   h.acad.MaintVer := 20; // default maintenance version
+  h.acad.isExtNames := 1;
   h.Base.CodePage := DEFAULT_CODEPAGE;
   H.BASE.ExtLowLeft.x:=-2.5;
   H.BASE.ExtLowLeft.Y:=-2.5;
@@ -569,28 +575,116 @@ begin
   h.Sel.TextStyle := DEFAULT_TEXTSTYLE;  // this must be non-empty valid style!
 
   h.sel.Layer := '0';
+
+  h.Base.TextHeight := 0.2;
+  h.Base.TraceWidth := 0.05;
+  h.Sel.EntLineType := 'ByLayer';
+  h.Sel.EntLineTypeScale := 1;
+  h.Sel.EntColor := CECOLOR_BYLAYER;
+
+
+  h.Dim.Scale      := 1;      // $DIMSCALE
+  h.Dim.ArrowSize  := 0.18;   // $DIMASZ
+  h.Dim.ExtLineOfs := 0.0625; // $DIMEXO
+  h.Dim.DimLineInc := 0.38;   // ($DIMDLI)
+  h.Dim.ExtLineExt := 0.18;   // ($DIMEXE)
+  h.Dim.TextHeight := 0.18;   // ($DIMTXT)
+  h.Dim.CenterSize := 0.09;   // ($DIMCEN)
+  h.Dim.isTextIns  := 1;
+  h.Dim.isTextOut  := 1;
+  h.Dim.isAssocDim  := 1; // ($DIMASO)
+  h.Dim.isRecompDim := 1; // ($DIMSHO)
+  h.Dim.AltDec      := 2; // ($DIMALTD)
+  h.Dim.AltScale    := 25.4;  // ($DIMALTF)
+  h.Dim.LinearScale := 1.0;   // $DIMLFAC
+  h.Dim.StyleName   := DEFAULT_TEXTSTYLE;
+  h.Dim.DispTolerance := 1.0;  // $DIMTFAC
+  h.Dim.LineGap       := 0.09; // $DIMGAP
+  h.Dim.VertJustTol   := 1;    // ($DIMTOLJ)
+  h.Dim.DecPlacesPrim := 4;    // ($DIMDEC)
+  h.Dim.UnitsFormat   := 2;    // ($DIMALTU)
+  h.Dim.DecPlacesAltUnit := 2; // ($DIMALTTD)
+  h.Dim.TextStyle        := DEFAULT_TEXTSTYLE;  // ($DIMTXSTY)
+  h.Dim.DecSeparator    := 46; // ($DIMDSEP)
+  h.Dim.TextArrowPlace  := 3; // ($DIMATFIT)
+  h.Dim.Units := LenUnitFmt_Decimal;  // ($DIMLUNIT)
+  h.Dim.LineWeight    := Lineweight_ByLayer; // ($DIMLWD)
+  h.Dim.LineWeightExt := Lineweight_ByLayer; // ($DIMLWE)
+  h.Dim.DecPlacesOther := 4; // ($DIMTDEC)
+
+  h.Base.DistFormat  := LenUnitFmt_Decimal; // $LUNITS
+  h.base.DistPrec    := 4;  // $LUPREC
+  h.base.SketchInc   := 0.1;    // ($SKETCHINC) 40   Sketch record increment
+
+  h.base.MenuName := '.';
+  h.base.SplineFrame := 0;
+  h.base.SplineCurvType := 6;
+  h.Base.LineSegments := 8;  // ($SPLINESEGS)  Number of line segments per spline patch
+
+  h.Base.MeshCount1 := 6;  // ($SURFTAB1)   70  Number of mesh tabulations in first direction
+  h.Base.MeshCount2 := 6;  // ($SURFTAB2)   70  Number of mesh tabulations in second direction
+  h.Base.SurfType := 6;
+  h.Base.SurfType := 6;
+  h.Base.SurfDensityM := 6; // ($SURFU)      70  Surface density (for PEDIT Smooth) in M direction
+  h.Base.SurfDensityN := 6; // ($SURFV)      70  Surface density (for PEDIT Smooth) in N direction
+
+  h.Ucs.Base := '';
+  h.Ucs.Name := '';
+  h.Ucs.Origin := DxfPoint(0,0,0);
+  h.Ucs.XDir := DxfPoint(1,0,0);
+  h.Ucs.YDir := DxfPoint(0,1,0);
+  h.Ucs.OrthoRef := '';
+  h.Ucs.OrthoView := 0;
+  h.Ucs.OriginTop := DxfPoint(0,0,0);
+  h.Ucs.OriginBack   := DxfPoint(0,0,0);
+  h.Ucs.OriginBottom := DxfPoint(0,0,0);
+  h.Ucs.OriginFront  := DxfPoint(0,0,0);
+  h.Ucs.OriginLeft   := DxfPoint(0,0,0);
+  h.Ucs.OriginRight  := DxfPoint(0,0,0);
+
+  h.PUcs.Base := '';
+  h.PUcs.Name := '';
+  h.PUcs.Origin := DxfPoint(0,0,0);
+  h.PUcs.XDir := DxfPoint(1,0,0);
+  h.PUcs.YDir := DxfPoint(0,1,0);
+  h.PUcs.OrthoRef := '';
+  h.PUcs.OrthoView := 0;
+  h.PUcs.OriginTop := DxfPoint(0,0,0);
+  h.PUcs.OriginBack   := DxfPoint(0,0,0);
+  h.PUcs.OriginBottom := DxfPoint(0,0,0);
+  h.PUcs.OriginFront  := DxfPoint(0,0,0);
+  h.PUcs.OriginLeft   := DxfPoint(0,0,0);
+  h.PUcs.OriginRight  := DxfPoint(0,0,0);
+
+  h.Base.isWorldView  := 1; // $WORLDVIEW
+  h.Base.ShadeEdge    := ShadeEdge_Color; // $SHADEDGE
+  h.Base.ShadeDiffuse := 70; // $SHADEDIF
+  h.Base.isTileMode   := 1;  // $TILEMODE
+  h.Base.MaxViewPorts := 64; // $MAXACTVP
+
+  h.Base.PaperLimUpRight := DxfPoint(12, 9);
+  h.Base.isRetainXRefVis := 1;
+  h.Base.PaperLineScaling := 1;
+  h.Base.SpaceTreeDepth := 3020;
+  h.Sel.MultiLineStyle := DEFAULT_TEXTSTYLE;
+  h.Sel.MultiLineScale := 1.0;
+  h.Base.isProxyImageSave := 1;
+  h.Base.NewObjLineWeight := Linewieght_ByBlock;
+  h.Base.DefaultUnits := UNITS_NO;
+  h.Base.isInPlaceEditin := 1;
+  h.base.isColorDepmode := 1;
+
+
   {
   h.Sel.EntLineType := 'ByLayer'; // reference to LType
-  h.Sel.EntColor := CECOLOR_BYLAYER;
-  h.Dim.Scale := 1;
-  h.Dim.ArrowSize := 2.5;
-  h.Dim.ExtLineOfs        := 0.65;
-  h.Dim.DimLineInc        := 3.75;  // ($DIMDLI)
-  h.Dim.ExtLineExt        := 1.25;  // ($DIMEXE)
-  h.Dim.TextHeight        := 2.5;   // ($DIMTXT)
-  h.Dim.CenterSize        := -2.5;  // ($DIMCEN)
   h.Dim.isTextOut         := 1;     // ($DIMTOH)
   h.Dim.isTextAbove       := 1;     // ($DIMTAD)
   h.Dim.SupZeros          := 8; // ($DIMZIN)
   }
 {h.Dim.ArrowBlock        : string;  // ($DIMBLK)
-h.Dim.isAssocDim        : Integer; // ($DIMASO)
-h.Dim.isRecompDim       : Integer; // ($DIMSHO)
 h.Dim.Suffix            : string;  // ($DIMPOST)
 h.Dim.AltSuffix         : string;  // ($DIMAPOST)
 h.Dim.isUseAltUnit      : integer; // ($DIMALT)
-h.Dim.AltDec            : integer; // ($DIMALTD)
-h.Dim.AltScale          : double;  // ($DIMALTF)
 h.Dim.LinearScale       : double;  // ($DIMLFAC)
 h.Dim.isTextOutExt      : Integer; // ($DIMTOFL)
 h.Dim.TextVertPos       : double;  // ($DIMTVP)
@@ -599,7 +693,7 @@ h.Dim.isSuppOutExt      : Integer; // ($DIMSOXD)
 h.Dim.isUseSepArrow     : Integer; // ($DIMSAH)
 h.Dim.ArrowBlock1       : string;  // ($DIMBLK1)
 h.Dim.ArrowBlock2       : string;  // ($DIMBLK2)
-h.Dim.StyleName         : string;  // ($DIMSTYLE)
+
 h.Dim.LineColor         : integer; // ($DIMCLRD)
 h.Dim.ExtLineColor      : integer; // ($DIMCLRE)
 h.Dim.TextColor         : integer; // ($DIMCLRT)
@@ -608,26 +702,15 @@ h.Dim.LineGap           : double;  // ($DIMGAP)
 h.Dim.HorzTextJust      : integer; // ($DIMJUST)
 h.Dim.isSuppLine1       : Integer; // ($DIMSD1)
 h.Dim.isSuppLine2       : Integer; // ($DIMSD2)
-h.Dim.VertJustTol       : Integer; // ($DIMTOLJ)
 h.Dim.ZeroSupTol        : Integer; // ($DIMTZIN)
 h.Dim.ZeroSupAltUnitTol : Integer; // ($DIMALTZ)
 h.Dim.ZeroSupAltTol     : Integer; // ($DIMALTTZ)
 h.Dim.isEditCursorText  : Integer; // ($DIMUPT)
-h.Dim.DecPlacesPrim     : Integer; // ($DIMDEC)
-h.Dim.DecPlacesOther    : Integer; // ($DIMTDEC)
-h.Dim.UnitsFormat       : Integer; // ($DIMALTU)
-h.Dim.DecPlacesAltUnit  : Integer; // ($DIMALTTD)
-h.Dim.TextStyle         : string;  // ($DIMTXSTY)
 h.Dim.AngleFormat       : Integer; // ($DIMAUNIT)
 h.Dim.AngleDecPlaces    : Integer; // ($DIMADEC)
 h.Dim.RoundValAlt       : double;  // ($DIMALTRND)
 h.Dim.ZeroSupAngUnit    : Integer; // ($DIMAZIN)
-h.Dim.DecSeparator      : Integer; // ($DIMDSEP)
-h.Dim.TextArrowPlace    : Integer; // ($DIMATFIT)
 h.Dim.ArrowBlockLead    : string;  // ($DIMLDRBLK)
-h.Dim.Units             : Integer; // ($DIMLUNIT)
-h.Dim.LineWeight        : Integer; // ($DIMLWD)
-h.Dim.LineWeightExt     : Integer; // ($DIMLWE)
 h.Dim.TextMove          : Integer; // ($DIMTMOVE)
 h.Dim.UnitFrac          : Integer; // DIMFRAC
 h.Dim.ArrowBlockId      : string;  // ($DIMBLK1)
@@ -636,6 +719,28 @@ h.Dim.ArrowBlockId2     : string;  // ($DIMBLK2)
 // oboslete
 __Units: Integer;          // ($DIMUNIT)    Se
 __TextArrowPlace: Integer; // ($DIMFIT)    Con}
-
 end;
+
+procedure InitFingerPrintId(var h: TDxfHeader);
+var
+  g : TGuid;
+begin
+  CreateGUID(g);
+  h.Base.FingerPrintGuid := GUIDToString(g);
+end;
+
+procedure InitVersionId(var h: TDxfHeader);
+var
+  g : TGuid;
+begin
+  CreateGUID(g);
+  h.Base.VersionGuild := GUIDToString(g);
+end;
+
+procedure UpdateVersionIds(var h: TDxfHeader);
+begin
+  if h.Base.FingerPrintGuid = '' then InitFingerPrintId(h);
+  InitVersionId(h);
+end;
+
 end.
