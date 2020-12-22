@@ -634,11 +634,26 @@ const
 
 const
   CODEPAGE_ANSI_1251 = 'ANSI_1251';
+  CODEPAGE_ANSI_1252 = 'ANSI_1252';
   DEFAULT_CODEPAGE   = CODEPAGE_ANSI_1251;
-  DEFAULT_TEXTSTYLE  = 'STANDARD'; // used for TextStyles Block or Header vars
+  DEFAULT_TEXTSTYLE  = 'Standard'; // used for TextStyles Block or Header vars
 
   APPName_ObjectDBX_Cls = 'ObjectDBX Classes';
 
+const
+  LenUnitFmt_Scientific = 1;
+  LenUnitFmt_Decimal    = 2;
+  LenUnitFmt_Engineer   = 3;
+  LenUnitFmt_Architect  = 4;
+  LenUnitFmt_Fractional = 5;
+  LenUnitFmt_PerWindows = 6;
+
+  // $SHADEDGE
+  ShadeEdge_NoHighlight   = 0; // Faces shaded, edges not highlighted
+  ShadeEdge_FaceShade     = 1; // Faces shaded, edges highlighted in black
+  ShadeEdge_FaceNotFilled = 2; // Faces not filled, edges in entity color
+  ShadeEdge_Color         = 3; // Faces in entity color, edges in black
+  
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;
