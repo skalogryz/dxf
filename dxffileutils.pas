@@ -403,6 +403,45 @@ begin
   Result.Lineweight := Lineweight_Standard;
 end;
 
+function AllocVPort(owner: TDxfTable; const VPortName: string): TDxfVPortEntry;
+begin
+  Result := TDxfVPortEntry.Create;
+  Result.EntryType := TE_VPORT;
+  Result.SubClass := CLS_AcDbSymbolTableRecord;
+  Result.SubClass2 := CLS_AcDbViewportTableRecord;
+  Result.ViewName := VPortName;
+  Result.LeftLow := DxfPoint(0,0);
+  Result.UpRight := DxfPoint(1,1);
+  Result.ViewCenter := DxfPoint(355,50);
+  Result.SnapBase := DxfPoint(0,0);
+  Result.SnapSpace := DxfPoint(1,1);
+  Result.GridSpace := DxfPoint(0,0);
+  Result.ViewDir   := DxfPoint(0,0,1);
+  Result.ViewTarget:= DxfPoint(0,0,0);
+
+  Result._40 := 455;
+  Result._41 := 2.5;
+  Result.LensLen := 50;
+  Result.FrontClipOfs  := 0;
+  Result.BackClipOfs   := 0;
+  Result.RotateAngle   := 0;
+  Result.TwistAngle    := 0;
+  Result.ViewMode      := 0;
+  Result.CircleSides   := 10000;
+  Result._73 := 0;
+  Result._75 := 0;      
+  Result._76 := 0;
+  Result._77 := 0;      
+  Result._78 := 0;      
+  Result._65 := 1;
+  Result.UCSOrigin := DxfPoint(0,0,0);
+  Result.UCSXAxis := DxfPoint(1,0,0);
+  Result.UCSYAxis := DxfPoint(0,1,0);
+  Result.OrthType      := 0;
+
+  if Assigned(Owner) then Owner.AddItem(Result);
+end;
+
 procedure AddDefaultTables(dxf: TDxfFile);
 var
   t : TDxfTable;
@@ -411,6 +450,7 @@ var
 begin
   t := TDxfTable.Create;
   t.Name := 'VPORT';
+  AllocVPort(t, '*Active');
   dxf.tables.Add(t);
 
   t := TDxfTable.Create;
