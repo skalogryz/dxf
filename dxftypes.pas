@@ -611,6 +611,8 @@ const
   CLS_AcDb3dPolylineVertex      = 'AcDb3dPolylineVertex';
   CLS_AcDb2dPolyline            = 'AcDb2dPolyline';
   CLS_AcDb3dPolyline            = 'AcDb3dPolyline';
+  CLS_AcDbSymbolTableRecord     = 'AcDbSymbolTableRecord';
+  CLS_AcDbViewportTableRecord   = 'AcDbViewportTableRecord';
 
   Lineweight_Standard = -3;
   Lineweight_ByLayer  = -2;
