@@ -98,25 +98,31 @@ var
 begin
   if not Assigned(dxf) then Exit;
 
-  c := dxf.AddClass;
+  c := dxf.AddClass;   
   c.recName := 'ACDBDICTIONARYWDFLT';
   c.cppName := 'AcDbDictionaryWithDefault';
+  c.appName := APPName_ObjectDBX_Cls;
 
   c := dxf.AddClass;
   c.recName := 'DICTIONARYVAR';
   c.cppName := 'AcDbDictionaryVar';
+  c.appName := APPName_ObjectDBX_Cls;
+  c.ProxyFlags := 2047;
 
   c := dxf.AddClass;
   c.recName := 'ACDBPLACEHOLDER';
   c.cppName := 'AcDbPlaceHolder';
+  c.appName := APPName_ObjectDBX_Cls;
 
   c := dxf.AddClass;
   c.recName := 'LAYOUT';
   c.cppName := 'AcDbLayout';
+  c.appName := APPName_ObjectDBX_Cls;
 
   c := dxf.AddClass;
   c.recName := 'TABLESTYLE';
   c.cppName := 'AcDbTableStyle';
+  c.appName := APPName_ObjectDBX_Cls;
 end;
 
 function AddLine(afile: TDxfFile; const p1, p2: TPoint; const ALayerName: string): TDxfLine;
@@ -548,7 +554,7 @@ end;
 procedure DefaultHeader(var h: TDxfHeader);
 begin
   h.acad.Version := ACAD_VER_2000;
-  h.acad.MaintVer := 6;
+  h.acad.MaintVer := 20; // default maintenance version
   h.Base.CodePage := DEFAULT_CODEPAGE;
   H.BASE.ExtLowLeft.x:=-2.5;
   H.BASE.ExtLowLeft.Y:=-2.5;

@@ -637,6 +637,8 @@ const
   DEFAULT_CODEPAGE   = CODEPAGE_ANSI_1251;
   DEFAULT_TEXTSTYLE  = 'STANDARD'; // used for TextStyles Block or Header vars
 
+  APPName_ObjectDBX_Cls = 'ObjectDBX Classes';
+
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;
