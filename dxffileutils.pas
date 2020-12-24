@@ -265,6 +265,7 @@ begin
   dxf.objects.Add(root);
 
   AllocEntryDictionary('ACAD_COLOR');
+  AllocEntryDictionary('ACAD_GROUP'); // mandatory
   AllocEntryDictionary('ACAD_LAYOUT');
   AllocEntryDictionary('ACAD_MATERIAL');
   AllocEntryDictionary('ACAD_MLINESTYLE');
