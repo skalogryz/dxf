@@ -28,6 +28,8 @@ function AddEndSeq(afile : TDxfFile; const ALayerName: string = DEFAULT_LAYER): 
 
 function AddLine2d(afile: TDxfFile; const p1, p2: TDxfPoint; const ALayerName: string = DEFAULT_LAYER): TDxfLine;
 
+function AddMText(afile: TDxfFile; const pt: TPoint; const atext: string; const ALayerName: string = DEFAULT_LAYER ): TDxfMText;
+
 procedure PointToDfxPoint(const src: TPoint; var dst: TDxfPoint; z: double = 0);
 
 // updates "_Owner" and "_RefId" to the actual reference
@@ -147,6 +149,27 @@ begin
   Result.EndPoint := p2;
   Result.LayerName := ALayerName;
   Result.ColorNumber := CECOLOR_BYLAYER;
+  afile.AddEntity(Result);
+end;
+
+function AddMText(afile: TDxfFile; const pt: TPoint;
+  const atext: string; const ALayerName: string = DEFAULT_LAYER): TDxfMText;
+begin
+  Result:=TDxfMText.Create;
+  Result.LayerName := ALayerName;
+  PointToDfxPoint(pt, Result.InsPoint);
+  Result.Text := atext;
+  Result.InitHeight:=10;
+  Result.RefWidth := 172;
+  Result.AttachPoint := 71;
+  Result.DrawDir := 5;
+  Result.TextStyle := 'Standard';
+  Result.Extrusion.x := 0;
+  Result.Extrusion.y := 0;
+  Result.Extrusion.z := 1;
+  Result.Rotatation := 0;
+  Result.LineSpacing := 1;
+  Result.SpacingFactor := 1;
   afile.AddEntity(Result);
 end;
 

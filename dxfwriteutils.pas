@@ -41,6 +41,7 @@ procedure WriteLine(w: TDxfWriter; l: TDxfLine);
 procedure WriteCircle(w: TDxfWriter; c: TDxfCircle);
 procedure WriteVertex(w: TDxfWriter; e: TDxfVertex);
 procedure WritePolyLine(w: TDxfWriter; e: TDxfPolyLine);
+procedure WriteMText(w: TDxfWriter; e: TDxfMText);
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 procedure WriteEntityList(w: TDxfWriter; lst: TList{of TDxfEntity});
 
@@ -348,6 +349,22 @@ begin
   WriteExtrusionPoint(w, e.Extrusion);
 end;
 
+procedure WriteMText(w: TDxfWriter; e: TDxfMText);
+begin
+  WriteEntityBase(w, e);
+  WritePoint(w, e.InsPoint, CB_X);
+  w.WriteFlt(40, e.InitHeight);
+  w.WriteFlt(41, e.RefWidth);
+  w.WriteInt32(71, e.AttachPoint);
+  w.WriteInt32(72, e.DrawDir);
+  w.WriteStrSplit(3, 1, e.Text, 250);
+  w.WriteStr(7, e.TextStyle);
+  WritePoint(w, e.Extrusion, 210);
+  w.WriteFlt(50, e.Rotatation);
+  w.WriteInt32(73, e.LineSpacing);
+  w.WriteFlt(44, e.SpacingFactor);
+end;
+
 procedure WriteAnyEntity(w: TDxfWriter; e: TDxfEntity);
 begin
   if not Assigned(w) or not Assigned(e) then Exit;
@@ -356,6 +373,7 @@ begin
   else if e is TDxfSeqEnd then  WriteEntityBase(w, e)
   else if e is TDxfVertex then  WriteVertex(w, TDxfVertex(e))
   else if e is TDxfPolyLine then  WritePolyLine(w, TDxfPolyLine(e))
+  else if e is TDxfMText then  WriteMText(w, TDxfMText(e))
   ;
 end;
 

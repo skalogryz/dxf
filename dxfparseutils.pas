@@ -2,6 +2,10 @@ unit dxfparseutils;
 
 interface
 
+{$ifdef fpc}
+{$mode delphi}{$H+}
+{$endif}
+
 uses
   Classes, SysUtils,
   dxftypes, dxfparse, dxfclasses;
@@ -21,11 +25,11 @@ procedure ParseSolid(p: TDxfParser; s: TDxfSolid);
 procedure ParseInsert(p: TDxfParser; i: TDxfInsert);
 procedure ParsePolyLine(p: TDxfParser; l: TDxfPolyLine);
 procedure ParseVertex(p: TDxfParser; v: TDxfVertex);
+procedure ParseMText(p: TDxfParser; mt: TDxfMText);
 
-
-procedure ParseEntity(p: TDxfParser; e: TDxfEntity);
+procedure ParseEntity(p: TDxfParser; e: TDxfEntity); overload;
 function ParseEntityFromType(p: TDxfParser; const tp: string): TDxfEntity; // parser must be at 0 / EntityName pair
-function ParseEntity(p: TDxfParser): TDxfEntity; // parser must be at 0 / EntityName pair
+function ParseEntity(p: TDxfParser): TDxfEntity; overload; // parser must be at 0 / EntityName pair
 
 procedure ParseVariable(P: TDxfParser; hdr: TDxfHeader);
 
@@ -56,9 +60,9 @@ procedure ParseObject(p: TDxfParser; obj: TDxfObject);
 // used to parse a list of 102... anything ...102
 function ParseVarList(p: TDxfParser): TDxfValuesList;
 
-procedure ReadFile(const fn: string; dst: TDxfFile);
-procedure ReadFile(const st: TStream; dst: TDxfFile);
-procedure ReadFile(p: TDxfParser; dst: TDxfFile);
+procedure ReadFile(const fn: string; dst: TDxfFile); overload;
+procedure ReadFile(const st: TStream; dst: TDxfFile); overload;
+procedure ReadFile(p: TDxfParser; dst: TDxfFile); overload;
 
 implementation
 
@@ -181,6 +185,23 @@ begin
   ParseExtrusionPoint(p, l.Extrusion);
 end;
 
+procedure ParseMText(p: TDxfParser; mt: TDxfMText);
+begin
+  ParseEntity(p, mt);
+  ParsePoint(p, mt.InsPoint, CB_X);
+  mt.InitHeight := ConsumeFlt(p, CB_NOMINAL);
+  mt.RefWidth := ConsumeFlt(p, CB_RECTWIDTH);
+  mt.AttachPoint := ConsumeInt(p, CB_ATTACH_PNT);
+  mt.DrawDir := ConsumeInt(p, 72);
+  mt.Text := ConsumeStr(p, 1);
+  mt.TextStyle := ConsumeStr(p, 7, 'STANDARD');  
+  ParseExtrusionPoint(p, mt.Extrusion);
+  mt.Rotatation := ConsumeFlt(p, 50);
+  mt.LineSpacing := ConsumeInt(p, 73);
+  mt.SpacingFactor := ConsumeFlt(p, 44);
+
+end;
+
 procedure ParseCircle(p: TDxfParser; c: TDxfCircle);
 begin
   ParseEntity(p, c);
@@ -259,7 +280,7 @@ begin
   Result := nil;
   if tp='' then Exit;
 
-  nm := upcase(tp);
+  nm := UpperCase(tp);
   case nm[1] of
     'C':
       if nm = ET_CIRCLE then begin
@@ -276,6 +297,11 @@ begin
         Result := TDxfLine.Create;
         ParseLine(p, TDxfLine(Result));
       end;
+    'M':
+       if nm = ET_MTEXT then begin
+         Result := TDxfMText.Create;
+         ParseMText(p, TDxfMText(Result));
+       end;
     'P':
       if nm = ET_POLYLINE then begin
         Result := TDxfPolyLine.Create;
@@ -850,7 +876,7 @@ begin
   Result := nil;
   if tp='' then Exit;
 
-  nm := upcase(tp);
+  nm := uppercase(tp);
   case nm[1] of
     'A':
       if nm = TE_APPID then begin
@@ -1085,7 +1111,7 @@ begin
   Result := nil;
   if tp='' then Exit;
 
-  nm := upcase(tp);
+  nm := uppercase(tp);
   case nm[1] of
     'A':
       if nm = OT_ACDBDICTIONARYWDFLT then begin

@@ -918,6 +918,24 @@ type
     constructor Create(const AEntityType: string = ET_LINE);
   end;
 
+  { TDxfMText }
+
+  TDxfMText = class(TDxfEntity)
+    InsPoint    : TDxfPoint;
+    InitHeight  : Double;
+    RefWidth    : Double;
+    AttachPoint : Integer; // alignment
+    DrawDir     : Integer;
+    Text        : string;
+    TextStyle   : string;     // 7
+    Extrusion   : TDxfPoint; // 210,220,230
+    Rotatation  : Double;    // 50 (in radians)
+    LineSpacing : integer;   // 73
+    SpacingFactor : Double;  // 44  
+    // todo: there are more!
+    constructor Create(const AEntityType: string = ET_MTEXT);
+  end;
+
   { TDxfPolyLine }
 
   TDxfPolyLine = class(TDxfEntity)
@@ -1421,6 +1439,7 @@ function isSameDbl(a,b: double; epsilon: Double = DEF_EPSILON): Boolean; {$ifdef
 
 function DxfPoint(x,y: double): TDxfPoint; overload;
 function DxfPoint(x,y,z: double): TDxfPoint; overload;
+function DxfPointXZY(x,z,y: double): TDxfPoint; overload;
 
 implementation
 
@@ -1436,6 +1455,11 @@ begin
   Result.x:=x;
   Result.y:=y;
   Result.z:=z;
+end;
+
+function DxfPointXZY(x,z,y: double): TDxfPoint; overload;
+begin
+  Result := DxfPoint(x,y,z);
 end;
 
 function isSameDbl(a,b: double; epsilon: Double): Boolean; {$ifdef fpc}inline;{$endif}
@@ -2142,5 +2166,13 @@ begin
   Self.SubClass := CLS_AcDbEntity;
 end;
 
+
+{ TDxfMText }
+
+constructor TDxfMText.Create(const AEntityType: string);
+begin
+  inherited Create(AEntityType);
+  Subclass2 := CLS_AcDbMText;
+end;
 
 end.

@@ -21,6 +21,7 @@ type
     procedure WriteFlt(codeGroup: integer; f: double);
     procedure WriteBin(codeGroup: integer; const data; dataLen: integer); virtual; abstract;
     procedure WriteStr(codeGroup: integer; const data: string; maxLen: Integer = -1);
+    procedure WriteStrSplit(codeGroup, lastCodeGroup: integer; const data: string; maxLenPerGroup: Integer);
     // tries to determine the 16 vs 32 based on the group code
     procedure WriteInt(codeGroup: integer; v: integer);
   end;
@@ -129,6 +130,20 @@ begin
   else
     WriteStr(codeGroup, intToStr(v));
   end;
+end;
+
+procedure TDxfWriter.WriteStrSplit(codeGroup, lastCodeGroup: integer;
+  const data: string; maxLenPerGroup: Integer);
+var
+  i : integer;
+  s : string;
+begin
+  s := data;
+  while (length(s)>maxLenPerGroup) and (maxLenPerGroup > 0) do begin
+    WriteStr(codeGroup, copy(s, 1, maxLenPerGroup));
+    s := copy(s, maxLenPerGroup + 1, length(s));
+  end;
+  WriteStr(lastCodeGroup, s);
 end;
 
 { TDxfBinaryWriter }

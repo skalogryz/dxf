@@ -54,7 +54,9 @@ const
   CB_X_ENDPOINT   = CB_X1;
   CB_Y_ENDPOINT   = CB_Y1;
   CB_Z_ENDPOINT   = CB_Z1;
+  CB_NOMINAL      = 40;
   CB_X_SCALE      = 41;
+  CB_RECTWIDTH    = CB_X_SCALE;
   CB_Y_SCALE      = 42;
   CB_Z_SCALE      = 43;
   CB_X_EXTRUSION  = 210;
@@ -73,6 +75,7 @@ const
   // for entities
   CB_THICKNESS    = 39;
   CB_RADIUS       = 40;
+  CB_ATTACH_PNT   = 71;
 
   // for header
   CB_VARVALUE  = 1;
@@ -613,6 +616,7 @@ const
   CLS_AcDb3dPolyline            = 'AcDb3dPolyline';
   CLS_AcDbSymbolTableRecord     = 'AcDbSymbolTableRecord';
   CLS_AcDbViewportTableRecord   = 'AcDbViewportTableRecord';
+  CLS_AcDbMText                 = 'AcDbMText';
 
   Lineweight_Standard = -3;
   Lineweight_ByLayer  = -2;
@@ -655,7 +659,22 @@ const
   ShadeEdge_FaceShade     = 1; // Faces shaded, edges highlighted in black
   ShadeEdge_FaceNotFilled = 2; // Faces not filled, edges in entity color
   ShadeEdge_Color         = 3; // Faces in entity color, edges in black
-  
+
+  MTextAttachPnt_TopLeft      = 1;
+  MTextAttachPnt_TopCenter    = 2;
+  MTextAttachPnt_TopRight     = 3;
+  MTextAttachPnt_MiddleLeft   = 4;
+  MTextAttachPnt_MiddleCenter = 5;
+  MTextAttachPnt_MiddleRight  = 6;
+  MTextAttachPnt_BottomLeft   = 7;
+  MTextAttachPnt_BottomCenter = 8;
+  MTextAttachPnt_BottomRight  = 9;
+
+  MTextDrawDir_LeftRight = 1;
+  MTextDrawDir_TopBottom = 2;
+  MTextDrawDir_ByStyle   = 5;
+
+
 implementation
 
 function DxfDataType(groupCode: Integer): TDxfType;
