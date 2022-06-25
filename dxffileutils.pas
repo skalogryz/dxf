@@ -159,10 +159,10 @@ begin
   Result.LayerName := ALayerName;
   PointToDfxPoint(pt, Result.InsPoint);
   Result.Text := atext;
-  Result.InitHeight:=10;
+  Result.InitHeight := 8;
   Result.RefWidth := 172;
-  Result.AttachPoint := 71;
-  Result.DrawDir := 5;
+  Result.AttachPoint := MTextAttachPnt_TopLeft;
+  Result.DrawDir := MTextDrawDir_ByStyle;
   Result.TextStyle := 'Standard';
   Result.Extrusion.x := 0;
   Result.Extrusion.y := 0;
