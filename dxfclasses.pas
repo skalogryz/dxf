@@ -1441,6 +1441,8 @@ function DxfPoint(x,y: double): TDxfPoint; overload;
 function DxfPoint(x,y,z: double): TDxfPoint; overload;
 function DxfPointXZY(x,z,y: double): TDxfPoint; overload;
 
+function StrHndOwn(dxf: TDxfBase): string;
+
 implementation
 
 function DxfPoint(x,y: double): TDxfPoint; overload;
@@ -2007,7 +2009,7 @@ end;
 procedure DxfEntityDump(e: TDxfEntity; const prefix: string);
 begin
   write(prefix);
-  write(e.EntityType,' (',e.Handle,')');
+  write(e.EntityType,' ',StrHndOwn(e));
   writeln;
 end;
 
@@ -2046,9 +2048,15 @@ begin
     ob := TDxfObject(dxf.objects[i]);
     if ob.Owner = ofOwner then begin
       write(pfx);
-      write( '"',DxfFileFindObjectName(dxf, ob),'" ',  ob.ObjectType,' (',ob.Handle,')');
+      write( '"',DxfFileFindObjectName(dxf, ob),'" ',  ob.ObjectType);
+      write(' ',StrHndOwn(ob));
       writeln;
       DxfFileDumpObjects(dxf, ob.Handle, pfx+'   ');
+    end else begin
+      write(pfx);
+      write( '"',DxfFileFindObjectName(dxf, ob),'" ',  ob.ObjectType);
+      write(' ',StrHndOwn(ob));
+      writeln;
     end;
   end;
 end;
@@ -2074,16 +2082,16 @@ begin
   writeln('Tables: ', dxf.tables.Count);
   for i:=0 to dxf.tables.Count-1 do begin
     t := TDxfTable(dxf.tables[i]);
-    writeln('  ',t.Name,' (',t.Handle,') owner: ', t.Owner);
+    writeln('  ',t.Name,' ',StrHndOwn(t));
     for j := 0 to t.Count-1 do begin
       te := t.Entry[j];
-      writeln('     ', te.DisplayName,' (', te.Handle,') owner: ', te.Owner);
+      writeln('     ', te.DisplayName,' ', StrHndOwn(te));
     end;
   end;
   writeln('Blocks: ', dxf.blocks.Count);
   for i:=0 to dxf.blocks.Count-1 do begin
     b := TDxfFileBlock(dxf.blocks[i]);
-    writeln('  ',b.BlockName2,' (',b.Handle,')');
+    writeln('  ',b.BlockName2,' ', StrHndOwn(b));
     for j:=0 to b._entities.Count -1 do begin
       DxfEntityDump(TDxfEntity(b._entities[j]),'    ');
     end;
@@ -2174,5 +2182,14 @@ begin
   inherited Create(AEntityType);
   Subclass2 := CLS_AcDbMText;
 end;
+
+function StrHndOwn(dxf: TDxfBase): string;
+begin
+  if (dxf.Owner = '') then
+     Result := Format('(hnd: %s)', [dxf.Handle])
+  else
+     Result := Format('(hnd: %s; owner: %s)', [dxf.Handle, dxf.Owner]);
+end;
+
 
 end.

@@ -64,6 +64,8 @@ procedure ReadFile(const fn: string; dst: TDxfFile); overload;
 procedure ReadFile(const st: TStream; dst: TDxfFile); overload;
 procedure ReadFile(p: TDxfParser; dst: TDxfFile); overload;
 
+procedure DxfLoadFromFile(const fn : string; dxf: TDxfFile);
+
 implementation
 
 procedure ParseScale(p: TDxfParser; var pt: TDxfPoint; const XcodeGroup: Integer = CB_X_SCALE);
@@ -1399,6 +1401,12 @@ begin
     dummyEnd.Free;
   end;
 
+end;
+
+
+procedure DxfLoadFromFile(const fn : string; dxf: TDxfFile);
+begin
+  ReadFile(fn, dxf);
 end;
 
 end.

@@ -201,8 +201,11 @@ begin
 end;
 
 procedure TDxfBinaryWriter.WriteCG(codeGroup: integer);
+var
+  i16 : int16;
 begin
-  dst.Write( Int16(codegroup), 2);
+  i16 := Int16(codegroup);
+  dst.Write( i16, 2);
 end;
 
 procedure TDxfBinaryWriter.WriteHeader;

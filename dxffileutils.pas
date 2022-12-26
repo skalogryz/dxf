@@ -11,6 +11,7 @@ const
   DEFAULT_LINESTYLE = 'CONTINUOUS';
 
 procedure AddDefaultObjects(dxf: TDxfFile);
+procedure AddDefaultMinObjects(dxf: TDxfFile);
 procedure AddDefaultBlocks(dxf: TDxfFile);
 
 procedure NormalizeBlocks(dxf : TDxfFile);
@@ -41,7 +42,13 @@ procedure HandlesToLinks(dxf: TDxfFile);
 // Should be used before saving a file (after manual manipulation)
 // Handles must be populated prior to calling this procedure
 // FillHandles() can be used!
-procedure LinksToHandles(dxf: TDxfFile);
+type
+  TLinkOptions = set of (loSkipEntities);
+
+const
+  DefaultLink = [loSkipEntities];
+
+procedure LinksToHandles(dxf: TDxfFile; LinkOptions: TLinkOptions = DefaultLink);
 
 procedure GatherDxfBase(dxf: TDxfFile; dst: TList);
 
@@ -299,6 +306,31 @@ begin
   AllocEntryDictionary('AcDbVariableDictionary');
 end;
 
+procedure AddDefaultMinObjects(dxf: TDxfFile);
+var
+  root : TDxfDictionary;
+
+  function AllocEntryDictionary(const EntryName: string): TDxfDictionary;
+  var
+    e    : TDxfDictionaryEntry;
+    d    : TDxfDictionary;
+  begin
+    e:=root.AddEntry;
+    e.EntryName := EntryName;
+    d := TDxfDictionary.Create;
+    d._Owner := root;
+    dxf.objects.Add(d);
+    e._Ref := d;
+    Result := d;
+  end;
+
+begin
+  root := TDxfDictionary.Create;
+  dxf.objects.Add(root);
+
+  AllocEntryDictionary('ACAD_GROUP'); // mandatory
+end;
+
 procedure HandlesToLinks(dxf: TDxfFile);
 var
   h   : THashedStringList;
@@ -333,7 +365,7 @@ begin
 
 end;
 
-procedure LinksToHandles(dxf: TDxfFile);
+procedure LinksToHandles(dxf: TDxfFile; LinkOptions: TLinkOptions);
 var
   i, j  : integer;
   blist : TList;
@@ -349,7 +381,10 @@ begin
       if Assigned(b._Owner) and (b.Owner = '') then
         b.Owner := b._Owner.Handle
       else if not Assigned(b._Owner) and (b.Owner = '') then
-        b.Owner := ZERO_HANDLE;
+        if (b is TDxfEntity) and (loSkipEntities in LinkOptions) then
+          // do nothing
+        else
+          b.Owner := ZERO_HANDLE;
 
       if (b is TDxfDictionary) then begin
         d := TDxfDictionary(b);
